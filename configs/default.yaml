@@ -1,0 +1,15 @@
+common:
+  paths: {data: data/, results: results/}
+  seed: 666
+  model: 'llama'
+  hf_token: 'your_huggingface_token_here'
+
+preprocess:
+  chunk_size: 2048
+
+train:
+  lr: 3e-4
+  epochs: 50
+
+analyze:
+  n_components: 50
