@@ -1,3 +1,8 @@
+import sys
+from pathlib import Path
+ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.append(str(ROOT))
 import numpy as np
 from sklearn.model_selection import train_test_split
 import copy
@@ -12,7 +17,7 @@ import einops
 from sklearn.linear_model import LogisticRegression
 import matplotlib.pyplot as plt
 from funcs import *
-from cfg import load_cfg
+from src.cfg import load_cfg
 cfg = load_cfg()
 probe_cfg = cfg["probe"]
 device = t.device("cuda" if t.cuda.is_available() else "cpu")
@@ -320,8 +325,7 @@ class SupervisedProbe(Probe):
         return acc
 
 def probe_sweep(list_of_datasets: List,
-                labels: t.Tensor,
-                probe_cfg
+                labels: t.Tensor
                 ) -> Tuple:
     '''
     Runs a probe sweep on a list of activations

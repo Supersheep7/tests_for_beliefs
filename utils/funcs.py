@@ -1,6 +1,11 @@
+import sys
+from pathlib import Path
 import torch
 import numpy as np
-from cfg import load_cfg
+ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.append(str(ROOT))
+from src.cfg import load_cfg
 cfg = load_cfg()
 
 def force_format(*items, format='tensor', device=cfg.device):
