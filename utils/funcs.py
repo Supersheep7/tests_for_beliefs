@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 import torch
+import einops
 import numpy as np
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
@@ -36,4 +37,9 @@ def force_format(*items, format='tensor', device=cfg.device):
 
     return results if len(results) > 1 else results[0]
 
+def decompose_mha(mha_batch):
+
+    decomposed = einops.rearrange(mha_batch, 'n_batch batch_size n_head d_head -> n_head n_batch batch_size d_head')
+    
+    return [decomposed[i] for i in range(decomposed.shape[0])]
 

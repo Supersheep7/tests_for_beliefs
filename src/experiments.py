@@ -38,6 +38,7 @@ def run_visualizations():
                 break
     elif modality == 'heads':
         activations, labels = get_activations(model, data, 'heads')
+        heads = [decompose_mha(x) for x in activations.values()]
         while True:
             layer = int(input("Enter the layer number for visualization: "))
             head = int(input("Enter the head number for visualization: "))
@@ -69,11 +70,12 @@ def run_accuracy():
             print("Plotting skipped. Accuracies data is saved in folder 'ROOT/data'")
     elif modality == 'heads':
         activations, labels = get_activations(model, data, 'heads')
-        for layer in tqdm(range(len(activations)), desc="Layers"):
+        heads = [decompose_mha(x) for x in activations.values()]
+        for layer in tqdm(range(len(heads)), desc="Layers"):
             tot_accuracies_heads = []
             tot_directions_heads = []
             tot_probes_heads = []
-            accuracies, directions, probes = probe_sweep(activations[layer], labels)
+            accuracies, directions, probes = probe_sweep(heads[layer], labels)
             tot_accuracies_heads.append(accuracies)
             tot_directions_heads.append(directions)
             tot_probes_heads.append(probes)
