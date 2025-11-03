@@ -5,10 +5,14 @@ if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))
 from src.cfg import load_cfg
 from transformer_lens import HookedTransformer
+from transformer_lens.utils import get_act_name
+from typing import List, Tuple
+from jaxtyping import Float, Int
 import torch as t
 from datasets import load_dataset
 import pandas as pd
 import os
+import gc 
 from tqdm import tqdm
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -78,5 +82,104 @@ def get_data():
     y = list(df_trimmed['label'])
     return x, y
 
+class ActivationExtractor():
+    
+    def __init__(self, 
+                 model: HookedTransformer, 
+                 data: List, 
+                 labels: List, 
+                 device: t.device = t.device('cuda' if t.cuda.is_available() else 'cpu'),
+                 half: bool = True,
+                 batch_size=32,
+                 pos=-1):
+        
+        self.model = model.to(device)
+        self.X = self.batchify(data, batch_size)
+        self.y = t.tensor(self.batchify(labels, batch_size), dtype=t.float32).to(device)
+        self.hooks = []
+        self.activations = {}
+        self.half = half
+        self.device = device
+        self.pos = pos  
+
+    def set_hooks(self, layers, names, attn=False):
+
+        if self.half:
+            self.hooks.append(("hook_embed", lambda tensor, hook: tensor.half()))
+        
+        def get_act_hook(tensor, hook):
+            
+            last_token = tensor[:, self.pos, :, :].unsqueeze(0) if attn else tensor[..., self.pos, :].unsqueeze(0)  
+            last_token = last_token.to(dtype=t.float16, device=t.device('cpu'))
+
+            if hook.name in self.activations:
+                self.activations[hook.name] = t.cat([self.activations[hook.name], last_token], dim=0)
+            else:
+                self.activations[hook.name] = last_token
+
+            return tensor
+
+        for layer in layers:
+            for name in names:
+                self.hooks.append((f"blocks.{layer}.{name}", get_act_hook))
+          
+                
+    def extract_activations_batch(self, 
+                                  sentences: t.Tensor, 
+                                  model: HookedTransformer, 
+                                  ) -> None:
+        """
+        Extract activations and sets them in self dictionary
+        """
+
+        '''sentences.shape == (batch_size 1)'''
+
+        tokens = model.to_tokens(sentences)
+
+        '''tokens.shape == (batch_size seq_len)'''
+
+        with t.no_grad():
+
+            model.reset_hooks()
+            
+            # Forward pass running with hooks
+            model.run_with_hooks(
+                tokens,
+                return_type=None,
+                fwd_hooks=self.hooks
+            )
+
+        return
+
+    def batchify(self, data, batch_size):
+        """
+        Split data into batches. We need to add padding or something like that
+        """
+        result = [data[i:i + batch_size] for i in range(0, len(data), batch_size)]
+        assert len(result[-1]) % batch_size == 0, "Data length must be divisible by batch_size"
+        return result
+
+    def process(self
+    ) -> Tuple[List[Float[t.Tensor, "batch_size n_acts d_model"]], Int[t.Tensor, "batch_size"]]:
+        # Process
+        for batch in tqdm(self.X, "Processing"):
+            self.extract_activations_batch(batch, self.model)
+        return self.activations, self.y
+
 def get_activations(model: HookedTransformer, data, modality: str = 'residual'):
-    return None
+    model.to(cfg["common"]["device"])
+    model.reset_hooks()
+    extractor = ActivationExtractor(model=model, data=data, labels=labels, device=cfg["common"]["device"], half=True,
+                                      batch_size=cfg["tlens"]["batch_extractor"], pos=-1)
+    if modality == 'heads':
+        extractor.set_hooks([i for i in range(model.cfg.n_layers)],
+                            [get_act_name('z')], attn=True)
+    else:
+        extractor.set_hooks(
+                            [i for i in range(model.cfg.n_layers)],
+                            [get_act_name('resid_post')], attn=False) 
+    activations, labels = extractor.process() # Get
+    model.to(t.device('cpu'))
+    gc.collect()
+    t.cuda.empty_cache()
+    return activations, labels
