@@ -5,6 +5,9 @@ common:
   hf_token: 'your_huggingface_token_here'
   device: 'cuda'
 
+tlens: 
+  batch_extractor: 32
+
 probe:
   probe_type: 'logistic_regression'
   direction_type: 'mmp'
