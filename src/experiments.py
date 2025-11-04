@@ -67,32 +67,39 @@ def run_accuracy():
         if print_answer == 'y':
             plot_line(accuracies, title="Residual Stream Probe Accuracies", label=f"Accuracy for model {cfg['common']['model']}")
         else:
-            print("Plotting skipped. Accuracies data is saved in folder 'ROOT/data'")
+            print("Plotting skipped.")
     elif modality == 'heads':
         activations, labels = get_activations(model, data, 'heads')
         heads = [decompose_mha(x) for x in activations.values()]
         for layer in tqdm(range(len(heads)), desc="Layers"):
-            tot_accuracies_heads = []
-            tot_directions_heads = []
-            tot_probes_heads = []
-            accuracies, directions, probes = probe_sweep(heads[layer], labels)
-            tot_accuracies_heads.append(accuracies)
-            tot_directions_heads.append(directions)
-            tot_probes_heads.append(probes)
-        tot_accuracies_heads = np.array(tot_accuracies_heads)
+            accuracies = []
+            directions = []
+            probes = []
+            acc, dir, pro = probe_sweep(heads[layer], labels)
+            accuracies.append(acc)
+            directions.append(dir)
+            probes.append(pro)
+        accuracies = np.array(accuracies)
         print_answer = input("Do you want to print the plot? [y/n]: ").strip().lower()
         if print_answer == 'y':
-            plot_heat(tot_accuracies_heads, title="Attention Heads Probe Accuracies (Sorted)", model=cfg['common']['model'], probe=cfg['probe']['probe_type'])
+            plot_heat(accuracies, title="Attention Heads Probe Accuracies (Sorted)", model=cfg['common']['model'], probe=cfg['probe']['probe_type'])
         else:
-            print("Plotting skipped. Accuracies data is saved in folder 'ROOT/data'")
+            print("Plotting skipped.")
     else:
         print("Invalid modality. Please choose 'residual' or 'heads'.")
         return
     
+    save_results(accuracies, "accuracies", modality='heads')
+    save_results(directions, "directions", modality='heads')
+    save_results(probes, "probes", modality='heads')
+    print("Results saved in folder 'ROOT/results'")
+
     return
 
 def run_intervention():
     print(f"Running experiment: accuracy")
+    model = get_model()
+    data = get_data()
     # TODO: function for the replicator to sweep 
     # TODO: get actual results
     return
@@ -100,10 +107,6 @@ def run_intervention():
 def run_coherence():
     print(f"Running experiment: accuracy")
     # TODO: run coherence(logic, model, estimator)
-    return
-
-def run_self_consistency():
-    # TODO: run self consistency(model, estimator)
     return
 
 def run_analysis():
@@ -114,6 +117,5 @@ EXPERIMENTS = {
     "accuracy": run_accuracy,
     "intervention": run_intervention,
     "coherence": run_coherence,
-    "self_consistency": run_self_consistency,
     "analysis": run_analysis
 }

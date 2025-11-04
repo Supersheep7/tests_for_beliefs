@@ -22,3 +22,10 @@ probe:
   var_normalize: True
   verbose: True
   control: False
+
+intervention:
+  k: 5
+  alpha: 1
+
+coherence:
+  estimator: 'logistic_regression'
