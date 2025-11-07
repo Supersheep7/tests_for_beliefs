@@ -99,7 +99,39 @@ def run_accuracy():
 def run_intervention():
     print(f"Running experiment: accuracy")
     model = get_model()
-    data = get_data()
+    modality = input("Choose the target ['residual', 'heads']: ").strip().lower()
+    if modality == 'residual':
+        directions = Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "directions_residual.pkl")
+        accuracies = Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "accuracies_residual.pkl")
+        sweep = input("Do you want to run an intervention sweep? [y/n]: ").strip().lower() == 'y'
+        if sweep:
+            x_true, y_true, x_false, y_false = get_data('intervention', sweep=True)
+            print("Running intervention sweep...")
+            alphas = input("Enter alpha values separated by commas (e.g., 1,3,5): ")
+            ks = input("Enter k values separated by commas (e.g., 5,10,20): ")
+            alpha_list = [float(a.strip()) for a in alphas.split(',')]
+            k_list = [int(k.strip()) for k in ks.split(',')]
+            pass # TODO: fill
+        x_true, y_true, x_false, y_false = get_data('intervention')
+        alpha = float(input("Enter alpha value: "))
+        k = int(input("Enter k value: "))
+        pass # TODO: fill
+    elif modality == 'heads':
+        directions = Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "directions_heads.pkl")
+        accuracies = Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "accuracies_heads.pkl")
+        sweep = input("Do you want to run an intervention sweep? [y/n]: ").strip().lower() == 'y'
+        if sweep:
+            x_true, y_true, x_false, y_false = get_data('intervention', sweep=True)
+            print("Running intervention sweep...")
+            alphas = input("Enter alpha values separated by commas (e.g., 1,3,5): ")
+            ks = input("Enter k values separated by commas (e.g., 5,10,20): ")
+            alpha_list = [float(a.strip()) for a in alphas.split(',')]
+            k_list = [int(k.strip()) for k in ks.split(',')]
+            pass # TODO: fill
+        x_true, y_true, x_false, y_false = get_data('intervention')
+        alpha = float(input("Enter alpha value: "))
+        k = int(input("Enter k value: "))
+        pass # TODO: fill
     # TODO: function for the replicator to sweep 
     # TODO: get actual results
     return

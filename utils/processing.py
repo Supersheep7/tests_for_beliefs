@@ -14,6 +14,7 @@ import pandas as pd
 import os
 import gc 
 from tqdm import tqdm
+import random
 import numpy as np
 from sklearn.model_selection import train_test_split
 cfg = load_cfg()
@@ -54,7 +55,7 @@ class TrueFalseBuilder():
   def debug(self):
     print(os.listdir(self.path))
 
-def get_data():
+def get_data(experiment: str = 'accuracy', sweep: bool = False):
     databuilder = TrueFalseBuilder()
     dfs, df_all = databuilder.get_dataset()
     # Preprocessing
@@ -69,18 +70,39 @@ def get_data():
     sampled_1 = label_1.sample(n=retain_per_label, random_state=cfg["common"]["seed"])
     sampled_target_df = pd.concat([sampled_0, sampled_1])
     df_all = pd.concat([df_all[df_all['filename'] != 'counterfact_true_false.csv'], sampled_target_df])
-    # df_all['statement'] = df_all['statement'] + ' This sentence is:'
-
     df_train, df_test = train_test_split(
-        df_all,
-        test_size=0.5,
-        stratify=df_all['filename']
-    )
-
-    df_trimmed = df_train.iloc[:-(len(df_train) % cfg["tlens"]["batch_extractor"]), :]
-    x = list(df_trimmed['statement'])
-    y = list(df_trimmed['label'])
-    return x, y
+          df_all,
+          test_size=0.5,
+          stratify=df_all['filename']
+      )
+    if experiment == 'accuracy':
+      df_trimmed = df_train.iloc[:-(len(df_train) % cfg["tlens"]["batch_extractor"]), :]
+      x = list(df_trimmed['statement'])
+      y = list(df_trimmed['label'])
+      return x, y
+    elif experiment == 'visualization':
+      df_trimmed = df_all.iloc[:-(len(df_all) % cfg["tlens"]["batch_extractor"]), :]
+      x = list(df_trimmed['statement'])
+      y = list(df_trimmed['label'])
+      return x, y
+    elif experiment == 'intervention':
+      df_trimmed = df_test.iloc[:-(len(df_test) % cfg["tlens"]["batch_extractor"]), :]
+      df_for_int = df_test.copy()
+      df_for_int['statement'] = df_test['statement'].str[:-1]
+      df_true = df_for_int[df_for_int['label'] == 1]
+      df_false = df_for_int[df_for_int['label'] == 0]
+      if sweep:
+        test_sample_true = random.sample(list(df_true['statement']), 100)
+        test_sample_false = random.sample(list(df_false['statement']), 100)
+        sampled_df_true = df_true[df_true['statement'].isin(test_sample_true)]
+        sampled_df_false = df_false[df_false['statement'].isin(test_sample_false)]
+        return list(sampled_df_true['statement']), list(sampled_df_true['label']), list(sampled_df_false['statement']), list(sampled_df_false['label'])
+      else:
+        return list(df_true['statement']), list(df_true['label']), list(df_false['statement']), list(df_false['label'])
+    elif experiment == 'coherence':
+      pass # TODO: implement coherence dataset loading
+    else:
+      raise ValueError(f"Unsupported experiment type: {experiment}")
 
 class ActivationExtractor():
     
