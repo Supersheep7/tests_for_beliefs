@@ -5,9 +5,10 @@ if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))
 from utils.get_model import get_model
 from utils.processing import get_data, get_activations
-from utils.viz import plot_line, plot_heat, plot_kde_scatter
+from utils.viz import plot_line, plot_heat, plot_kde_scatter, plot_sweep
 from utils.probe import *
 from cfg import load_cfg
+from utils.intervention import *
 cfg = load_cfg()
 
 def asker_kde():
@@ -97,43 +98,54 @@ def run_accuracy():
     return
 
 def run_intervention():
+
     print(f"Running experiment: accuracy")
     model = get_model()
     modality = input("Choose the target ['residual', 'heads']: ").strip().lower()
     if modality == 'residual':
         directions = Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "directions_residual.pkl")
         accuracies = Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "accuracies_residual.pkl")
-        sweep = input("Do you want to run an intervention sweep? [y/n]: ").strip().lower() == 'y'
-        if sweep:
-            x_true, y_true, x_false, y_false = get_data('intervention', sweep=True)
-            print("Running intervention sweep...")
-            alphas = input("Enter alpha values separated by commas (e.g., 1,3,5): ")
-            ks = input("Enter k values separated by commas (e.g., 5,10,20): ")
-            alpha_list = [float(a.strip()) for a in alphas.split(',')]
-            k_list = [int(k.strip()) for k in ks.split(',')]
-            pass # TODO: fill
-        x_true, y_true, x_false, y_false = get_data('intervention')
-        alpha = float(input("Enter alpha value: "))
-        k = int(input("Enter k value: "))
-        pass # TODO: fill
     elif modality == 'heads':
         directions = Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "directions_heads.pkl")
         accuracies = Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "accuracies_heads.pkl")
-        sweep = input("Do you want to run an intervention sweep? [y/n]: ").strip().lower() == 'y'
-        if sweep:
+    else:
+        print("Invalid modality. Please choose 'residual' or 'heads'.")
+    sweep = input("Do you want to run an intervention sweep? [y/n]: ").strip().lower() == 'y'
+    if sweep:
+        while True:
             x_true, y_true, x_false, y_false = get_data('intervention', sweep=True)
             print("Running intervention sweep...")
             alphas = input("Enter alpha values separated by commas (e.g., 1,3,5): ")
             ks = input("Enter k values separated by commas (e.g., 5,10,20): ")
             alpha_list = [float(a.strip()) for a in alphas.split(',')]
+            alpha_list_flipped = [-a for a in alpha_list]
             k_list = [int(k.strip()) for k in ks.split(',')]
-            pass # TODO: fill
-        x_true, y_true, x_false, y_false = get_data('intervention')
-        alpha = float(input("Enter alpha value: "))
-        k = int(input("Enter k value: "))
-        pass # TODO: fill
-    # TODO: function for the replicator to sweep 
-    # TODO: get actual results
+            # Trues
+            print("True --> False...")
+            boolp, probdiff = parameter_sweep(model=model, prompts=x_true, accuracies=accuracies, directions=directions, ks=k_list, alphas=alpha_list_flipped, metric='boolp', labels=y_true, attn=modality=='heads')
+            plot_sweep(boolp, k_list, alpha_list, title="Boolp: True --> False")
+            plot_sweep(probdiff, k_list, alpha_list, title="Boolp: True --> False")
+            # Falses
+            print("False --> True...")
+            boolp, probdiff = parameter_sweep(model=model, prompts=x_false, accuracies=accuracies, directions=directions, ks=k_list, alphas=alpha_list, metric='boolp', labels=y_false, attn=modality=='heads')
+            plot_sweep(boolp, k_list, alpha_list, title="Boolp: True --> False")
+            plot_sweep(probdiff, k_list, alpha_list, title="Boolp: True --> False")
+            retry = input("Do you want to run another sweep? [y/n]: ").strip().lower()
+            if retry != 'y':
+                break
+    x_true, y_true, x_false, y_false = get_data('intervention')
+    alpha_list = [0, float(input("Enter alpha value for False --> True: "))]
+    alpha_list_flipped = [0, float(input("Enter alpha value for True --> False: "))]
+    k_list = [int(input("Enter k value: "))]
+    # Trues
+    boolp, probdiff = parameter_sweep(model=model, prompts=x_true, accuracies=accuracies, directions=directions, ks=k_list, alphas=alpha_list_flipped, metric='boolp', labels=y_true, attn=modality=='heads')
+    save_results(boolp[1]-boolp[0], f"intervention_boolp_true_to_false_k{k_list}_a{alpha_list_flipped[1]}_{cfg["model"]}", modality=modality)
+    save_results(probdiff[1]-probdiff[0], f"intervention_probdiff_true_to_false_k{k_list}_a{alpha_list_flipped[1]}_{cfg["model"]}", modality=modality)
+    # Falses
+    boolp, probdiff = parameter_sweep(model=model, prompts=x_true, accuracies=accuracies, directions=directions, ks=k_list, alphas=alpha_list_flipped, metric='boolp', labels=y_true, attn=modality=='heads')
+    save_results(boolp[1]-boolp[0], f"intervention_boolp_false_to_true_k{k_list}_a{alpha_list[1]}_{cfg["model"]}", modality=modality)
+    save_results(probdiff[1]-probdiff[0], f"intervention_probdiff_false_to_true_k{k_list}_a{alpha_list[1]}_{cfg["model"]}", modality=modality)
+
     return
 
 def run_coherence():

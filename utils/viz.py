@@ -233,3 +233,23 @@ def plot_kde_scatter(data, labels, model, n_dir=2, zoom_strength=0, offset=1, ke
         )
 
     return
+
+def plot_sweep(data, ks, alphas, metric="DummyMetric", custom_subtitle=None):
+
+    plt.figure(figsize=(10, 8)) 
+    ax = plt.gca()
+    ax.set_aspect('equal')
+
+    sns.heatmap(data, annot=True, fmt=".3f", cmap="Blues", cbar=False, linewidths=0.1, linecolor='grey')
+    ax.set_yticks(np.arange(data.shape[0]) + 0.5, ks)
+    ax.set_xticks(np.arange(data.shape[1]) + 0.5, alphas)
+
+    if custom_subtitle is not None:
+      plt.suptitle(f"Intervention effect | metric: {metric}", fontsize=16)
+      plt.title(f"{custom_subtitle}")
+    else:
+      plt.title(f"Intervention effect | metric: {metric}", fontsize=16, pad=16)
+    plt.xlabel("Alpha", labelpad=10)
+    plt.ylabel("K", labelpad=10)
+
+    plt.show()
