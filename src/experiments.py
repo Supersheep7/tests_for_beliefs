@@ -9,6 +9,7 @@ from utils.viz import plot_line, plot_heat, plot_kde_scatter, plot_sweep
 from utils.probe import *
 from cfg import load_cfg
 from utils.intervention import *
+from coherence_experiments import run_coherence_neg, run_coherence_or, run_coherence_and, run_coherence_ifthen
 cfg = load_cfg()
 
 def asker_kde():
@@ -102,6 +103,7 @@ def run_intervention():
     print(f"Running experiment: accuracy")
     model = get_model()
     modality = input("Choose the target ['residual', 'heads']: ").strip().lower()
+    modality = input("Choose the target ['residual', 'heads']: ").strip().lower()
     if modality == 'residual':
         directions = Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "directions_residual.pkl")
         accuracies = Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "accuracies_residual.pkl")
@@ -150,16 +152,25 @@ def run_intervention():
 
 def run_coherence():
     print(f"Running experiment: accuracy")
-    # TODO: run coherence(logic, model, estimator)
-    return
+    model = get_model()
+    logic = input("Choose the logic: ").strip().lower()
+    estimators = [e.strip() for e in input("Choose the estimator(s) (comma-separated): ").split(',')]
 
-def run_analysis():
-    print(f"Running data analysis")
-    return
+    if logic == 'neg':
+        for estimator in estimators:
+            results = run_coherence_neg(model, estimator)
+    elif logic == 'or':
+        for estimator in estimators:
+            results = run_coherence_or(model, estimator)
+    elif logic == 'and':
+        for estimator in estimators:
+            results = run_coherence_and(model, estimator)
+    elif logic == 'ifthen':
+        for estimator in estimators:
+            results = run_coherence_ifthen(model, estimator)
 
-EXPERIMENTS = {
-    "accuracy": run_accuracy,
-    "intervention": run_intervention,
-    "coherence": run_coherence,
-    "analysis": run_analysis
-}
+    print("Coherence experiment completed.")
+    print("Results: ", results)
+    save_results(results, f"coherence_{logic}_{'_'.join(estimators)}_{cfg['common']['model']}", modality='coherence')
+    
+    return
