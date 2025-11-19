@@ -9,6 +9,7 @@ import copy
 import torch as t
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
+from processing import get_activations, force_format
 from jaxtyping import Float, Int
 from typing import Tuple, List
 import pickle
@@ -122,7 +123,10 @@ class Probe(object):
               theta = self.best_probe.coef_[0] if direction_type == 'logistic' else self.best_probe[0].weight[0].cpu().numpy()
               self.direction = nn.Parameter(t.tensor(theta, dtype=t.float, requires_grad=True, device=self.device).squeeze(0))
 
-    def initialize_probe(self):
+    def initialize_probe(self, override_probe_type=None):
+
+        if override_probe_type is not None:
+            self.probe_type = override_probe_type
 
         if self.probe_type == "mmp":
             # We need the direction and covariance in advance for the MMP probe 
@@ -357,3 +361,50 @@ def probe_sweep(list_of_datasets: List,
         best_probes.append(probe.best_probe)
 
     return (accuracies, directions, best_probes)
+
+class Estimator:
+    def __init__(self, estimator_name: str, model):
+        self.estimator_name = estimator_name
+        self.model = model
+        self.data = None 
+        self.X_train, self.X_test, self.y_train, self.y_test = None, None, None, None # FILL
+        self.probe = None
+
+    def set_dataset(self, dataset):
+        self.data = dataset
+        self.X_train, self.X_test, self.y_train, self.y_test = None, None, None, None # FILL
+        if self.estimator_name in ['logistic_regression', 'mmp']:
+            self.probe = SupervisedProbe(self.X_train, self.X_test, self.y_train, self.y_test, probe_cfg)
+            self.probe.initialize_probe(override_probe_type=self.estimator_name)
+
+    def logits_evaluate(self, data: list) -> np.ndarray:
+        
+        # TODO
+        
+        return 
+
+    def self_evaluate(self, data: list) -> np.ndarray:
+        
+        # TODO
+        
+        return 
+
+    def extract_proba(self) -> np.ndarray:
+        
+        if self.estimator_name in ['logistic_regression', 'mmp']:
+
+            # train probe 
+            
+
+            activations, labels = get_activations(self.model, self.X_test, 'residual')
+            X = einops.rearrange(activations, 'n b d -> (n b) d') # Do we need this? 
+            return self.probe.predict_proba(X) if self.estimator_name == 'logistic_regression' else self.probe(X, iid=True).detach().cpu().numpy()
+
+        elif self.estimator_name == 'logits':
+            return self.logits_evaluate(self.X_test)
+        
+        elif self.estimator_name == 'self_report':
+            return self.self_evaluate(self.X_test)
+
+        else:
+            raise ValueError(f"Unsupported estimator: {self.estimator_name}")

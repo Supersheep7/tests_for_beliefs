@@ -19,6 +19,35 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 cfg = load_cfg()
 
+class CoherenceBuilder():
+  def __init__(self, clean=True):
+    self.path = f'{ROOT}/data/datasets/coherence'
+
+  def get_neg_data(self):
+    data = pd.read_csv(os.path.join(self.path, 'negation.csv'))
+    data_pos = data['statement'].tolist()   # FIX the names according to the csv columns
+    data_neg = data['new_statement'].tolist()   # FIX the names according to the csv
+    return data_pos, data_neg
+  
+  def get_or_data(self):
+    data = pd.read_csv(os.path.join(self.path, 'disjunction.csv'))
+    data_atom = data['statement'].tolist()       # FIX the names according to the csv columns
+    data_or = data['new_statement'].tolist()           # FIX the names according to the csv
+    return data_atom, data_or
+
+  def get_and_data(self):
+    data = pd.read_csv(os.path.join(self.path, 'conjunction.csv'))
+    data_atom = data['statement'].tolist()       # FIX the names according to the csv columns
+    data_and = data['new_statement'].tolist()         # FIX the names according to the csv
+    return data_atom, data_and
+
+  def get_ifthen_data(self):
+    data = pd.read_csv(os.path.join(self.path, 'entailment.csv'))
+    data_atom = data['statement'].tolist()       # FIX the names according to the csv columns
+    data_and = data['new_statement'].tolist()         # FIX the names according to the csv columns
+    data_ifthen = data['hop_statement'].tolist()   # FIX the names according to the csv columns
+    return data_atom, data_and, data_ifthen
+
 class TrueFalseBuilder():
   def __init__(self, clean=True):
     self.path = f'{ROOT}/data/datasets/true_false'
@@ -55,7 +84,7 @@ class TrueFalseBuilder():
   def debug(self):
     print(os.listdir(self.path))
 
-def get_data(experiment: str = 'accuracy', sweep: bool = False):
+def get_data(experiment: str = 'accuracy', sweep: bool = False, logic: str = None):
     databuilder = TrueFalseBuilder()
     dfs, df_all = databuilder.get_dataset()
     # Preprocessing
@@ -100,7 +129,19 @@ def get_data(experiment: str = 'accuracy', sweep: bool = False):
       else:
         return list(df_true['statement']), list(df_true['label']), list(df_false['statement']), list(df_false['label'])
     elif experiment == 'coherence':
-      pass # TODO: implement coherence dataset loading
+      databuilder = CoherenceBuilder()
+      if logic == 'neg':
+        data_pos, data_neg = databuilder.get_neg_data()
+        return data_pos, data_neg
+      elif logic == 'or':
+        data_atom, data_or = databuilder.get_or_data()
+        return data_atom, data_or
+      elif logic == 'and':
+        data_atom, data_and = databuilder.get_and_data()
+        return data_atom, data_and
+      elif logic == 'ifthen':
+        data_atom, data_and, data_ifthen = databuilder.get_ifthen_data()
+        return data_atom, data_and, data_ifthen
     else:
       raise ValueError(f"Unsupported experiment type: {experiment}")
 

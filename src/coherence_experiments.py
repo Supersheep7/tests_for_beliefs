@@ -1,13 +1,55 @@
+import sys
+from pathlib import Path
+ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.append(str(ROOT))
+from utils.processing import get_data, get_activations
+from utils.viz import plot_line, plot_heat, plot_kde_scatter, plot_sweep
+from utils.probe import *
+from cfg import load_cfg
+from utils.intervention import *
+cfg = load_cfg()
 
+def run_coherence_neg(estimator):
+    data_pos, data_neg = get_data(experiment='coherence', logic='neg')
 
-def run_coherence_neg(model, estimator):
-    pass
+    probas_pos = estimator.extract_proba(data_pos)
+    probas_neg = estimator.extract_proba(data_neg)
 
-def run_coherence_or(model, estimator):
-    pass    
+    pos_neg = probas_pos - probas_neg
+    ceiling = t.ones_like(pos_neg)
+    score = 1/(1 + np.mean((pos_neg - ceiling) ** 2))
+    return score
 
-def run_coherence_and(model, estimator):
-    pass
+def run_coherence_or(estimator):
+    data_atom, data_or = get_data(experiment='coherence', logic='or')
 
-def run_coherence_ifthen(model, estimator):
-    pass
+    probas_atom = estimator.extract_proba(data_atom)
+    probas_or = estimator.extract_proba(data_or)
+
+    corrects = (probas_or >= probas_atom).astype(int)
+    score = np.mean(corrects)
+    return score
+
+def run_coherence_and(estimator):
+    data_atom, data_or = get_data(experiment='coherence', logic='and')
+
+    probas_atom = estimator.extract_proba(data_atom)
+    probas_and = estimator.extract_proba(data_or)
+
+    corrects = (probas_and <= probas_atom).astype(int)
+    score = np.mean(corrects)
+    return score
+
+def run_coherence_ifthen(estimator):
+    data_atom, data_and, data_ifthen = get_data(experiment='coherence', logic='ifthen')
+
+    probas_atom = estimator.extract_proba(data_atom)
+    probas_and = estimator.extract_proba(data_and)
+    probas_ifthen = estimator.extract_proba(data_ifthen)
+
+    probas_bayesed = probas_and/probas_atom
+
+    score = 1/(1 + np.mean(np.abs(probas_ifthen - probas_bayesed)))
+
+    return score

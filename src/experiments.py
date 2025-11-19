@@ -155,22 +155,21 @@ def run_coherence():
     model = get_model()
     logic = input("Choose the logic: ").strip().lower()
     estimators = [e.strip() for e in input("Choose the estimator(s) (comma-separated): ").split(',')]
-
-    if logic == 'neg':
-        for estimator in estimators:
-            results = run_coherence_neg(model, estimator)
-    elif logic == 'or':
-        for estimator in estimators:
-            results = run_coherence_or(model, estimator)
-    elif logic == 'and':
-        for estimator in estimators:
-            results = run_coherence_and(model, estimator)
-    elif logic == 'ifthen':
-        for estimator in estimators:
-            results = run_coherence_ifthen(model, estimator)
+    results_tot = {}
+    for e in estimators:
+        estimator = Estimator(estimator_name=e, model=model)
+        if logic == 'neg':
+            results = run_coherence_neg(estimator)
+        elif logic == 'or':
+            results = run_coherence_or(estimator)
+        elif logic == 'and':
+            results = run_coherence_and(estimator)
+        elif logic == 'ifthen':
+            results = run_coherence_ifthen(estimator)
+        results_tot[e] = results
 
     print("Coherence experiment completed.")
-    print("Results: ", results)
-    save_results(results, f"coherence_{logic}_{'_'.join(estimators)}_{cfg['common']['model']}", modality='coherence')
+    print("Results: ", results_tot)
+    save_results(results_tot, f"coherence_{logic}_{'_'.join(estimators)}_{cfg['common']['model']}", modality='coherence')
     
     return
