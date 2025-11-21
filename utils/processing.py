@@ -16,36 +16,66 @@ import gc
 from tqdm import tqdm
 import random
 import numpy as np
+import pickle
 from sklearn.model_selection import train_test_split
 cfg = load_cfg()
 
 class CoherenceBuilder():
   def __init__(self, clean=True):
     self.path = f'{ROOT}/data/datasets/coherence'
+    self.batch_extractor = cfg["tlens"]["batch_extractor"]
+    with open(os.path.join(ROOT, 'data/datasets/coherence/curated_dataset.pkl'), 'rb') as f:
+      self.curated_dataset = pickle.load(f)
+
+  def get_data_split(self, task: str, other_dataset=None, cutoff=1500):
+
+    if task in ['negation', 'disjunction', 'conjunction']:
+        # In this case curated dataset is the logical dataset + the remainder
+        remainder = curated_dataset[~curated_dataset['filename'].isin(['common_claim_true_false.csv', 'companies_true_false.csv', 'counterfact_true_false.csv'])]
+        curated_dataset = pd.concat([remainder, other_dataset])
+        train_set, test_set = train_test_split(curated_dataset, test_size=0.2, random_state=42, stratify=curated_dataset['filename'])
+        test_df = test_set.dropna()
+        
+    elif task == 'entailment':
+        remainder = curated_dataset[~curated_dataset['filename'].isin(['common_claim_true_false.csv', 'companies_true_false.csv', 'counterfact_true_false.csv',
+                                                                      'cities.csv', 'cities_cities_conj.csv', 'cities_cities_disj.csv', 'neg_cities.csv'
+                                                                      ])]
+        curated_dataset = pd.concat([remainder, other_dataset])
+        train_set, test_set = train_test_split(curated_dataset, test_size=0.2, random_state=42, stratify=curated_dataset['filename'])
+        test_df = test_set.dropna()        
+
+    # Trim for batch size
+    train_set = train_set.iloc[:-(len(train_set) % self.batch_extractor), :]
+    X_clean_train = list(train_set['statement'])
+    y_clean_train = list(train_set['label'])
+    
+    return (X_clean_train, y_clean_train, test_df)
 
   def get_neg_data(self):
-    data = pd.read_csv(os.path.join(self.path, 'negation.csv'))
-    data_pos = data['statement'].tolist()   # FIX the names according to the csv columns
-    data_neg = data['new_statement'].tolist()   # FIX the names according to the csv
-    return data_pos, data_neg
+    with open(os.path.join(self.path, 'neg_dataset.pkl'), 'r') as f:
+       raw = pickle.load(f)
+    X_train, y_train, test_data  = self.get_data_split('negation', other_dataset=raw)
+    data_pos = test_data['statement'].tolist()   # FIX the names according to the csv columns
+    data_neg = test_data['new_statement'].tolist()   # FIX the names according to the csv
+    return (X_train, y_train), data_pos, data_neg
   
   def get_or_data(self):
-    data = pd.read_csv(os.path.join(self.path, 'disjunction.csv'))
-    data_atom = data['statement'].tolist()       # FIX the names according to the csv columns
-    data_or = data['new_statement'].tolist()           # FIX the names according to the csv
+    test_data = pd.read_csv(os.path.join(self.path, 'disjunction.csv'))
+    data_atom = test_data['statement'].tolist()       # FIX the names according to the csv columns
+    data_or = test_data['new_statement'].tolist()           # FIX the names according to the csv
     return data_atom, data_or
 
   def get_and_data(self):
-    data = pd.read_csv(os.path.join(self.path, 'conjunction.csv'))
-    data_atom = data['statement'].tolist()       # FIX the names according to the csv columns
-    data_and = data['new_statement'].tolist()         # FIX the names according to the csv
+    test_data = pd.read_csv(os.path.join(self.path, 'conjunction.csv'))
+    data_atom = test_data['statement'].tolist()       # FIX the names according to the csv columns
+    data_and = test_data['new_statement'].tolist()         # FIX the names according to the csv
     return data_atom, data_and
 
   def get_ifthen_data(self):
-    data = pd.read_csv(os.path.join(self.path, 'entailment.csv'))
-    data_atom = data['statement'].tolist()       # FIX the names according to the csv columns
-    data_and = data['new_statement'].tolist()         # FIX the names according to the csv columns
-    data_ifthen = data['hop_statement'].tolist()   # FIX the names according to the csv columns
+    test_data = pd.read_csv(os.path.join(self.path, 'entailment.csv'))
+    data_atom = test_data['statement'].tolist()       # FIX the names according to the csv columns
+    data_and = test_data['new_statement'].tolist()         # FIX the names according to the csv columns
+    data_ifthen = test_data['hop_statement'].tolist()   # FIX the names according to the csv columns
     return data_atom, data_and, data_ifthen
 
 class TrueFalseBuilder():
@@ -131,17 +161,17 @@ def get_data(experiment: str = 'accuracy', sweep: bool = False, logic: str = Non
     elif experiment == 'coherence':
       databuilder = CoherenceBuilder()
       if logic == 'neg':
-        data_pos, data_neg = databuilder.get_neg_data()
-        return data_pos, data_neg
+        train_df, data_pos, data_neg = databuilder.get_neg_data()
+        return train_df, data_pos, data_neg
       elif logic == 'or':
-        data_atom, data_or = databuilder.get_or_data()
-        return data_atom, data_or
+        train_df, data_atom, data_or = databuilder.get_or_data()
+        return train_df, data_atom, data_or
       elif logic == 'and':
-        data_atom, data_and = databuilder.get_and_data()
-        return data_atom, data_and
+        train_df, data_atom, data_and = databuilder.get_and_data()
+        return train_df, data_atom, data_and
       elif logic == 'ifthen':
-        data_atom, data_and, data_ifthen = databuilder.get_ifthen_data()
-        return data_atom, data_and, data_ifthen
+        train_df, data_atom, data_and, data_ifthen = databuilder.get_ifthen_data()
+        return train_df, data_atom, data_and, data_ifthen
     else:
       raise ValueError(f"Unsupported experiment type: {experiment}")
 
@@ -229,18 +259,30 @@ class ActivationExtractor():
             self.extract_activations_batch(batch, self.model)
         return self.activations, self.y
 
-def get_activations(model: HookedTransformer, data, modality: str = 'residual'):
+def get_activations(model: HookedTransformer, data, modality: str = 'residual', focus: Tuple = None):
+
     model.to(cfg["common"]["device"])
     model.reset_hooks()
     extractor = ActivationExtractor(model=model, data=data, labels=labels, device=cfg["common"]["device"], half=True,
                                       batch_size=cfg["tlens"]["batch_extractor"], pos=-1)
     if modality == 'heads':
-        extractor.set_hooks([i for i in range(model.cfg.n_layers)],
-                            [get_act_name('z')], attn=True)
+        if focus is None:
+          extractor.set_hooks([i for i in range(model.cfg.n_layers)],
+                              [get_act_name('z')], attn=True)
+        else: 
+          layer, head = focus
+          extractor.set_hooks([layer],
+                              [f'blocks.{layer}.attn.hook_z_{head}'], attn=True)
     else:
-        extractor.set_hooks(
-                            [i for i in range(model.cfg.n_layers)],
-                            [get_act_name('resid_post')], attn=False) 
+        if focus is None:
+          extractor.set_hooks(
+                              [i for i in range(model.cfg.n_layers)],
+                              [get_act_name('resid_post')], attn=False)
+        else: 
+          layer = focus
+          extractor.set_hooks(
+                              [layer],
+                              [get_act_name('resid_post')], attn=False) 
     activations, labels = extractor.process()
     model.to(t.device('cpu'))
     gc.collect()

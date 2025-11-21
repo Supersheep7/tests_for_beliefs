@@ -353,7 +353,6 @@ def probe_sweep(list_of_datasets: List,
         probe = SupervisedProbe(x_train=X_train, y_train=y_train,
                                 x_test=X_test, y_test=y_test,
                                 probe_cfg=probe_cfg)
-
         probe.train()
         accuracies.append(probe.get_acc())
         if probe_cfg.direction_type != None:
@@ -366,16 +365,17 @@ class Estimator:
     def __init__(self, estimator_name: str, model):
         self.estimator_name = estimator_name
         self.model = model
-        self.data = None 
-        self.X_train, self.X_test, self.y_train, self.y_test = None, None, None, None # FILL
+        self.train_data = None 
         self.probe = None
+        self.logic = None
+        self.best_layer = None 
+        self.best_head = None
 
-    def set_dataset(self, dataset):
-        self.data = dataset
-        self.X_train, self.X_test, self.y_train, self.y_test = None, None, None, None # FILL
-        if self.estimator_name in ['logistic_regression', 'mmp']:
-            self.probe = SupervisedProbe(self.X_train, self.X_test, self.y_train, self.y_test, probe_cfg)
-            self.probe.initialize_probe(override_probe_type=self.estimator_name)
+    def set_logic(self, logic: str):
+        self.logic = logic
+
+    def set_train_data(self, train_data: list):
+        self.train_data = train_data
 
     def logits_evaluate(self, data: list) -> np.ndarray:
         
@@ -388,17 +388,32 @@ class Estimator:
         # TODO
         
         return 
+    
+    def train_estimator(self):
+        if self.estimator_name in ['logistic_regression', 'mmp']:
+            # train probe 
+            data = self.train_data
+            activations, labels = get_activations(self.model, data, 'residual', focus=self.best_layer)
+            X = einops.rearrange(activations, 'n b d -> (n b) d') # Do we need this? 
+            y = einops.rearrange(labels, 'n b -> (n b)')
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+            probe = SupervisedProbe(x_train=X_train, y_train=y_train,
+                                x_test=X_test, y_test=y_test,
+                                probe_cfg=probe_cfg)
+            probe.initialize_probe(override_probe_type=self.estimator_name)
+            probe.train()
+            self.probe = probe
 
-    def extract_proba(self) -> np.ndarray:
+        else:
+            raise ValueError(f"Unsupported estimator: {self.estimator_name}")
+
+    def extract_proba(self, data) -> np.ndarray:
         
         if self.estimator_name in ['logistic_regression', 'mmp']:
-
-            # train probe 
-            
-
-            activations, labels = get_activations(self.model, self.X_test, 'residual')
+            probe = self.probe 
+            activations, labels = get_activations(self.model, data, 'residual', focus=self.best_layer)
             X = einops.rearrange(activations, 'n b d -> (n b) d') # Do we need this? 
-            return self.probe.predict_proba(X) if self.estimator_name == 'logistic_regression' else self.probe(X, iid=True).detach().cpu().numpy()
+            return probe.predict_proba(X) if self.estimator_name == 'logistic_regression' else probe(X, iid=True).detach().cpu().numpy()
 
         elif self.estimator_name == 'logits':
             return self.logits_evaluate(self.X_test)

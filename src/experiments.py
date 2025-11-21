@@ -159,12 +159,16 @@ def run_coherence():
     for e in estimators:
         estimator = Estimator(estimator_name=e, model=model)
         if logic == 'neg':
+            estimator.set_logic('neg')
             results = run_coherence_neg(estimator)
         elif logic == 'or':
+            estimator.set_logic('or')
             results = run_coherence_or(estimator)
         elif logic == 'and':
+            estimator.set_logic('and')
             results = run_coherence_and(estimator)
         elif logic == 'ifthen':
+            estimator.set_logic('ifthen')
             results = run_coherence_ifthen(estimator)
         results_tot[e] = results
 

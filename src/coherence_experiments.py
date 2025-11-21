@@ -11,7 +11,11 @@ from utils.intervention import *
 cfg = load_cfg()
 
 def run_coherence_neg(estimator):
-    data_pos, data_neg = get_data(experiment='coherence', logic='neg')
+    train_data, data_pos, data_neg = get_data(experiment='coherence', logic='neg')
+
+    if estimator.estimator_name in ['logistic_regression', 'mmp']:
+        estimator.set_train_data(train_data)
+        estimator.train_estimator()
 
     probas_pos = estimator.extract_proba(data_pos)
     probas_neg = estimator.extract_proba(data_neg)
@@ -22,7 +26,11 @@ def run_coherence_neg(estimator):
     return score
 
 def run_coherence_or(estimator):
-    data_atom, data_or = get_data(experiment='coherence', logic='or')
+    train_data, data_atom, data_or = get_data(experiment='coherence', logic='or')
+
+    if estimator.estimator_name in ['logistic_regression', 'mmp']:
+        estimator.set_train_data(train_data)
+        estimator.train_estimator()
 
     probas_atom = estimator.extract_proba(data_atom)
     probas_or = estimator.extract_proba(data_or)
@@ -32,7 +40,11 @@ def run_coherence_or(estimator):
     return score
 
 def run_coherence_and(estimator):
-    data_atom, data_or = get_data(experiment='coherence', logic='and')
+    train_data, data_atom, data_or = get_data(experiment='coherence', logic='and')
+
+    if estimator.estimator_name in ['logistic_regression', 'mmp']:
+        estimator.set_train_data(train_data)
+        estimator.train_estimator()
 
     probas_atom = estimator.extract_proba(data_atom)
     probas_and = estimator.extract_proba(data_or)
@@ -42,7 +54,11 @@ def run_coherence_and(estimator):
     return score
 
 def run_coherence_ifthen(estimator):
-    data_atom, data_and, data_ifthen = get_data(experiment='coherence', logic='ifthen')
+    train_data, data_atom, data_and, data_ifthen = get_data(experiment='coherence', logic='ifthen')
+
+    if estimator.estimator_name in ['logistic_regression', 'mmp']:
+        estimator.set_train_data(train_data)
+        estimator.train_estimator()
 
     probas_atom = estimator.extract_proba(data_atom)
     probas_and = estimator.extract_proba(data_and)
