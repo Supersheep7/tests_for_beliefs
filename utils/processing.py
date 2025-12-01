@@ -55,27 +55,27 @@ class CoherenceBuilder():
     with open(os.path.join(self.path, 'neg_dataset.pkl'), 'r') as f:
        raw = pickle.load(f)
     X_train, y_train, test_data  = self.get_data_split('negation', other_dataset=raw)
-    data_pos = test_data['statement'].tolist()   # FIX the names according to the csv columns
-    data_neg = test_data['new_statement'].tolist()   # FIX the names according to the csv
+    data_pos = test_data['statement'].tolist()   
+    data_neg = test_data['new_statement'].tolist()   
     return (X_train, y_train), data_pos, data_neg
   
   def get_or_data(self):
     test_data = pd.read_csv(os.path.join(self.path, 'disjunction.csv'))
-    data_atom = test_data['statement'].tolist()       # FIX the names according to the csv columns
-    data_or = test_data['new_statement'].tolist()           # FIX the names according to the csv
+    data_atom = test_data['statement'].tolist()       
+    data_or = test_data['new_statement'].tolist()
     return data_atom, data_or
 
   def get_and_data(self):
     test_data = pd.read_csv(os.path.join(self.path, 'conjunction.csv'))
-    data_atom = test_data['statement'].tolist()       # FIX the names according to the csv columns
-    data_and = test_data['new_statement'].tolist()         # FIX the names according to the csv
+    data_atom = test_data['statement'].tolist()   
+    data_and = test_data['new_statement'].tolist()
     return data_atom, data_and
 
   def get_ifthen_data(self):
     test_data = pd.read_csv(os.path.join(self.path, 'entailment.csv'))
-    data_atom = test_data['statement'].tolist()       # FIX the names according to the csv columns
-    data_and = test_data['new_statement'].tolist()         # FIX the names according to the csv columns
-    data_ifthen = test_data['hop_statement'].tolist()   # FIX the names according to the csv columns
+    data_atom = test_data['statement'].tolist()       
+    data_and = test_data['new_statement'].tolist()         
+    data_ifthen = test_data['hop_statement'].tolist() 
     return data_atom, data_and, data_ifthen
 
 class TrueFalseBuilder():

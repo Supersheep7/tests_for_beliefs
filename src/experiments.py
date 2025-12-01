@@ -158,6 +158,12 @@ def run_coherence():
     results_tot = {}
     for e in estimators:
         estimator = Estimator(estimator_name=e, model=model)
+        estimator.set_context(
+                context = None,     # To do: set up this stuff 
+                shots = [],
+                context_self = None,
+                shots_self = []    
+            )
         if logic == 'neg':
             estimator.set_logic('neg')
             results = run_coherence_neg(estimator)

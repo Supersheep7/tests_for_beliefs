@@ -15,7 +15,10 @@ from typing import Tuple, List
 import pickle
 from tqdm import tqdm
 import einops
+import gc
+import re
 from sklearn.linear_model import LogisticRegression
+from intervention import generate
 import matplotlib.pyplot as plt
 from funcs import *
 from src.cfg import load_cfg
@@ -370,6 +373,8 @@ class Estimator:
         self.logic = None
         self.best_layer = None 
         self.best_head = None
+        self.context = None
+        self.context_self = None
 
     def set_logic(self, logic: str):
         self.logic = logic
@@ -377,16 +382,75 @@ class Estimator:
     def set_train_data(self, train_data: list):
         self.train_data = train_data
 
+    def set_context(self,   context: str = None, 
+                            shots: List[str] = None,
+                            context_self: str = None,
+                            shots_self: List[str] = None):
+
+        full_context = ""
+        if shots is not None:
+            for shot in reversed(shots):
+                full_context = full_context + f"\n\n{shot}"
+        if context is not None:
+            full_context = context + "\n\n" + full_context
+
+        self.context = full_context
+
+        full_context_self = ""
+        if shots is not None:   
+            for shot in reversed(shots_self):
+                full_context_self = full_context_self + f"\n\n{shot}"
+        if context is not None:
+            full_context_self = context_self + "\n\n" + full_context_self
+        
+        self.context_self = full_context_self
+
     def logits_evaluate(self, data: list) -> np.ndarray:
         
-        # TODO
+        model = self.model
+        probas = []
+        for statement in tqdm(data, desc="Evaluating statements, logits-based"):
+            true_token_ids = [model.tokenizer.convert_tokens_to_ids(token) for token in ['true', 'True', 'TRUE', 'Ġtrue', 'ĠTrue', 'ĠTRUE', '▁true', '▁True', '▁TRUE']]
+            false_token_ids = [model.tokenizer.convert_tokens_to_ids(token) for token in ['false', 'False', 'FALSE', 'Ġfalse', 'ĠFalse', 'ĠFALSE', '▁false', '▁False', '▁FALSE']]
+            prompt = f'{self.context}\n\nStatement: {statement}\nAnswer:'
+            tokens = model.to_tokens(prompt)
+            logits = model(tokens)
+            log_probs = t.nn.functional.log_softmax(logits, dim=-1)
+            selected_token_ids = true_token_ids + false_token_ids
+            restricted_log_probs = log_probs[0, -1, selected_token_ids]
+            restricted_probs = t.exp(restricted_log_probs)
+            p_true = restricted_probs[:len(true_token_ids)].sum().item()
+            p_false = restricted_probs[len(true_token_ids):].sum().item()
+            normalized_p_true = p_true / (p_true + p_false)
+            if p_true + p_false < 0.05:
+                 print(f"Warning: Low confidence in prediction for statement: '{statement}'. P(True) + P(False) = {p_true + p_false:.4f}")
+                 normalized_p_true = 0.5
+            probas.append(normalized_p_true)
         
-        return 
+        return probas
 
     def self_evaluate(self, data: list) -> np.ndarray:
         
-        # TODO
+        model = self.model 
+        probas = []
+
+        for statement in tqdm(data, desc="Evaluating statements, self-reporting"):
         
+            try: 
+                prompt = f'{self.context_self}\n\nStatement: {statement}\nAnswer:'
+                with t.no_grad(), t.autocast(device):
+                    answer = generate(model=model, prompt=prompt, temperature=0, max_length=10)
+                    match = re.search(r'\d+\.\d+', answer)
+                    if match:
+                        confidence = float(match.group())
+                    else:
+                        print(f"Warning: No confidence score found in the answer: {answer}")
+                        confidence = float('nan')
+                    probas.append(confidence)  
+            finally:
+                gc.collect()
+                t.cuda.empty_cache()
+
         return 
     
     def train_estimator(self):
@@ -396,7 +460,7 @@ class Estimator:
             activations, labels = get_activations(self.model, data, 'residual', focus=self.best_layer)
             X = einops.rearrange(activations, 'n b d -> (n b) d') # Do we need this? 
             y = einops.rearrange(labels, 'n b -> (n b)')
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.05, random_state=42)
             probe = SupervisedProbe(x_train=X_train, y_train=y_train,
                                 x_test=X_test, y_test=y_test,
                                 probe_cfg=probe_cfg)
@@ -416,10 +480,10 @@ class Estimator:
             return probe.predict_proba(X) if self.estimator_name == 'logistic_regression' else probe(X, iid=True).detach().cpu().numpy()
 
         elif self.estimator_name == 'logits':
-            return self.logits_evaluate(self.X_test)
+            return self.logits_evaluate(data)
         
         elif self.estimator_name == 'self_report':
-            return self.self_evaluate(self.X_test)
+            return self.self_evaluate(data)
 
         else:
             raise ValueError(f"Unsupported estimator: {self.estimator_name}")
