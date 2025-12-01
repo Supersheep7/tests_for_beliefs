@@ -153,10 +153,11 @@ def run_intervention():
 def run_coherence():
     print(f"Running experiment: accuracy")
     model = get_model()
-    logic = input("Choose the logic: ").strip().lower()
-    estimators = [e.strip() for e in input("Choose the estimator(s) (comma-separated): ").split(',')]
+    logics = [l.strip() for l in input("Choose the logic(s) (comma-separated) [Possible values: 'neg', 'or', 'and', 'ifthen']: ").split(',')]
+    estimators = [e.strip() for e in input("Choose the estimator(s) (comma-separated) [Possible values: 'logistic_regression', 'mmp', 'logits', 'self_report']: ").split(',')]
     results_tot = {}
     for e in estimators:
+        results_estimator = {}
         estimator = Estimator(estimator_name=e, model=model)
         estimator.set_context(
                 context = None,     # To do: set up this stuff 
@@ -164,22 +165,27 @@ def run_coherence():
                 context_self = None,
                 shots_self = []    
             )
-        if logic == 'neg':
-            estimator.set_logic('neg')
-            results = run_coherence_neg(estimator)
-        elif logic == 'or':
-            estimator.set_logic('or')
-            results = run_coherence_or(estimator)
-        elif logic == 'and':
-            estimator.set_logic('and')
-            results = run_coherence_and(estimator)
-        elif logic == 'ifthen':
-            estimator.set_logic('ifthen')
-            results = run_coherence_ifthen(estimator)
-        results_tot[e] = results
+        for logic in logics:
+            if logic == 'neg':
+                estimator.set_logic('neg')
+                results = run_coherence_neg(estimator)
+            elif logic == 'or':
+                estimator.set_logic('or')
+                results = run_coherence_or(estimator)
+            elif logic == 'and':
+                estimator.set_logic('and')
+                results = run_coherence_and(estimator)
+            elif logic == 'ifthen':
+                estimator.set_logic('ifthen')
+                results = run_coherence_ifthen(estimator)
+            results_estimator[logic] = results
+        results_tot[e] = results_estimator
 
     print("Coherence experiment completed.")
     print("Results: ", results_tot)
-    save_results(results_tot, f"coherence_{logic}_{'_'.join(estimators)}_{cfg['common']['model']}", modality='coherence')
+    save_results(results_tot, f"coherence_{'_'.join(logics)}_{'_'.join(estimators)}_{cfg['common']['model']}", modality='coherence')
     
     return
+
+def run_uniformity():
+    pass
