@@ -3,6 +3,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))
+from sklearn.metrics import accuracy_score
 from utils.get_model import get_model
 from utils.processing import get_data, get_activations
 from utils.viz import plot_line, plot_heat, plot_kde_scatter, plot_sweep
@@ -209,4 +210,46 @@ def run_coherence():
     return
 
 def run_uniformity():
-    pass
+
+    # Fetch best layer (we will go with the residual)
+
+    best_layer = int(input("Enter the layer number for uniformity experiment: "))
+    model = get_model()
+    
+
+    # Remember to train_test_split in any case!
+
+    data = get_data('uniformity')
+    probe = None
+    results = ()
+
+    for fold_n, folds in enumerate(data):
+        for i, data_sets in enumerate(folds):            
+            for j, train_set in enumerate(data_sets[0]):
+
+                activations, labels = get_activations(model, train_set, 'residual', focus=best_layer)
+                X = einops.rearrange(activations, 'n b d -> (n b) d') # Do we need this? 
+                y = einops.rearrange(labels, 'n b -> (n b)')
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.05, random_state=42)
+                probe = SupervisedProbe(x_train=X_train, y_train=y_train,
+                                x_test=X_test, y_test=y_test,
+                                probe_cfg=probe_cfg)
+                probe.initialize_probe(override_probe_type='logistic_regression')
+                probe.train()
+
+                for test_set in data_sets[1]:
+            
+                    activations, labels = get_activations(model, test_set, 'residual', focus=best_layer)
+                    X = einops.rearrange(activations, 'n b d -> (n b) d') # Do we need this? 
+                    y = einops.rearrange(labels, 'n b -> (n b)')
+                    y_pred = probe.predict(X)
+                    acc = accuracy_score(y, y_pred)
+
+                    results[fold_n][i][j].append(acc)
+
+    print("Uniformity experiment completed.")
+    print("Results: ", results)              
+    save_results(results, f"uniformity_{cfg['common']['model']}", modality='uniformity')
+    print("Results saved in folder 'ROOT/results'")
+
+    return

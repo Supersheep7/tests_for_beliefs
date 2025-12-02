@@ -117,40 +117,85 @@ class TrueFalseBuilder():
 def to_split(df, domains):
    return df[df['filename'] == domains[0]] if len(domains) == 1 else df[df['filename'].isin(domains)]
 
-def split_curated_df_logic(df):
+def stratify(df, category_column='filename', test_size=0.2, random_state=42):
+   
+    # Get unique categories
+    categories = df[category_column].unique()
     
-   test_datas = [
-                 to_split(df, ['cities.csv']), 
-                 to_split(df, ['neg_cities.csv']), 
-                 to_split(df, ['cities_cities_conj.csv']),
-                 to_split(df, ['cities_cities_disj.csv']),
-                 to_split(df, ['common_claim_true_false.csv']),
-                 to_split(df, ['conj_common_claim_true_false.csv']),
-                 to_split(df, ['disj_common_claim_true_false.csv']),
-                 to_split(df, ['neg_common_claim_true_false.csv']),
-                 to_split(df, ['companies_true_false.csv']),
-                 to_split(df, ['sp_en_trans.csv']),
-                 to_split(df, ['neg_sp_en_trans.csv']),
-                 to_split(df, ['larger_than.csv']),
-                 to_split(df, ['smaller_than.csv']),
-                 to_split(df, ['counterfact_true_false.csv'])
-                ]
+    # Split categories themselves (not individual rows)
+    train_cats, test_cats = train_test_split(categories, test_size=test_size, random_state=random_state)
+    
+    # Assign rows based on category split
+    train_df = df[df[category_column].isin(train_cats)].reset_index(drop=True)
+    test_df = df[df[category_column].isin(test_cats)].reset_index(drop=True)
+    
+    return train_df, test_df
+
+def split_curated_df_logic(df):
+
+   train_df, test_df = stratify(df)
+
    train_datas = [
-                
+                train_df,
+                to_split(train_df, ['common_claim_true_false.csv']),
+                to_split(train_df, ['common_claim_true_false.csv', 'conj_common_claim_true_false.csv', 'disj_common_claim_true_false.csv', 'neg_common_claim_true_false.csv']),
+                to_split(train_df, ['common_claim_true_false.csv', 'disj_common_claim_true_false.csv', 'conj_common_claim_true_false.csv']),
+                to_split(train_df, ['common_claim_true_false.csv', 'conj_common_claim_true_false.csv', 'neg_common_claim_true_false.csv']),
+                to_split(train_df, ['common_claim_true_false.csv', 'disj_common_claim_true_false.csv', 'neg_common_claim_true_false.csv']),
+                to_split(train_df, ['common_claim_true_false.csv', 'conj_common_claim_true_false.csv']),
+                to_split(train_df, ['common_claim_true_false.csv', 'disj_common_claim_true_false.csv']),
+                to_split(train_df, ['common_claim_true_false.csv', 'neg_common_claim_true_false.csv']),
+                to_split(train_df, ['conj_common_claim_true_false.csv']),
+                to_split(train_df, ['disj_common_claim_true_false.csv']),
+                to_split(train_df, ['neg_common_claim_true_false.csv']),
    ]
+
+   test_datas = [
+                 to_split(test_df, ['cities.csv']), 
+                 to_split(test_df, ['neg_cities.csv']), 
+                 to_split(test_df, ['cities_cities_conj.csv']),
+                 to_split(test_df, ['cities_cities_disj.csv']),
+                 to_split(test_df, ['common_claim_true_false.csv']),
+                 to_split(test_df, ['conj_common_claim_true_false.csv']),
+                 to_split(test_df, ['disj_common_claim_true_false.csv']),
+                 to_split(test_df, ['neg_common_claim_true_false.csv']),
+                 to_split(test_df, ['companies_true_false.csv']),
+                 to_split(test_df, ['sp_en_trans.csv']),
+                 to_split(test_df, ['neg_sp_en_trans.csv']),
+                 to_split(test_df, ['larger_than.csv']),
+                 to_split(test_df, ['smaller_than.csv']),
+                 to_split(test_df, ['counterfact_true_false.csv'])
+                ]
 
    return (train_datas, test_datas)
 
 def split_curated_df_domains(df):
+
+  train_df, test_df = stratify(df)
+
+  train_datas = [
+              train_df,
+              to_split(train_df, ['common_claim_true_false.csv']),
+              to_split(train_df, ['common_claim_true_false.csv', 'cities.csv']),
+              to_split(train_df, ['cities.csv']),
+              to_split(train_df, ['common_claim_true_false.csv', 'companies_true_false.csv']),
+              to_split(train_df, ['companies_true_false.csv']),
+              to_split(train_df, ['common_claim_true_false.csv', 'sp_en_trans.csv']),
+              to_split(train_df, ['sp_en_trans.csv']),
+              to_split(train_df, ['common_claim_true_false.csv', 'larger_than.csv']),
+              to_split(train_df, ['larger_than.csv']),
+              to_split(train_df, ['common_claim_true_false.csv', 'counterfact_true_false.csv']),
+              to_split(train_df, ['counterfact_true_false.csv'])
+  ]
+
   test_datas = [
-              to_split(df, ['cities.csv']), 
-              to_split(df, ['common_claim_true_false.csv']),
-              to_split(df, ['companies_true_false.csv']),
-              to_split(df, ['sp_en_trans.csv']),
-              to_split(df, ['larger_than.csv']),
-              to_split(df, ['counterfact_true_false.csv'])
+              to_split(test_df, ['cities.csv']), 
+              to_split(test_df, ['common_claim_true_false.csv']),
+              to_split(test_df, ['companies_true_false.csv']),
+              to_split(test_df, ['sp_en_trans.csv']),
+              to_split(test_df, ['larger_than.csv']),
+              to_split(test_df, ['counterfact_true_false.csv'])
             ]
-  train_datas = []
   return (train_datas, test_datas)
 
 def get_data(experiment: str = 'accuracy', sweep: bool = False, logic: str = None):
@@ -214,8 +259,24 @@ def get_data(experiment: str = 'accuracy', sweep: bool = False, logic: str = Non
         return train_df, data_atom, data_and, data_ifthen
     elif experiment == 'uniformity':
       
+      # Get the rest of the data 
+      with open(os.path.join(ROOT, 'data/datasets/coherence/neg_dataset.pkl'), 'rb') as f:
+        neg_dataset = pickle.load(f)
+      with open(os.path.join(ROOT, 'data/datasets/coherence/conj_dataset.pkl'), 'rb') as f:
+        conj_dataset = pickle.load(f)
+      with open(os.path.join(ROOT, 'data/datasets/coherence/disj_dataset.pkl'), 'rb') as f:
+        disj_dataset = pickle.load(f)
+
+      common_neg = neg_dataset[neg_dataset['filename'] == 'neg_common_claim_true_false.csv']
+      common_conj = conj_dataset[conj_dataset['filename'] == 'conj_common_claim_true_false.csv']
+      common_disj = disj_dataset[disj_dataset['filename'] == 'disj_common_claim_true_false.csv']
+      df_all = pd.concat([df_all, common_neg, common_conj, common_disj])
+
       folds_logic = split_curated_df_logic(df_all)
       folds_domains = split_curated_df_domains(df_all)
+
+      # Stratified uniform split
+      
 
       return folds_logic, folds_domains
     else:
@@ -305,7 +366,7 @@ class ActivationExtractor():
             self.extract_activations_batch(batch, self.model)
         return self.activations, self.y
 
-def get_activations(model: HookedTransformer, data, modality: str = 'residual', focus: Tuple = None):
+def get_activations(model: HookedTransformer, data, modality: str = 'residual', focus = None):
 
     model.to(cfg["common"]["device"])
     model.reset_hooks()
