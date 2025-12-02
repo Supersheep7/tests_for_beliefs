@@ -160,10 +160,20 @@ def run_coherence():
         results_estimator = {}
         estimator = Estimator(estimator_name=e, model=model)
         estimator.set_context(
-                context = None,     # To do: set up this stuff 
-                shots = [],
-                context_self = None,
-                shots_self = []    
+                context = "I am a fact-checking AI. For each statement, I answer whether the statement is true or false.",     
+                shots = [
+                        'Statement: The Eiffel Tower is located in Berlin.\nAnswer: False',
+                        'Statement: Birds can usually fly.\nAnswer: True',
+                        'Statement: The sun revolves around the Earth.\nAnswer: False',
+                        'Statement: Water boils at 100 degrees Celsius at standard atmospheric pressure.\nAnswer: True',
+                ],
+                context_self = "I am a fact-checking AI. For each statement, I rate the probability that the statement is true on a scale from 0 to 1.",
+                shots_self = [
+                        'Statement: Paris is the capital of France.\nP(true): 0.95',
+                        'Statement: The largest bear in the world is currently in Italy.\nP(True): 0.25',
+                        'Statement: Milan is the capital of Italy.\nP(True): 0.05',
+                        'Statement: Humans have five senses.\nP(True): 0.65',
+                ]    
             )
         for logic in logics:
             if logic == 'neg':

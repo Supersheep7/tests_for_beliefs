@@ -290,7 +290,7 @@ def mass_truth_assignment_eval(
     considered_statements = len(statements)
     for statement, label in zip(statements, labels):
         # Rembember to check if the newlines lead to correct answers
-        prompt = f"The sky is blue. This sentence is: True \nThe earth is flat. This sentence is: False \n{statement}"
+        prompt = f"The sky is blue. This statement is: True \n\nThe earth is flat. This statement is: False \n\n{statement}"
         correct, prob_diff = truth_assignment_single_eval(model, prompt, label, true_tokens, false_tokens)
         total_metric += correct
         total_prob_diff += prob_diff

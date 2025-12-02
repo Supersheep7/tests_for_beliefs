@@ -471,6 +471,10 @@ class Estimator:
         else:
             raise ValueError(f"Unsupported estimator: {self.estimator_name}")
 
+    def calibrate_estimator(self):
+        # TODO: setup a calibration procedure for the linear probes
+        pass
+
     def extract_proba(self, data) -> np.ndarray:
         
         if self.estimator_name in ['logistic_regression', 'mmp']:

@@ -136,7 +136,8 @@ def get_data(experiment: str = 'accuracy', sweep: bool = False, logic: str = Non
       )
     if experiment == 'accuracy':
       df_trimmed = df_train.iloc[:-(len(df_train) % cfg["tlens"]["batch_extractor"]), :]
-      x = list(df_trimmed['statement'])
+      x = df_trimmed['statement'].astype(str) + " This statement is: "  # We want this like this because we are collecting the directions for the intervention experiment later on
+      x = x.tolist()
       y = list(df_trimmed['label'])
       return x, y
     elif experiment == 'visualization':
@@ -146,8 +147,8 @@ def get_data(experiment: str = 'accuracy', sweep: bool = False, logic: str = Non
       return x, y
     elif experiment == 'intervention':
       df_trimmed = df_test.iloc[:-(len(df_test) % cfg["tlens"]["batch_extractor"]), :]
-      df_for_int = df_test.copy()
-      df_for_int['statement'] = df_test['statement'].str[:-1]
+      df_for_int = df_trimmed.copy()
+      df_for_int['statement'] = df_trimmed['statement'] + " This statement is: "
       df_true = df_for_int[df_for_int['label'] == 1]
       df_false = df_for_int[df_for_int['label'] == 0]
       if sweep:
