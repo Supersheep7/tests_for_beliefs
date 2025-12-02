@@ -62,6 +62,8 @@ def run_accuracy():
     model = get_model()
     data = get_data()
     modality = input("Choose the target ['residual', 'heads']: ").strip().lower()
+    top_residual_accuracies = None
+    top_heads_accuracies = None
     if modality == 'residual':
         activations, labels = get_activations(model, data, 'residual')
         accuracies, directions, probes = probe_sweep(activations[layer], labels)
@@ -70,6 +72,8 @@ def run_accuracy():
             plot_line(accuracies, title="Residual Stream Probe Accuracies", label=f"Accuracy for model {cfg['common']['model']}")
         else:
             print("Plotting skipped.")
+        top_residuals, top_residual_accuracies = get_top_entries(accuracies, n=5)
+        print("Top 5 Residual Positions and their Accuracies:", list(zip(top_residuals, top_residual_accuracies)))
     elif modality == 'heads':
         activations, labels = get_activations(model, data, 'heads')
         heads = [decompose_mha(x) for x in activations.values()]
@@ -82,6 +86,9 @@ def run_accuracy():
             directions.append(dir)
             probes.append(pro)
         accuracies = np.array(accuracies)
+        top_heads, top_heads_accuracies = get_top_entries(accuracies, n=5)
+        print("Top 5 Heads Positions and their Accuracies:", list(zip(top_residuals, top_residual_accuracies)))
+        
         print_answer = input("Do you want to print the plot? [y/n]: ").strip().lower()
         if print_answer == 'y':
             plot_heat(accuracies, title="Attention Heads Probe Accuracies (Sorted)", model=cfg['common']['model'], probe=cfg['probe']['probe_type'])
@@ -94,6 +101,10 @@ def run_accuracy():
     save_results(accuracies, "accuracies", modality='heads')
     save_results(directions, "directions", modality='heads')
     save_results(probes, "probes", modality='heads')
+    if top_residual_accuracies is not None:
+        save_results(top_residual_accuracies, "top_residual_accuracies", modality='residual')
+    if top_heads_accuracies is not None:
+        save_results(top_heads_accuracies, "top_heads_accuracies", modality='heads')
     print("Results saved in folder 'ROOT/results'")
 
     return

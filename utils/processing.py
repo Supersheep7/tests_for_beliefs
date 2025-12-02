@@ -114,6 +114,45 @@ class TrueFalseBuilder():
   def debug(self):
     print(os.listdir(self.path))
 
+def to_split(df, domains):
+   return df[df['filename'] == domains[0]] if len(domains) == 1 else df[df['filename'].isin(domains)]
+
+def split_curated_df_logic(df):
+    
+   test_datas = [
+                 to_split(df, ['cities.csv']), 
+                 to_split(df, ['neg_cities.csv']), 
+                 to_split(df, ['cities_cities_conj.csv']),
+                 to_split(df, ['cities_cities_disj.csv']),
+                 to_split(df, ['common_claim_true_false.csv']),
+                 to_split(df, ['conj_common_claim_true_false.csv']),
+                 to_split(df, ['disj_common_claim_true_false.csv']),
+                 to_split(df, ['neg_common_claim_true_false.csv']),
+                 to_split(df, ['companies_true_false.csv']),
+                 to_split(df, ['sp_en_trans.csv']),
+                 to_split(df, ['neg_sp_en_trans.csv']),
+                 to_split(df, ['larger_than.csv']),
+                 to_split(df, ['smaller_than.csv']),
+                 to_split(df, ['counterfact_true_false.csv'])
+                ]
+   train_datas = [
+                
+   ]
+
+   return (train_datas, test_datas)
+
+def split_curated_df_domains(df):
+  test_datas = [
+              to_split(df, ['cities.csv']), 
+              to_split(df, ['common_claim_true_false.csv']),
+              to_split(df, ['companies_true_false.csv']),
+              to_split(df, ['sp_en_trans.csv']),
+              to_split(df, ['larger_than.csv']),
+              to_split(df, ['counterfact_true_false.csv'])
+            ]
+  train_datas = []
+  return (train_datas, test_datas)
+
 def get_data(experiment: str = 'accuracy', sweep: bool = False, logic: str = None):
     databuilder = TrueFalseBuilder()
     dfs, df_all = databuilder.get_dataset()
@@ -173,6 +212,12 @@ def get_data(experiment: str = 'accuracy', sweep: bool = False, logic: str = Non
       elif logic == 'ifthen':
         train_df, data_atom, data_and, data_ifthen = databuilder.get_ifthen_data()
         return train_df, data_atom, data_and, data_ifthen
+    elif experiment == 'uniformity':
+      
+      folds_logic = split_curated_df_logic(df_all)
+      folds_domains = split_curated_df_domains(df_all)
+
+      return folds_logic, folds_domains
     else:
       raise ValueError(f"Unsupported experiment type: {experiment}")
 

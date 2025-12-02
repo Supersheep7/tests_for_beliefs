@@ -45,6 +45,33 @@ def decompose_mha(mha_batch):
     
     return [decomposed[i] for i in range(decomposed.shape[0])]
 
+def get_top_entries(accuracies, n=5):
+    """
+    Return the top-n indices and values from either:
+      - a 1D array (residual positions), or
+      - a 2D array (layers x heads).
+    """
+
+    accuracies = np.asarray(accuracies)
+
+    # --- 1D case ---
+    if accuracies.ndim == 1:
+        flat_indices = np.argpartition(accuracies, -n)[-n:]
+        top_indices = flat_indices[np.argsort(-accuracies[flat_indices])]
+        top_values = accuracies[top_indices]
+        return top_indices, top_values
+
+    # --- 2D case ---
+    elif accuracies.ndim == 2:
+        flat_indices = np.argpartition(accuracies.flatten(), -n)[-n:]
+        coords = np.array(np.unravel_index(flat_indices, accuracies.shape)).T
+        sorted_coords = coords[np.argsort(-accuracies[tuple(coords.T)])]
+        top_values = accuracies[tuple(sorted_coords.T)]
+        return sorted_coords, top_values
+
+    else:
+        raise ValueError("Input must be 1D or 2D.")
+
 def save_results(item, datatype, modality='residual'):
 
     base_dir = ROOT / "results"
