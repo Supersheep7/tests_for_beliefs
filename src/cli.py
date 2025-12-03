@@ -1,18 +1,24 @@
-from gooey import Gooey, GooeyParser
-import argparse, os, random, numpy as np
+import argparse
+import os
+import random
+import numpy as np
+from gpu import setup_gpu
 from cfg import load_cfg
 from huggingface_hub import login
 from experiments import EXPERIMENTS
 
-@Gooey(program_name="InterpRunner", default_size=(600, 400))
 def main():
-    p = GooeyParser(description="Run your pipeline with a config + seed")
-    p.add_argument("--config", default="configs/default.yaml",
-                   widget="FileChooser", help="Path to YAML config")
-    p.add_argument("--exp", choices=EXPERIMENTS.keys(), required=True)
-    p.add_argument("--set", nargs="*", help="Overrides like train.lr=1e-4")
-    p.add_argument("--hf_token", help="Hugging Face access token", widget="PasswordField")
-    args = p.parse_args()
+    setup_gpu()
+
+    parser = argparse.ArgumentParser(description="Run your pipeline with a config + seed")
+    parser.add_argument("--config", default="configs/default.yaml",
+                        help="Path to YAML config")
+    parser.add_argument("--exp", choices=EXPERIMENTS.keys(), required=True,
+                        help="Experiment to run")
+    parser.add_argument("--set", nargs="*", help="Overrides like train.lr=1e-4")
+    parser.add_argument("--hf_token", help="Hugging Face access token")
+    parser.add_argument("--seed", type=int, default=42, help="Random seed")
+    args = parser.parse_args()
 
     token = args.hf_token or os.getenv("HF_TOKEN")
     if not token:
@@ -22,8 +28,10 @@ def main():
 
     cfg = load_cfg(args.config, args.set)
     common = cfg.get("common", {})
-    random.seed(args.seed); np.random.seed(args.seed)
-    print(f"Running with {args.config} (seed={args.seed})")
+    random.seed(args.seed)
+    np.random.seed(args.seed)
+
+    print(f"Running {args.exp} with {args.config} (seed={args.seed})")
     exp_cfg = cfg.get(args.exp, {})
     EXPERIMENTS[args.exp](exp_cfg, common)
 

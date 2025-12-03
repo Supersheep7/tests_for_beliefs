@@ -1,0 +1,12 @@
+einops
+datasets
+evaluate
+wandb
+matplotlib
+seaborn
+transformers
+transformer-lens
+jaxtyping
+gooey
+huggingface_hub
+runpod

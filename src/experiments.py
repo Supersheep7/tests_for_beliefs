@@ -215,12 +215,7 @@ def run_uniformity():
 
     best_layer = int(input("Enter the layer number for uniformity experiment: "))
     model = get_model()
-    
-
-    # Remember to train_test_split in any case!
-
     data = get_data('uniformity')
-    probe = None
     results = ()
 
     for fold_n, folds in enumerate(data):
