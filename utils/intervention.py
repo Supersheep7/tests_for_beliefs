@@ -9,9 +9,8 @@ from jaxtyping import Float, Int
 from typing import List, Tuple, Dict
 import numpy as np
 import functools
-import openai
-from funcs import force_format
-from viz import plot_sweep
+from .funcs import force_format
+from .viz import plot_sweep
 
 '''
 = = = = = = = = = = = = = = = = Intervention = = = = = = = = = = = = = = = =

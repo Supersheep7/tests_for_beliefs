@@ -2,14 +2,11 @@ import argparse
 import os
 import random
 import numpy as np
-from gpu import setup_gpu
 from cfg import load_cfg
 from huggingface_hub import login
 from experiments import EXPERIMENTS
 
 def main():
-    setup_gpu()
-
     parser = argparse.ArgumentParser(description="Run your pipeline with a config + seed")
     parser.add_argument("--config", default="configs/default.yaml",
                         help="Path to YAML config")
@@ -26,14 +23,11 @@ def main():
                          "Set --hf_token or env var HF_TOKEN.")
     login(token)  # authenticates the session
 
-    cfg = load_cfg(args.config, args.set)
-    common = cfg.get("common", {})
     random.seed(args.seed)
     np.random.seed(args.seed)
 
     print(f"Running {args.exp} with {args.config} (seed={args.seed})")
-    exp_cfg = cfg.get(args.exp, {})
-    EXPERIMENTS[args.exp](exp_cfg, common)
+    EXPERIMENTS[args.exp]()
 
 if __name__ == "__main__":
     main()

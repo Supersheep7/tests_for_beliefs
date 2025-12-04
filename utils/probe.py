@@ -9,7 +9,7 @@ import copy
 import torch as t
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
-from processing import get_activations, force_format
+from .processing import get_activations
 from jaxtyping import Float, Int
 from typing import Tuple, List
 import pickle
@@ -18,9 +18,9 @@ import einops
 import gc
 import re
 from sklearn.linear_model import LogisticRegression
-from intervention import generate
+from .intervention import generate
 import matplotlib.pyplot as plt
-from funcs import *
+from .funcs import *
 from src.cfg import load_cfg
 cfg = load_cfg()
 probe_cfg = cfg["probe"]

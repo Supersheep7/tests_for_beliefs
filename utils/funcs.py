@@ -11,7 +11,10 @@ from datetime import datetime
 from pathlib import Path
 cfg = load_cfg()
 
-def force_format(*items, format='tensor', device=cfg.device):
+def force_format(*items, format='tensor', device=None):
+
+    if device is None:
+        device = cfg["device"]
     
     results = []
 

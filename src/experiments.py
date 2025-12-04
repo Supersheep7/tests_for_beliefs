@@ -153,12 +153,12 @@ def run_intervention():
     k_list = [int(input("Enter k value: "))]
     # Trues
     boolp, probdiff = parameter_sweep(model=model, prompts=x_true, accuracies=accuracies, directions=directions, ks=k_list, alphas=alpha_list_flipped, metric='boolp', labels=y_true, attn=modality=='heads')
-    save_results(boolp[1]-boolp[0], f"intervention_boolp_true_to_false_k{k_list}_a{alpha_list_flipped[1]}_{cfg["model"]}", modality=modality)
-    save_results(probdiff[1]-probdiff[0], f"intervention_probdiff_true_to_false_k{k_list}_a{alpha_list_flipped[1]}_{cfg["model"]}", modality=modality)
+    save_results(boolp[1]-boolp[0], f"intervention_boolp_true_to_false_k{k_list}_a{alpha_list_flipped[1]}_{cfg['model']}", modality=modality)
+    save_results(probdiff[1]-probdiff[0], f"intervention_probdiff_true_to_false_k{k_list}_a{alpha_list_flipped[1]}_{cfg['model']}", modality=modality)
     # Falses
     boolp, probdiff = parameter_sweep(model=model, prompts=x_true, accuracies=accuracies, directions=directions, ks=k_list, alphas=alpha_list_flipped, metric='boolp', labels=y_true, attn=modality=='heads')
-    save_results(boolp[1]-boolp[0], f"intervention_boolp_false_to_true_k{k_list}_a{alpha_list[1]}_{cfg["model"]}", modality=modality)
-    save_results(probdiff[1]-probdiff[0], f"intervention_probdiff_false_to_true_k{k_list}_a{alpha_list[1]}_{cfg["model"]}", modality=modality)
+    save_results(boolp[1]-boolp[0], f"intervention_boolp_false_to_true_k{k_list}_a{alpha_list[1]}_{cfg['model']}", modality=modality)
+    save_results(probdiff[1]-probdiff[0], f"intervention_probdiff_false_to_true_k{k_list}_a{alpha_list[1]}_{cfg['model']}", modality=modality)
 
     return
 
@@ -248,3 +248,11 @@ def run_uniformity():
     print("Results saved in folder 'ROOT/results'")
 
     return
+
+EXPERIMENTS = {
+    'visualizations': run_visualizations,
+    'accuracy': run_accuracy,
+    'intervention': run_intervention,
+    'coherence': run_coherence,
+    'uniformity': run_uniformity
+}

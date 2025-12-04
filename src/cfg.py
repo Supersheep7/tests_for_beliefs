@@ -1,5 +1,4 @@
-import os, yaml, argparse
-from copy import deepcopy
+import os, yaml
 
 def load_cfg(cfg_path="configs/default.yaml", overrides=None):
     cfg = yaml.safe_load(open(cfg_path))
