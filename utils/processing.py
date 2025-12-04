@@ -372,6 +372,7 @@ def get_activations(model: HookedTransformer, data, modality: str = 'residual', 
 
     model.to(cfg["common"]["device"])
     model.reset_hooks()
+    print("Extracting activations...")
     extractor = ActivationExtractor(model=model, data=data, labels=labels, device=cfg["common"]["device"], half=True,
                                       batch_size=cfg["tlens"]["batch_extractor"], pos=-1)
     if modality == 'heads':
