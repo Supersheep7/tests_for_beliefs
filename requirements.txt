@@ -1,7 +1,6 @@
 einops
 datasets
 evaluate
-wandb
 matplotlib
 seaborn
 transformers
