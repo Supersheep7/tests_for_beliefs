@@ -7,6 +7,4 @@ seaborn
 transformers
 transformer-lens
 jaxtyping
-gooey
 huggingface_hub
-runpod
