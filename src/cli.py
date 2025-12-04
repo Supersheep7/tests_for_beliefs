@@ -1,6 +1,7 @@
 import argparse
 import os
 import random
+import torch as t
 import numpy as np
 from cfg import load_cfg
 from huggingface_hub import login
@@ -25,6 +26,13 @@ def main():
 
     random.seed(args.seed)
     np.random.seed(args.seed)
+
+    # Check CUDA availability once
+    cuda_available = t.cuda.is_available()
+    if cuda_available:
+        print(f"CUDA available")
+    else:
+        print("CUDA NOT available, using CPU")
 
     print(f"Running {args.exp} with {args.config} (seed={args.seed})")
     EXPERIMENTS[args.exp]()

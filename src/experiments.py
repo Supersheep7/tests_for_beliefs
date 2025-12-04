@@ -23,9 +23,15 @@ def asker_kde():
 
 def run_visualizations():
     print(f"Running visualizations")
+    while True:
+        modality = input("Choose the target ['residual', 'heads']: ").strip().lower()
+        print("Your input:", modality)
+        if modality not in ['residual', 'heads']:
+            print("Invalid modality. Please choose 'residual' or 'heads'.")
+        else: 
+            break
     model = get_model()
     data = get_data()
-    modality = input("Choose the target ['residual', 'heads']: ").strip().lower()
     if modality == 'residual':
         activations, labels = get_activations(model, data, 'residual')
         while True:
@@ -54,15 +60,18 @@ def run_visualizations():
             retry = input("Do you want to adjust parameters and re-plot? [y/n]: ").strip().lower()
             if retry != 'y':
                 break         
-    else:
-        print("Invalid modality. Please choose 'residual' or 'heads'.")
-        return
 
 def run_accuracy():
     print(f"Running experiment: accuracy")
+    while True:
+        modality = input("Choose the target ['residual', 'heads']: ").strip().lower()
+        print("Your input:", modality)
+        if modality not in ['residual', 'heads']:
+            print("Invalid modality. Please choose 'residual' or 'heads'.")
+        else: 
+            break
     model = get_model()
     data = get_data()
-    modality = input("Choose the target ['residual', 'heads']: ").strip().lower()
     top_residual_accuracies = None
     top_heads_accuracies = None
     if modality == 'residual':
