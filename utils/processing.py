@@ -280,7 +280,6 @@ def get_data(experiment: str = 'accuracy', sweep: bool = False, logic: str = Non
 
       # Stratified uniform split
       
-
       return folds_logic, folds_domains
     else:
       raise ValueError(f"Unsupported experiment type: {experiment}")
