@@ -107,7 +107,8 @@ class TrueFalseBuilder():
         df_all = pd.concat([df_all, df])
 
     print("===================")
-    print("WATCH OUT! Datapoints have different column entries depending on the csv")
+    print("True_False Dataset Accessed")
+    print("===================")
     print()
     return dfs, df_all
 
@@ -206,6 +207,7 @@ def get_data(experiment: str = 'accuracy', sweep: bool = False, logic: str = Non
     df_all = df_all[df_all['filename'] != 'likely.csv']
 
     # Trim the counterfact_true_false dataset to have balanced classes and a max of 1000 samples per class
+    print(target_df.head())
     target_df = df_all[df_all['filename'] == 'counterfact_true_false.csv']
     label_0 = target_df[target_df['label'] == 0]
     label_1 = target_df[target_df['label'] == 1]
