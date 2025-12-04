@@ -8,6 +8,7 @@ from huggingface_hub import login
 from experiments import EXPERIMENTS
 
 def main():
+    print("Welcome to the experiments for our project!")
     parser = argparse.ArgumentParser(description="Run your pipeline with a config + seed")
     parser.add_argument("--config", default="configs/default.yaml",
                         help="Path to YAML config")
