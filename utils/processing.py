@@ -340,7 +340,7 @@ class ActivationExtractor():
 
         '''tokens.shape == (batch_size seq_len)'''
 
-        with t.no_grad():
+        with t.no_grad() and t.cuda.amp.autocast():
 
             model.reset_hooks()
             
@@ -370,9 +370,9 @@ class ActivationExtractor():
 
 def get_activations(model: HookedTransformer, data, modality: str = 'residual', focus = None):
 
+    print("Extracting activations...")
     model.to(cfg["common"]["device"])
     model.reset_hooks()
-    print("Extracting activations...")
     statements, labels = data
     extractor = ActivationExtractor(model=model, data=statements, labels=labels, device=cfg["common"]["device"], half=True,
                                       batch_size=cfg["tlens"]["batch_extractor"], pos=-1)
