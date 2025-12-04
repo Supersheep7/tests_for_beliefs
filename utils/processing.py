@@ -199,6 +199,7 @@ def split_curated_df_domains(df):
   return (train_datas, test_datas)
 
 def get_data(experiment: str = 'accuracy', sweep: bool = False, logic: str = None):
+    print("Getting data...")
     databuilder = TrueFalseBuilder()
     dfs, df_all = databuilder.get_dataset()
     # Preprocessing
