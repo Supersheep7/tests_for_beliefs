@@ -109,6 +109,7 @@ class TrueFalseBuilder():
     print("===================")
     print("True_False Dataset Accessed")
     print("===================")
+    print("DF head:", df_all.head())
     print()
     return dfs, df_all
 
@@ -208,7 +209,6 @@ def get_data(experiment: str = 'accuracy', sweep: bool = False, logic: str = Non
 
     # Trim the counterfact_true_false dataset to have balanced classes and a max of 1000 samples per class
     target_df = df_all[df_all['filename'] == 'counterfact_true_false.csv']
-    print(target_df.head())
     label_0 = target_df[target_df['label'] == 0]
     label_1 = target_df[target_df['label'] == 1]
     retain_per_label = 1000
