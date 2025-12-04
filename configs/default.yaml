@@ -6,7 +6,7 @@ common:
   device: 'cuda'
 
 tlens: 
-  batch_extractor: 8
+  batch_extractor: 256
 
 probe:
   probe_type: 'logistic_regression'
