@@ -163,15 +163,15 @@ class Probe(object):
         train_mean = X_train.mean(dim=0, keepdim=True)
         train_std = X_train.std(dim=0, keepdim=True)
 
-        normalized_x_train = X_train - train_mean
+        normalized_X_train = X_train - train_mean
         if self.var_normalize:
-            normalized_x_train /= (train_std + 1e-8)
+            normalized_X_train /= (train_std + 1e-8)
 
-        normalized_x_test = X_test - train_mean
+        normalized_X_test = X_test - train_mean
         if self.var_normalize:
-            normalized_x_test /= (train_std + 1e-8)
+            normalized_X_test /= (train_std + 1e-8)
 
-        return normalized_x_train, normalized_x_test
+        return normalized_X_train, normalized_X_test
 
     def train(self):
         """
@@ -355,8 +355,8 @@ def probe_sweep(list_of_datasets: List,
 
         dataset = einops.rearrange(dataset, 'n b d -> (n b) d')
         X_train, X_test, y_train, y_test = train_test_split(dataset, labels, test_size=probe_cfg["test_size"], random_state=probe_cfg["seed"])
-        probe = SupervisedProbe(x_train=X_train, y_train=y_train,
-                                x_test=X_test, y_test=y_test,
+        probe = SupervisedProbe(X_train=X_train, y_train=y_train,
+                                X_test=X_test, y_test=y_test,
                                 probe_cfg=probe_cfg)
         probe.train()
         accuracies.append(probe.get_acc())
@@ -463,8 +463,8 @@ class Estimator:
             X = einops.rearrange(activations, 'n b d -> (n b) d') # Do we need this? 
             y = einops.rearrange(labels, 'n b -> (n b)')
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.05, random_state=42)
-            probe = SupervisedProbe(x_train=X_train, y_train=y_train,
-                                x_test=X_test, y_test=y_test,
+            probe = SupervisedProbe(X_train=X_train, y_train=y_train,
+                                X_test=X_test, y_test=y_test,
                                 probe_cfg=probe_cfg)
             probe.initialize_probe(override_probe_type=self.estimator_name)
             probe.train()

@@ -363,15 +363,11 @@ class ActivationExtractor():
     def process(self
     ) -> Tuple[List[Float[t.Tensor, "batch_size n_acts d_model"]], Int[t.Tensor, "batch_size"]]:
         # Process
-        for i, batch in enumerate(tqdm(self.X, "Processing")):
+        for batch in tqdm(self.X, "Processing"):
             t.cuda.empty_cache()
-            print(f"GPU memory before batch {i}: {t.cuda.memory_allocated()/1e9:.2f}GB")
             self.extract_activations_batch(batch, self.model)
-            print(f"GPU memory after batch {i}: {t.cuda.memory_allocated()/1e9:.2f}GB")
         
         print("Activation extraction complete.")
-        print("Example activation shape:", next(iter(self.activations.values())).shape)
-        print("Example activation values:", next(iter(self.activations.values())))
         return self.activations, self.y
 
 def get_activations(model: HookedTransformer, data, modality: str = 'residual', focus = None):
