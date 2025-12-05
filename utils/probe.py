@@ -178,8 +178,9 @@ class Probe(object):
         """
 
         if self.probe_type == "logistic_regression":
+            X_train, y_train = force_format(self.X_train, self.y_train, format='numpy', device=None)
             self.initialize_probe()
-            self.probe.fit(self.X_train, self.y_train)
+            self.probe.fit(X_train, y_train)
             self.best_probe = copy.deepcopy(self.probe)
 
         elif self.probe_type == "mmp":
@@ -284,10 +285,7 @@ class SupervisedProbe(Probe):
         super().__init__(probe_cfg=probe_cfg)
         self.input_dim = X_train.shape[-1]
         X_train, X_test = self.normalize(X_train, X_test) if self.var_normalize else (X_train, X_test)
-        if probe_cfg["probe_type"] == 'logistic_regression':
-            self.X_train, self.X_test, self.y_train, self.y_test = force_format(X_train, X_test, y_train, y_test, format='numpy', device='cpu')
-        else:
-            self.X_train, self.X_test, self.y_train, self.y_test = force_format(X_train, X_test, y_train, y_test, format='tensor', device=self.device)
+        self.X_train, self.X_test, self.y_train, self.y_test = force_format(X_train, X_test, y_train, y_test, format='tensor', device=self.device)
 
         """
         Shuffle the labels if control is True. This is done to create a control condition for the probe.
@@ -310,8 +308,9 @@ class SupervisedProbe(Probe):
         '''
         if self.probe_type == "logistic_regression":
             # We just call sklearn's predict
-            predictions = self.probe.predict(self.X_test)
-            acc = (predictions == self.y_test).mean()
+            X_test, y_test = force_format(self.X_test, self.y_test, format='numpy', device=None)
+            predictions = self.probe.predict(X_test)
+            acc = (predictions == y_test).mean()
         elif self.probe_type == 'mmp':
             # We just call a forward
             predictions = self.probe(self.X_test, iid=True).squeeze(-1).detach().cpu().numpy().round() # Only one probe

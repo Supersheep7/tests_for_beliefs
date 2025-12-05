@@ -359,7 +359,7 @@ class ActivationExtractor():
     def process(self
     ) -> Tuple[List[Float[t.Tensor, "batch_size n_acts d_model"]], Int[t.Tensor, "batch_size"]]:
         # Process
-        for batch in tqdm(self.X, "Processing"):
+        for batch in tqdm(self.X, "Extracting batches"):
             t.cuda.empty_cache()
             self.extract_activations_batch(batch, self.model)
         
