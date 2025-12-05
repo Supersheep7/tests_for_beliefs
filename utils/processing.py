@@ -335,27 +335,20 @@ class ActivationExtractor():
         """
 
         '''sentences.shape == (batch_size 1)'''
-        print(f"GPU memory before model.to_tokens: {t.cuda.memory_allocated()/1e9:.2f}GB")
         tokens = model.to_tokens(sentences)
-        print(f"GPU memory after model.to_tokens: {t.cuda.memory_allocated()/1e9:.2f}GB")
 
         '''tokens.shape == (batch_size seq_len)'''
 
         with t.no_grad():
           with t.amp.autocast(device_type='cuda', dtype=t.float16):
-            print(f"GPU memory before model.reset_hooks: {t.cuda.memory_allocated()/1e9:.2f}GB")
-            model.reset_hooks()
-            print(f"GPU memory after model.reset_hooks: {t.cuda.memory_allocated()/1e9:.2f}GB")
-            
+            model.reset_hooks()            
             # Forward pass running with hooks
-            print(f"GPU memory before model.run_with_hooks: {t.cuda.memory_allocated()/1e9:.2f}GB")
             model.run_with_hooks(
                 tokens,
                 return_type=None,
                 fwd_hooks=self.hooks,
                 clear_contexts=True
             )
-            print(f"GPU memory after model.run_with_hooks: {t.cuda.memory_allocated()/1e9:.2f}GB")
 
         return
 
@@ -377,6 +370,8 @@ class ActivationExtractor():
             print(f"GPU memory after batch {i}: {t.cuda.memory_allocated()/1e9:.2f}GB")
         
         print("Activation extraction complete.")
+        print("Example activation shape:", next(iter(self.activations.values())).shape)
+        print("Example activation values:", next(iter(self.activations.values())))
         return self.activations, self.y
 
 def get_activations(model: HookedTransformer, data, modality: str = 'residual', focus = None):
