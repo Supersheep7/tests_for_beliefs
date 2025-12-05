@@ -179,9 +179,7 @@ class Probe(object):
 
         if self.probe_type == "logistic_regression":
             self.initialize_probe()
-            X_train = self.X_train.detach().cpu().numpy()
-            y_train = self.y_train.detach().cpu().numpy()
-            self.probe.fit(X_train, y_train)
+            self.probe.fit(self.X_train, self.y_train)
             self.best_probe = copy.deepcopy(self.probe)
 
         elif self.probe_type == "mmp":
@@ -312,10 +310,8 @@ class SupervisedProbe(Probe):
         '''
         if self.probe_type == "logistic_regression":
             # We just call sklearn's predict
-            X_test = self.X_test.detach().cpu().numpy()
-            y_test = self.y_test.detach().cpu().numpy()
-            predictions = self.probe.predict(X_test)
-            acc = (predictions == y_test).mean()
+            predictions = self.probe.predict(self.X_test)
+            acc = (predictions == self.y_test).mean()
         elif self.probe_type == 'mmp':
             # We just call a forward
             predictions = self.probe(self.X_test, iid=True).squeeze(-1).detach().cpu().numpy().round() # Only one probe

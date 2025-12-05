@@ -25,7 +25,7 @@ def run_visualizations():
     print(f"Running visualizations")
     while True:
         modality = input("Choose the target ['residual', 'heads']: ").strip().lower()
-        print("Your input:", modality)
+        print("Running experiment on ", modality)
         if modality not in ['residual', 'heads']:
             print("Invalid modality. Please choose 'residual' or 'heads'.")
         else: 
