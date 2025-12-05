@@ -368,7 +368,7 @@ class ActivationExtractor():
             t.cuda.empty_cache()
             print(f"GPU memory before: {t.cuda.memory_allocated()/1e9:.2f}GB")
             self.extract_activations_batch(batch, self.model)
-            print(f"GPU memory before: {t.cuda.memory_allocated()/1e9:.2f}GB")
+            print(f"GPU memory after: {t.cuda.memory_allocated()/1e9:.2f}GB")
         return self.activations, self.y
 
 def get_activations(model: HookedTransformer, data, modality: str = 'residual', focus = None):
