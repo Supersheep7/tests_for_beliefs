@@ -135,7 +135,6 @@ class Probe(object):
             # We need the direction and covariance in advance for the MMP probe 
             self.initialize_direction('mmp', full_dataset=False)
             self.probe = MMP(direction=self.direction, covariance=self.covariance)
-
         elif self.probe_type == "logistic_regression":
             self.probe = LogisticRegression(max_iter=self.max_iter, solver="lbfgs", C=self.C, random_state=self.seed, n_jobs=-1)
         else:
@@ -180,7 +179,7 @@ class Probe(object):
 
         if self.probe_type == "logistic_regression":
             self.initialize_probe()
-            self.probe.fit(self.x, self.y_train)
+            self.probe.fit(self.X_train, self.y_train)
             self.best_probe = copy.deepcopy(self.probe)
 
         elif self.probe_type == "mmp":
@@ -264,10 +263,10 @@ class Probe(object):
         '''
         For steering.
         '''
-        if not isinstance(self.x, t.Tensor):
-            self.x = t.tensor(self.x, dtype=t.float, device=self.device)
+        if not isinstance(self.X_train, t.Tensor):
+            self.X_train = t.tensor(self.X_train, dtype=t.float, device=self.device)
             self.X_test = t.tensor(self.X_test, dtype=t.float, device=self.device)
-        full_dataset = t.cat([self.x, self.X_test], dim=0)
+        full_dataset = t.cat([self.X_train, self.X_test], dim=0)
         project_on_direction = full_dataset @ self.direction
         self.std = project_on_direction.std(dim=0, keepdim=True)
 

@@ -235,8 +235,8 @@ def run_uniformity():
                 X = einops.rearrange(activations, 'n b d -> (n b) d') # Do we need this? 
                 y = einops.rearrange(labels, 'n b -> (n b)')
                 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.05, random_state=42)
-                probe = SupervisedProbe(x_train=X_train, y_train=y_train,
-                                x_test=X_test, y_test=y_test,
+                probe = SupervisedProbe(X_train=X_train, y_train=y_train,
+                                X_test=X_test, y_test=y_test,
                                 probe_cfg=probe_cfg)
                 probe.initialize_probe(override_probe_type='logistic_regression')
                 probe.train()
