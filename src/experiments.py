@@ -76,7 +76,7 @@ def run_accuracy():
     top_heads_accuracies = None
     if modality == 'residual':
         activations, labels = get_activations(model, data, 'residual')
-        accuracies, directions, probes = probe_sweep(activations[layer], labels)
+        accuracies, directions, probes = probe_sweep(activations.values(), labels)
         print_answer = input("Do you want to print the plot? [y/n]: ").strip().lower()
         if print_answer == 'y':
             plot_line(accuracies, title="Residual Stream Probe Accuracies", label=f"Accuracy for model {cfg['common']['model']}")
@@ -87,17 +87,17 @@ def run_accuracy():
     elif modality == 'heads':
         activations, labels = get_activations(model, data, 'heads')
         heads = [decompose_mha(x) for x in activations.values()]
+        accuracies = []
+        directions = []
+        probes = []
         for layer in tqdm(range(len(heads)), desc="Layers"):
-            accuracies = []
-            directions = []
-            probes = []
             acc, dir, pro = probe_sweep(heads[layer], labels)
             accuracies.append(acc)
             directions.append(dir)
             probes.append(pro)
         accuracies = np.array(accuracies)
         top_heads, top_heads_accuracies = get_top_entries(accuracies, n=5)
-        print("Top 5 Heads Positions and their Accuracies:", list(zip(top_residuals, top_residual_accuracies)))
+        print("Top 5 Heads Positions and their Accuracies:", list(zip(top_heads, top_heads_accuracies)))
         
         print_answer = input("Do you want to print the plot? [y/n]: ").strip().lower()
         if print_answer == 'y':
