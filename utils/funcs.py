@@ -14,7 +14,7 @@ cfg = load_cfg()
 def force_format(*items, format='tensor', device=None):
 
     if device is None:
-        device = cfg["device"]
+        device = cfg["common"]["device"]
     
     results = []
 
