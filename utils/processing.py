@@ -106,11 +106,7 @@ class TrueFalseBuilder():
         dfs[file] = df
         df_all = pd.concat([df_all, df])
 
-    print("===================")
     print("True_False Dataset Accessed")
-    print("===================")
-    print("DF head:", df_all.head())
-    print()
     return dfs, df_all
 
   def debug(self):

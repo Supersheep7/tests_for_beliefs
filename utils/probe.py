@@ -89,7 +89,7 @@ class Probe(object):
         self.batch_size = probe_cfg["batch_size"]
         self.weight_decay = probe_cfg["weight_decay"]
         self.max_iter = probe_cfg["max_iter"]
-        self.C = probe_cfg["C"]
+        self.C = float(probe_cfg["C"])
         self.probe_type = probe_cfg["probe_type"]
         self.control = probe_cfg["control"]
 
@@ -179,7 +179,9 @@ class Probe(object):
 
         if self.probe_type == "logistic_regression":
             self.initialize_probe()
-            self.probe.fit(self.X_train, self.y_train)
+            X_train = self.X_train.detach().cpu().numpy()
+            y_train = self.y_train.detach().cpu().numpy()
+            self.probe.fit(X_train, y_train)
             self.best_probe = copy.deepcopy(self.probe)
 
         elif self.probe_type == "mmp":
@@ -310,8 +312,10 @@ class SupervisedProbe(Probe):
         '''
         if self.probe_type == "logistic_regression":
             # We just call sklearn's predict
-            predictions = self.probe.predict(self.X_test)
-            acc = (predictions == self.y_test).mean()
+            X_test = self.X_test.detach().cpu().numpy()
+            y_test = self.y_test.detach().cpu().numpy()
+            predictions = self.probe.predict(X_test)
+            acc = (predictions == y_test).mean()
         elif self.probe_type == 'mmp':
             # We just call a forward
             predictions = self.probe(self.X_test, iid=True).squeeze(-1).detach().cpu().numpy().round() # Only one probe
