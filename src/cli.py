@@ -5,10 +5,27 @@ import torch as t
 import numpy as np
 from cfg import load_cfg
 from huggingface_hub import login
+import subprocess
 from experiments import EXPERIMENTS
+
+COUNT = subprocess.check_output(
+    ["git", "rev-list", "--count", "HEAD"],
+    text=True
+).strip()
+
+DATE = subprocess.check_output(
+    ["git", "show", "-s", "--format=%cI", "HEAD"],
+    text=True
+).strip()
+
 
 def main():
     print("Welcome to the experiments for our project!")
+    print("=== Git commit count information ===")
+    print()
+    print()
+    print("You are running git commit number:", COUNT, "from date:", DATE)
+
     parser = argparse.ArgumentParser(description="Run your pipeline with a config + seed")
     parser.add_argument("--config", default="configs/default.yaml",
                         help="Path to YAML config")

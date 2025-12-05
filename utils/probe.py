@@ -78,7 +78,7 @@ class Probe(object):
     def __init__(self, probe_cfg):
 
         # probe config
-        self.seed = cfg["common"].seed
+        self.seed = cfg["common"]["seed"]
         self.var_normalize = probe_cfg["var_normalize"]
         self.dropout = probe_cfg["dropout"]
         self.direction_type = probe_cfg["direction_type"]
