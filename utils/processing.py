@@ -310,7 +310,7 @@ class ActivationExtractor():
             self.hooks.append(("hook_embed", lambda tensor, hook: tensor.half()))
         
         def get_act_hook(tensor, hook):
-            
+            tensor = tensor.detach()
             last_token = tensor[:, self.pos, :, :].unsqueeze(0) if attn else tensor[..., self.pos, :].unsqueeze(0)  
             last_token = last_token.to(dtype=t.float16, device=t.device('cpu'))
 
@@ -340,7 +340,8 @@ class ActivationExtractor():
 
         '''tokens.shape == (batch_size seq_len)'''
 
-        with t.no_grad() and t.amp.autocast(device_type='cuda'):
+        with t.no_grad():
+          with t.amp.autocast(device_type='cuda', dtype=t.float16):
 
             model.reset_hooks()
             
@@ -348,7 +349,8 @@ class ActivationExtractor():
             model.run_with_hooks(
                 tokens,
                 return_type=None,
-                fwd_hooks=self.hooks
+                fwd_hooks=self.hooks,
+                clear_contexts=True
             )
 
         return

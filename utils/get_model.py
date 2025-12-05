@@ -30,5 +30,6 @@ def get_model():
 
     model = mymodels[MODEL]()
     model.to(t.device('cuda' if t.cuda.is_available() else 'cpu'))
+    model.cfg.use_attn_out = False
 
     return model
