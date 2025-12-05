@@ -20,9 +20,11 @@ DATE = subprocess.check_output(
 
 
 def main():
-    print("Welcome to the experiments for our project!")
-    print("=== Git commit count information ===")
+
     print()
+    print("Welcome to the experiments for our project!")
+    print()
+    print("=== Git commit count information ===")
     print()
     print("You are running git commit number:", COUNT, "from date:", DATE)
 
