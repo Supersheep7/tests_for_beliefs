@@ -79,19 +79,19 @@ class Probe(object):
 
         # probe config
         self.seed = cfg["common"].seed
-        self.var_normalize = probe_cfg.var_normalize
-        self.dropout = probe_cfg.dropout
-        self.direction_type = probe_cfg.direction_type
-        self.epochs = probe_cfg.epochs
-        self.lr = probe_cfg.lr
-        self.verbose = probe_cfg.verbose
-        self.device = probe_cfg.device
-        self.batch_size = probe_cfg.batch_size
-        self.weight_decay = probe_cfg.weight_decay
-        self.max_iter = probe_cfg.max_iter
-        self.C = probe_cfg.C
-        self.probe_type = probe_cfg.probe_type
-        self.control = probe_cfg.control
+        self.var_normalize = probe_cfg["var_normalize"]
+        self.dropout = probe_cfg["dropout"]
+        self.direction_type = probe_cfg["direction_type"]
+        self.epochs = probe_cfg["epochs"]
+        self.lr = probe_cfg["lr"]
+        self.verbose = probe_cfg["verbose"]
+        self.device = probe_cfg["device"]
+        self.batch_size = probe_cfg["batch_size"]
+        self.weight_decay = probe_cfg["weight_decay"]
+        self.max_iter = probe_cfg["max_iter"]
+        self.C = probe_cfg["C"]
+        self.probe_type = probe_cfg["probe_type"]
+        self.control = probe_cfg["control"]
 
         # probe
         self.probe = None
@@ -285,7 +285,7 @@ class SupervisedProbe(Probe):
         super().__init__(probe_cfg=probe_cfg)
         self.input_dim = X_train.shape[-1]
         X_train, X_test = self.normalize(X_train, X_test) if self.var_normalize else (X_train, X_test)
-        if probe_cfg.probe_type == 'logistic_regression':
+        if probe_cfg["probe_type"] == 'logistic_regression':
             self.X_train, self.X_test, self.y_train, self.y_test = force_format(X_train, X_test, y_train, y_test, format='numpy', device='cpu')
         else:
             self.X_train, self.X_test, self.y_train, self.y_test = force_format(X_train, X_test, y_train, y_test, format='tensor', device=self.device)
@@ -351,17 +351,17 @@ def probe_sweep(list_of_datasets: List,
 
     print("Starting probe sweep...")
 
-    for dataset in tqdm(list_of_datasets, desc="heads", disable=not probe_cfg.verbose):
+    for dataset in tqdm(list_of_datasets, desc="heads", disable=not probe_cfg["verbose"]):
 
         dataset = einops.rearrange(dataset, 'n b d -> (n b) d')
-        X_train, X_test, y_train, y_test = train_test_split(dataset, labels, test_size=probe_cfg.test_size, random_state=probe_cfg.seed)
+        X_train, X_test, y_train, y_test = train_test_split(dataset, labels, test_size=probe_cfg["test_size"], random_state=probe_cfg["seed"])
         probe = SupervisedProbe(x_train=X_train, y_train=y_train,
                                 x_test=X_test, y_test=y_test,
                                 probe_cfg=probe_cfg)
         probe.train()
         accuracies.append(probe.get_acc())
-        if probe_cfg.direction_type != None:
-            directions.append(probe.get_direction(std=probe_cfg.with_std))
+        if probe_cfg["direction_type"] != None:
+            directions.append(probe.get_direction(std=probe_cfg["with_std"]))
         best_probes.append(probe.best_probe)
 
     return (accuracies, directions, best_probes)
