@@ -16,7 +16,6 @@ probe:
   batch_size: -1
   C: 1e6
   max_iter: 500
-  test_size: 0.1
   weight_decay: 0.0
   dropout: 0.0
   var_normalize: True
