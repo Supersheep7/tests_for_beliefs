@@ -86,9 +86,7 @@ def run_accuracy():
         print("Top 5 Residual Positions and their Accuracies:", list(zip(top_residuals, top_residual_accuracies)))
     elif modality == 'heads':
         activations, labels = get_activations(model, data, 'heads')
-        print(activations.keys())
         heads = [decompose_mha(x) for x in activations.values()]
-        print(heads.shape if hasattr(heads, 'shape') else len(heads))
         accuracies = []
         directions = []
         probes = []
