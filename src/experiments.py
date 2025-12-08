@@ -108,13 +108,10 @@ def run_accuracy():
         print("Invalid modality. Please choose 'residual' or 'heads'.")
         return
     
-    save_results(accuracies, "accuracies", modality='heads')
-    save_results(directions, "directions", modality='heads')
-    save_results(probes, "probes", modality='heads')
-    if top_residual_accuracies is not None:
-        save_results(top_residual_accuracies, "top_residual_accuracies", modality='residual')
-    if top_heads_accuracies is not None:
-        save_results(top_heads_accuracies, "top_heads_accuracies", modality='heads')
+    save_results(accuracies, "accuracies", modality=modality)
+    save_results(directions, "directions", modality=modality)
+    save_results(probes, "probes", modality=modality)
+
     print("Results saved in folder 'ROOT/results'")
 
     return

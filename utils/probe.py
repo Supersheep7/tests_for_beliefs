@@ -155,20 +155,19 @@ class Probe(object):
             self.probe.to(self.device)
 
     def normalize(self, X_train, X_test):
-        """
-        Mean-normalizes the data x (of shape (n, d))
-        If self.var_normalize, also divides by the standard deviation
-        """
         train_mean = X_train.mean(dim=0, keepdim=True)
-        train_std = X_train.std(dim=0, keepdim=True)
+        train_std = X_train.std(dim=0, keepdim=True, unbiased=False)
 
-        normalized_X_train = X_train - train_mean
-        if self.var_normalize:
-            normalized_X_train /= (train_std + 1e-8)
+        # avoid zero or NaN std
+        train_std = torch.where(train_std == 0, torch.ones_like(train_std), train_std)
+        train_std = torch.nan_to_num(train_std, nan=1.0)
 
-        normalized_X_test = X_test - train_mean
+        normalized_X_train = (X_train - train_mean)
+        normalized_X_test  = (X_test - train_mean)
+
         if self.var_normalize:
-            normalized_X_test /= (train_std + 1e-8)
+            normalized_X_train /= train_std
+            normalized_X_test  /= train_std
 
         return normalized_X_train, normalized_X_test
 
