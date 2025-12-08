@@ -348,7 +348,7 @@ def probe_sweep(list_of_datasets: List,
 
     print("Starting probe sweep...")
 
-    for dataset in tqdm(list_of_datasets, desc="heads", disable=not probe_cfg["verbose"]):
+    for dataset in tqdm(list_of_datasets, desc="lrs/heads", disable=not probe_cfg["verbose"]):
 
         dataset = einops.rearrange(dataset, 'n b d -> (n b) d')
         X_train, X_test, y_train, y_test = train_test_split(dataset, labels, test_size=probe_cfg["test_size"], random_state=probe_cfg["seed"])
