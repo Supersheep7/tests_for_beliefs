@@ -112,7 +112,10 @@ def save_results(item, datatype, modality='residual'):
             item_to_save = item
     except Exception:
         item_to_save = item
+        
+    path.parent.mkdir(parents=True, exist_ok=True)
 
     torch.save(item_to_save, path)
+
     return path
 

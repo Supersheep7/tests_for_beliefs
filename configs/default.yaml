@@ -15,10 +15,10 @@ probe:
   epochs: 150
   batch_size: -1
   C: 1e6
-  max_iter: 500
+  max_iter: 1000
   weight_decay: 0.0
   dropout: 0.0
-  var_normalize: False
+  var_normalize: True
   verbose: True
   control: False
   test_size: 0.2
