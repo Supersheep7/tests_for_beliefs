@@ -258,8 +258,8 @@ def truth_assignment_single_eval(
     log_p_false = t.logsumexp(log_probs[0, -1, false_token_ids], dim=0).item()
     most_probable_token_id = t.argmax(log_probs[0, -1]).item()
     most_probable_token = model.tokenizer.convert_ids_to_tokens([most_probable_token_id])[0]
-    # print(f"Prompt: {prompt}")
-    # print(f"P(True): {np.exp(log_p_true)}, P(False): {np.exp(log_p_false)}")
+    print(f"Prompt: {prompt}")
+    print(f"P(True): {np.exp(log_p_true)}, P(False): {np.exp(log_p_false)}")
     successful = int(int(log_p_true >= log_p_false) != label)
     if np.exp(log_p_true) + np.exp(log_p_false) < 0.1:
         print(f"Broken! Answer: {most_probable_token}")
@@ -276,6 +276,7 @@ def mass_truth_assignment_eval(
               true_tokens: List[str] = ['true','Ġtrue','True','ĠTrue','▁true','▁True'],
               false_tokens: List[str] = ['false','Ġfalse','False','ĠFalse','▁true','▁True'],
               shots: List[str] = None,
+              batch_size: int = 100
               ) -> float:
 
     """
@@ -284,17 +285,49 @@ def mass_truth_assignment_eval(
 
     assert len(statements) == len(labels), "Number of prompts and labels must match"
 
+    true_token_ids = [model.tokenizer.convert_tokens_to_ids(token) for token in true_tokens if token in model.tokenizer.get_vocab()]
+    false_token_ids = [model.tokenizer.convert_tokens_to_ids(token) for token in false_tokens if token in model.tokenizer.get_vocab()]
+
     total_metric = 0.0
     total_prob_diff = 0.0
-    considered_statements = len(statements)
-    for statement, label in zip(statements, labels):
-        # Rembember to check if the newlines lead to correct answers
-        prompt = f"The sky is blue. This statement is: True \n\nThe earth is flat. This statement is: False \n\n{statement}"
-        correct, prob_diff = truth_assignment_single_eval(model, prompt, label, true_tokens, false_tokens)
-        total_metric += correct
-        total_prob_diff += prob_diff
+    for i in range(0, len(statements), batch_size):
+        batch_statements = statements[i:i+batch_size]
+        batch_labels = labels[i:i+batch_size]
 
-    return total_metric / considered_statements, total_prob_diff / considered_statements
+        batch_prompts = [
+            f"The sky is blue. This statement is: True \n\nThe earth is flat. This statement is: False \n\n{stmt}"
+            for stmt in batch_statements
+        ]
+
+        tokens = model.to_tokens(batch_prompts, prepend_bos=True)
+        with t.no_grad():
+            with t.amp.autocast(device_type='cuda', dtype=t.float16):
+                logits = model(tokens)
+
+        log_probs = t.nn.functional.log_softmax(logits, dim=-1)
+        last_token_log_probs = log_probs[:, -1, :]
+
+        for j, label in enumerate(batch_labels):
+            log_p_true = t.logsumexp(last_token_log_probs[j, true_token_ids], dim=0).item()
+            log_p_false = t.logsumexp(last_token_log_probs[j, false_token_ids], dim=0).item()
+            most_probable_token_id = t.argmax(last_token_log_probs[j]).item()
+            most_probable_token = model.tokenizer.convert_ids_to_tokens([most_probable_token_id])[0]
+
+            print(f"Prompt: {batch_prompts[j]}")
+            print(f"P(True): {np.exp(log_p_true):.6f}, P(False): {np.exp(log_p_false):.6f}")
+
+            if np.exp(log_p_true) + np.exp(log_p_false) < 0.1:
+                print(f"Broken! Answer: {most_probable_token}")
+                successful = 0
+            else:
+                successful = int(int(log_p_true >= log_p_false) != label)
+
+            prob_diff = np.exp(log_p_true) - np.exp(log_p_false) if label == 1 else np.exp(log_p_false) - np.exp(log_p_true)
+            total_metric += successful
+            total_prob_diff += prob_diff
+
+    n = len(statements)
+    return total_metric / n, total_prob_diff / n
 
 ''' *** Distances *** '''
 

@@ -135,7 +135,6 @@ def run_intervention():
     if sweep:
         while True:
             x_true, y_true, x_false, y_false = get_data('intervention', sweep=True)
-            print("Lengths:", len(x_true), len(y_true), len(x_false), len(y_false))
             print("Running intervention sweep...")
             alphas = input("Enter alpha values separated by commas (e.g., 1,3,5): ")
             ks = input("Enter k values separated by commas (e.g., 5,10,20): ")
