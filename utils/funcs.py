@@ -12,6 +12,16 @@ cfg = load_cfg()
 
 def force_format(*items, format='tensor', device=None):
 
+    def to_numpy(item):
+        if isinstance(item, torch.Tensor):
+            return item.detach().cpu().numpy()
+        elif isinstance(item, np.ndarray):
+            return item
+        elif isinstance(item, list):
+            return [to_numpy(x) for x in item]
+        else:  # scalar
+            return item
+    
     if device is None:
         device = cfg["common"]["device"]
     
@@ -22,6 +32,9 @@ def force_format(*items, format='tensor', device=None):
         if format == 'tensor':
             if isinstance(item, np.ndarray):
                 item = torch.from_numpy(item)  # safer than torch.tensor
+            if isinstance(item, list):
+                item = to_numpy(item) # This line ensures that lists of tensors are properly converted
+                item = torch.from_numpy(item)
             elif not isinstance(item, torch.Tensor):
                 item = torch.tensor(item)
             if device is not None:

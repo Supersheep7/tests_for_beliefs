@@ -135,13 +135,13 @@ def full_intervention(model: HookedTransformer,
     """
     Full intervention function that sets the hooks for the top K heads and returns the model with the hooks set.
     """
-    # Force everything into tensors
-    activation_accuracies = force_format(activation_accuracies)
-    activation_directions = force_format(activation_directions)
 
     # Get the top K heads and their directions
     top_k_indices, top_k_directions = mask_top_k(activation_accuracies, activation_directions, K)
 
+    top_k_indices = force_format(top_k_indices, format='tensor')
+    top_k_directions = force_format(top_k_directions, format='tensor')
+    
     # Set the intervention hooks for the top K heads
     model = set_intervention_hooks(model, top_k_indices, top_k_directions, alpha, verbose)
 
