@@ -135,6 +135,7 @@ def run_intervention():
     if sweep:
         while True:
             x_true, y_true, x_false, y_false = get_data('intervention', sweep=True)
+            print("Lengths:", len(x_true), len(y_true), len(x_false), len(y_false))
             print("Running intervention sweep...")
             alphas = input("Enter alpha values separated by commas (e.g., 1,3,5): ")
             ks = input("Enter k values separated by commas (e.g., 5,10,20): ")
@@ -148,9 +149,9 @@ def run_intervention():
             print(probdiff_t)
             # Falses
             print("False --> True...")
+            boolp_f, probdiff_f = parameter_sweep(model_baseline=model, prompts=x_false, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list, labels=y_false, attn=modality=='heads')
             print(boolp_f)
             print(probdiff_f)
-            boolp_f, probdiff_f = parameter_sweep(model_baseline=model, prompts=x_false, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list, labels=y_false, attn=modality=='heads')
             retry = input("Do you want to run another sweep? [y/n]: ").strip().lower()
             if retry != 'y':
                 saveplot = input("Do you want to save the plots? [y/n]: ").strip().lower()
