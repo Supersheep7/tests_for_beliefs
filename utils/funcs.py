@@ -20,11 +20,14 @@ def force_format(*items, format='tensor', device=None):
     for item in items:
         # Tensor format
         if format == 'tensor':
-            if not isinstance(item, torch.Tensor):
+            if isinstance(item, np.ndarray):
+                item = torch.from_numpy(item)  # safer than torch.tensor
+            elif not isinstance(item, torch.Tensor):
                 item = torch.tensor(item)
             if device is not None:
                 item = item.to(device)
             item = item.half()
+
 
         # NumPy format
         elif format == 'numpy':
