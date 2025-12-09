@@ -143,14 +143,14 @@ def run_intervention():
             k_list = [int(k.strip()) for k in ks.split(',')]
             # Trues
             print("True --> False...")
-            boolp_t, probdiff_t = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list_flipped, metric='boolp', labels=y_true, attn=modality=='heads')
+            boolp_t, probdiff_t = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list_flipped, labels=y_true, attn=modality=='heads')
             print(boolp_t)
             print(probdiff_t)
             # Falses
             print("False --> True...")
             print(boolp_f)
             print(probdiff_f)
-            boolp_f, probdiff_f = parameter_sweep(model_baseline=model, prompts=x_false, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list, metric='boolp', labels=y_false, attn=modality=='heads')
+            boolp_f, probdiff_f = parameter_sweep(model_baseline=model, prompts=x_false, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list, labels=y_false, attn=modality=='heads')
             retry = input("Do you want to run another sweep? [y/n]: ").strip().lower()
             if retry != 'y':
                 saveplot = input("Do you want to save the plots? [y/n]: ").strip().lower()
@@ -164,11 +164,11 @@ def run_intervention():
     k_list = [int(input("Enter k value for False --> True: "))]
     k_list_flipped = [int(input("Enter k value for True --> False: "))]
     # Trues
-    boolp, probdiff = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions, ks=k_list_flipped, alphas=alpha_list_flipped, metric='boolp', labels=y_true, attn=modality=='heads')
+    boolp, probdiff = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions, ks=k_list_flipped, alphas=alpha_list_flipped, labels=y_true, attn=modality=='heads')
     save_results(boolp[1]-boolp[0], f"intervention_boolp_true_to_false_k{k_list_flipped}_a{alpha_list_flipped[1]}_{cfg['model']}", modality=modality)
     save_results(probdiff[1]-probdiff[0], f"intervention_probdiff_true_to_false_k{k_list_flipped}_a{alpha_list_flipped[1]}_{cfg['model']}", modality=modality)
     # Falses
-    boolp, probdiff = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list_flipped, metric='boolp', labels=y_true, attn=modality=='heads')
+    boolp, probdiff = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list_flipped, labels=y_true, attn=modality=='heads')
     save_results(boolp[1]-boolp[0], f"intervention_boolp_false_to_true_k{k_list}_a{alpha_list[1]}_{cfg['model']}", modality=modality)
     save_results(probdiff[1]-probdiff[0], f"intervention_probdiff_false_to_true_k{k_list}_a{alpha_list[1]}_{cfg['model']}", modality=modality)
 
