@@ -299,7 +299,7 @@ def mass_truth_assignment_eval(
             for stmt in batch_statements
         ]
 
-        tokens = model.to_tokens(batch_prompts, prepend_bos=True)
+        tokens = model.to_tokens(batch_prompts, prepend_bos=False)
         with t.no_grad():
             with t.amp.autocast(device_type='cuda', dtype=t.float16):
                 logits = model(tokens)
