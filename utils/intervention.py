@@ -249,8 +249,10 @@ def truth_assignment_single_eval(
 
     true_token_ids = [model.tokenizer.convert_tokens_to_ids(token) for token in true_tokens]
     false_token_ids = [model.tokenizer.convert_tokens_to_ids(token) for token in false_tokens]
-    tokens = model.to_tokens(prompt)
-    logits = model(tokens)
+    with t.no_grad():
+        with t.amp.autocast(device_type='cuda', dtype=t.float16):
+            tokens = model.to_tokens(prompt)
+            logits = model(tokens)
     log_probs = t.nn.functional.log_softmax(logits, dim=-1)
     log_p_true = t.logsumexp(log_probs[0, -1, true_token_ids], dim=0).item()
     log_p_false = t.logsumexp(log_probs[0, -1, false_token_ids], dim=0).item()
