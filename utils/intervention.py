@@ -287,6 +287,7 @@ def mass_truth_assignment_eval(
 
     true_token_ids = [model.tokenizer.convert_tokens_to_ids(token) for token in true_tokens if token in model.tokenizer.get_vocab()]
     false_token_ids = [model.tokenizer.convert_tokens_to_ids(token) for token in false_tokens if token in model.tokenizer.get_vocab()]
+    pad = model.tokenizer.pad_token_id
 
     total_metric = 0.0
     total_prob_diff = 0.0
@@ -299,18 +300,21 @@ def mass_truth_assignment_eval(
             for stmt in batch_statements
         ]
 
-        tokens = model.to_tokens(batch_prompts, prepend_bos=False)
+        tokens = model.to_tokens(batch_prompts)
         with t.no_grad():
             with t.amp.autocast(device_type='cuda', dtype=t.float16):
                 logits = model(tokens)
 
         log_probs = t.nn.functional.log_softmax(logits, dim=-1)
+        seq_lens = (tokens != pad).sum(dim=1)
+        last_positions = seq_lens - 1
         last_token_log_probs = log_probs[:, -1, :]
 
         for j, label in enumerate(batch_labels):
-            log_p_true = t.logsumexp(last_token_log_probs[j, true_token_ids], dim=0).item()
-            log_p_false = t.logsumexp(last_token_log_probs[j, false_token_ids], dim=0).item()
-            most_probable_token_id = t.argmax(last_token_log_probs[j]).item()
+            log_p_true = t.logsumexp(log_probs[j, last_positions[j], true_token_ids], dim=0).item()
+            log_p_false = t.logsumexp(log_probs[j, last_positions[j], false_token_ids], dim=0).item()
+            j_pos = last_positions[j].item()
+            most_probable_token_id = t.argmax(log_probs[j, j_pos]).item()
             most_probable_token = model.tokenizer.convert_ids_to_tokens([most_probable_token_id])[0]
 
             print(f"Prompt: {batch_prompts[j]}")
