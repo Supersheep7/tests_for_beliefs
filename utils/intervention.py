@@ -200,8 +200,6 @@ def parameter_sweep(model_baseline: HookedTransformer,
                     metric: str = 'cosine',
                     verbose: bool = False,
                     shots: List = None,
-                    secret = None,
-                    dataset_name: str = 'truefalse',
                     labels: List[int] = None,
                     attn: bool = True
                     ) -> np.array:
