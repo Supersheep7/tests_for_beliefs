@@ -141,7 +141,7 @@ def full_intervention(model: HookedTransformer,
 
     top_k_indices = force_format(top_k_indices, format='tensor')
     top_k_directions = force_format(top_k_directions, format='tensor')
-    
+
     # Set the intervention hooks for the top K heads
     model = set_intervention_hooks(model, top_k_indices, top_k_directions, alpha, verbose)
 
@@ -180,7 +180,7 @@ def intervention_on_residual(
     for layer, direction in zip(top_k_indices, top_k_directions):        
         direction = direction.clone().detach().half()
         steering = functools.partial(steering_residual_hook, direction=direction, alpha=alpha, top_features=top_features)
-        model.add_hook(f"blocks.{layer}.hook_resid_post ", steering)
+        model.add_hook(f"blocks.{layer}.hook_resid_post", steering)
 
     return model
 
