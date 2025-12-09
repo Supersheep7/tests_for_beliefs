@@ -121,7 +121,6 @@ def run_intervention():
     print(f"Running experiment: accuracy")
     model = get_model()
     modality = input("Choose the target ['residual', 'heads']: ").strip().lower()
-    modality = input("Choose the target ['residual', 'heads']: ").strip().lower()
     if modality == 'residual':
         directions = Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "directions_residual.pkl")
         accuracies = Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "accuracies_residual.pkl")
@@ -142,25 +141,30 @@ def run_intervention():
             k_list = [int(k.strip()) for k in ks.split(',')]
             # Trues
             print("True --> False...")
-            boolp, probdiff = parameter_sweep(model=model, prompts=x_true, accuracies=accuracies, directions=directions, ks=k_list, alphas=alpha_list_flipped, metric='boolp', labels=y_true, attn=modality=='heads')
-            plot_sweep(boolp, k_list, alpha_list, title="Boolp: True --> False")
-            plot_sweep(probdiff, k_list, alpha_list, title="Boolp: True --> False")
+            boolp_t, probdiff_t = parameter_sweep(model=model, prompts=x_true, accuracies=accuracies, directions=directions, ks=k_list, alphas=alpha_list_flipped, metric='boolp', labels=y_true, attn=modality=='heads')
+            print(boolp_t)
+            print(probdiff_t)
             # Falses
             print("False --> True...")
-            boolp, probdiff = parameter_sweep(model=model, prompts=x_false, accuracies=accuracies, directions=directions, ks=k_list, alphas=alpha_list, metric='boolp', labels=y_false, attn=modality=='heads')
-            plot_sweep(boolp, k_list, alpha_list, title="Boolp: True --> False")
-            plot_sweep(probdiff, k_list, alpha_list, title="Boolp: True --> False")
+            print(boolp_f)
+            print(probdiff_f)
+            boolp_f, probdiff_f = parameter_sweep(model=model, prompts=x_false, accuracies=accuracies, directions=directions, ks=k_list, alphas=alpha_list, metric='boolp', labels=y_false, attn=modality=='heads')
             retry = input("Do you want to run another sweep? [y/n]: ").strip().lower()
             if retry != 'y':
+                saveplot = input("Do you want to save the plots? [y/n]: ").strip().lower()
+                if saveplot == 'y':
+                    for metric in [boolp_t, probdiff_t, boolp_f, probdiff_f]:
+                        plot_sweep(metric, k_list, alpha_list, title="Boolp: True --> False")    
                 break
     x_true, y_true, x_false, y_false = get_data('intervention')
     alpha_list = [0, float(input("Enter alpha value for False --> True: "))]
     alpha_list_flipped = [0, float(input("Enter alpha value for True --> False: "))]
-    k_list = [int(input("Enter k value: "))]
+    k_list = [int(input("Enter k value for False --> True: "))]
+    k_list_flipped = [int(input("Enter k value for True --> False: "))]
     # Trues
-    boolp, probdiff = parameter_sweep(model=model, prompts=x_true, accuracies=accuracies, directions=directions, ks=k_list, alphas=alpha_list_flipped, metric='boolp', labels=y_true, attn=modality=='heads')
-    save_results(boolp[1]-boolp[0], f"intervention_boolp_true_to_false_k{k_list}_a{alpha_list_flipped[1]}_{cfg['model']}", modality=modality)
-    save_results(probdiff[1]-probdiff[0], f"intervention_probdiff_true_to_false_k{k_list}_a{alpha_list_flipped[1]}_{cfg['model']}", modality=modality)
+    boolp, probdiff = parameter_sweep(model=model, prompts=x_true, accuracies=accuracies, directions=directions, ks=k_list_flipped, alphas=alpha_list_flipped, metric='boolp', labels=y_true, attn=modality=='heads')
+    save_results(boolp[1]-boolp[0], f"intervention_boolp_true_to_false_k{k_list_flipped}_a{alpha_list_flipped[1]}_{cfg['model']}", modality=modality)
+    save_results(probdiff[1]-probdiff[0], f"intervention_probdiff_true_to_false_k{k_list_flipped}_a{alpha_list_flipped[1]}_{cfg['model']}", modality=modality)
     # Falses
     boolp, probdiff = parameter_sweep(model=model, prompts=x_true, accuracies=accuracies, directions=directions, ks=k_list, alphas=alpha_list_flipped, metric='boolp', labels=y_true, attn=modality=='heads')
     save_results(boolp[1]-boolp[0], f"intervention_boolp_false_to_true_k{k_list}_a{alpha_list[1]}_{cfg['model']}", modality=modality)
