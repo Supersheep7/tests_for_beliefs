@@ -1,5 +1,6 @@
 import sys
 import torch as t
+from torch.serialization import safe_globals
 from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
@@ -122,14 +123,15 @@ def run_intervention():
     print(f"Running experiment: accuracy")
     model = get_model()
     modality = input("Choose the target ['residual', 'heads']: ").strip().lower()
-    if modality == 'residual':
-        directions = t.load(Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "directions_residual"))
-        accuracies = t.load(Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "accuracies_residual"))
-    elif modality == 'heads':
-        directions = t.load(Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "directions_heads"))
-        accuracies = t.load(Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "accuracies_heads"))
-    else:
-        print("Invalid modality. Please choose 'residual' or 'heads'.")
+    with safe_globals([np.core.multiarray._reconstruct]):
+        if modality == 'residual':
+            directions = t.load(Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "directions_residual"))
+            accuracies = t.load(Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "accuracies_residual"))
+        elif modality == 'heads':
+            directions = t.load(Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "directions_heads"))
+            accuracies = t.load(Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "accuracies_heads"))
+        else:
+            print("Invalid modality. Please choose 'residual' or 'heads'.")
     sweep = input("Do you want to run an intervention sweep? [y/n]: ").strip().lower() == 'y'
     if sweep:
         while True:
