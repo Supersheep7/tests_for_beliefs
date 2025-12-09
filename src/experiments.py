@@ -1,4 +1,5 @@
 import sys
+import torch as t
 from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
@@ -122,11 +123,11 @@ def run_intervention():
     model = get_model()
     modality = input("Choose the target ['residual', 'heads']: ").strip().lower()
     if modality == 'residual':
-        directions = Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "directions_residual.pkl")
-        accuracies = Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "accuracies_residual.pkl")
+        directions = t.load(Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "directions_residual"))
+        accuracies = t.load(Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "accuracies_residual"))
     elif modality == 'heads':
-        directions = Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "directions_heads.pkl")
-        accuracies = Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "accuracies_heads.pkl")
+        directions = t.load(Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "directions_heads"))
+        accuracies = t.load(Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "accuracies_heads"))
     else:
         print("Invalid modality. Please choose 'residual' or 'heads'.")
     sweep = input("Do you want to run an intervention sweep? [y/n]: ").strip().lower() == 'y'

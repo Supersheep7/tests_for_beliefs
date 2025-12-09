@@ -8,7 +8,6 @@ if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))
 from src.cfg import load_cfg
 from datetime import datetime
-from pathlib import Path
 cfg = load_cfg()
 
 def force_format(*items, format='tensor', device=None):
@@ -82,11 +81,11 @@ def save_results(item, datatype, modality='residual'):
     base_dir.mkdir(parents=True, exist_ok=True)
 
     filename_map = {
-        "accuracies": f"accuracies_{modality}.pkl",
-        "directions": f"directions_{modality}.pkl",
-        "probes": f"probes_{modality}.pkl",
-        "intervention_scores": f"intervention_scores_{modality}.pkl",
-        "coherence_scores": f"coherence_scores.pkl",
+        "accuracies": f"accuracies_{modality}",
+        "directions": f"directions_{modality}",
+        "probes": f"probes_{modality}",
+        "intervention_scores": f"intervention_scores_{modality}",
+        "coherence_scores": f"coherence_scores",
     }
 
     if datatype not in filename_map:
