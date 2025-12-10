@@ -198,7 +198,7 @@ def parameter_sweep(model_baseline: HookedTransformer,
                     ks : List = [1, 2, 3, 4, 5],
                     alphas: List = [1, 2, 3, 4, 5],
                     metric: str = 'boolprobs',
-                    verbose: bool = False,
+                    verbose: bool = True,
                     shots: List = None,
                     labels: List[int] = None,
                     attn: bool = True
