@@ -66,9 +66,9 @@ def run_visualizations():
 def run_accuracy():
     print(f"Running experiment: accuracy")
     while True:
-        modality = input("Choose the target ['residual', 'heads']: ").strip().lower()
+        modality = input("Choose the target ['residual', 'heads', 'both']: ").strip().lower()
         print("Your input:", modality)
-        if modality not in ['residual', 'heads']:
+        if modality not in ['residual', 'heads', 'both']:
             print("Invalid modality. Please choose 'residual' or 'heads'.")
         else: 
             break
@@ -76,7 +76,7 @@ def run_accuracy():
     data = get_data()
     top_residual_accuracies = None
     top_heads_accuracies = None
-    if modality == 'residual':
+    if modality == 'residual' or modality == 'both':
         activations, labels = get_activations(model, data, 'residual')
         accuracies, directions, probes = probe_sweep(activations.values(), labels)
         print_answer = input("Do you want to print the plot? [y/n]: ").strip().lower()
@@ -86,7 +86,10 @@ def run_accuracy():
             print("Plotting skipped.")
         top_residuals, top_residual_accuracies = get_top_entries(accuracies, n=5)
         print("Top 5 Residual Positions and their Accuracies:", list(zip(top_residuals, top_residual_accuracies)))
-    elif modality == 'heads':
+        save_results(accuracies, "accuracies", modality='residual')
+        save_results(directions, "directions", modality='residual')
+        save_results(probes, "probes", modality='residual')
+    elif modality == 'heads' or modality == 'both':
         activations, labels = get_activations(model, data, 'heads')
         heads = [decompose_mha(x) for x in activations.values()]
         accuracies = []
@@ -100,19 +103,17 @@ def run_accuracy():
         accuracies = np.array(accuracies)
         top_heads, top_heads_accuracies = get_top_entries(accuracies, n=5)
         print("Top 5 Heads Positions and their Accuracies:", list(zip(top_heads, top_heads_accuracies)))
-        
         print_answer = input("Do you want to print the plot? [y/n]: ").strip().lower()
         if print_answer == 'y':
             plot_heat(accuracies, title="Attention Heads Probe Accuracies (Sorted)", model=cfg['common']['model'], probe=cfg['probe']['probe_type'])
         else:
             print("Plotting skipped.")
+        save_results(accuracies, "accuracies", modality='heads')
+        save_results(directions, "directions", modality='heads')
+        save_results(probes, "probes", modality='heads')
     else:
         print("Invalid modality. Please choose 'residual' or 'heads'.")
         return
-    
-    save_results(accuracies, "accuracies", modality=modality)
-    save_results(directions, "directions", modality=modality)
-    save_results(probes, "probes", modality=modality)
 
     print("Results saved in folder 'ROOT/results'")
 
