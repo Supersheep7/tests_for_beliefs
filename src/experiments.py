@@ -120,7 +120,6 @@ def run_accuracy():
 
 def run_intervention():
 
-    print(f"Running experiment: accuracy")
     model = get_model()
     modality = input("Choose the target ['residual', 'heads']: ").strip().lower() 
     if modality == 'residual':
@@ -175,7 +174,6 @@ def run_intervention():
     return
 
 def run_coherence():
-    print(f"Running experiment: accuracy")
     model = get_model()
     logics = [l.strip() for l in input("Choose the logic(s) (comma-separated) [Possible values: 'neg', 'or', 'and', 'ifthen']: ").split(',')]
     estimators = [e.strip() for e in input("Choose the estimator(s) (comma-separated) [Possible values: 'logistic_regression', 'mmp', 'logits', 'self_report']: ").split(',')]
