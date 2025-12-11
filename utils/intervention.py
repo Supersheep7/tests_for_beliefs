@@ -79,6 +79,7 @@ def mask_top_k(activation_accuracies: np.array,
 def set_intervention_hooks(model: HookedTransformer,
                            top_k_indices: List[Tuple],
                            top_k_directions: List[t.Tensor],
+                           last_positions,
                            alpha: float = 1,
                            verbose: bool = False
                            ) -> List:
@@ -91,6 +92,7 @@ def set_intervention_hooks(model: HookedTransformer,
                       hook: HookPoint,
                       head_idx: int,
                       head_direction: t.Tensor,
+                      last_positions,
                       alpha: float = 1):
 
         """
@@ -99,10 +101,11 @@ def set_intervention_hooks(model: HookedTransformer,
         """
         assert head_direction.shape == z.shape[-1:], f"Shape mismatch: {head_direction.shape} vs {z.shape[-1:]}"
         # Steer only the d_head corresponding to the given head_index
+        batch_idx = t.arange(z.shape[0], device=z.device)
 
         head_direction = head_direction / head_direction.norm()
 
-        z[:, -1, head_idx, :] += alpha * head_direction
+        z[batch_idx, last_positions, head_idx, :] += alpha * head_direction
 
         return z
 
@@ -119,7 +122,7 @@ def set_intervention_hooks(model: HookedTransformer,
             print(f"Layer {layer}, Head {head}, Direction Norm: {direction.norm().item()}")
         if half:
             direction = direction.clone().detach().half()
-        steering = functools.partial(steering_hook, head_idx=head, head_direction=direction, alpha=alpha)
+        steering = functools.partial(steering_hook, head_idx=head, head_direction=direction, last_positions=last_positions, alpha=alpha)
         print("adding hook for layer", layer, "head", head)
         model.add_hook(f"blocks.{layer}.attn.hook_z", steering)
 
@@ -128,6 +131,7 @@ def set_intervention_hooks(model: HookedTransformer,
 def full_intervention(model: HookedTransformer,
                       activation_accuracies: np.array,
                       activation_directions: np.array,
+                      last_positions,
                       K: int = 1,
                       alpha: int = 1,
                       verbose: bool = False) -> HookedTransformer:
@@ -143,7 +147,7 @@ def full_intervention(model: HookedTransformer,
     top_k_directions = force_format(top_k_directions, format='tensor')
 
     # Set the intervention hooks for the top K heads
-    model = set_intervention_hooks(model, top_k_indices, top_k_directions, alpha, verbose)
+    model = set_intervention_hooks(model, top_k_indices, top_k_directions, alpha, verbose, last_positions=last_positions)
 
     return model
 
@@ -151,6 +155,7 @@ def intervention_on_residual(
                             model: HookedTransformer,
                             activation_accuracies: np.array,
                             activation_directions: np.array,
+                            last_positions,
                             k: int = -1,
                             alpha: int = 1,
                             top_features: np.array = None,
@@ -164,17 +169,16 @@ def intervention_on_residual(
                       resid: Float[t.Tensor, "n_batch n_seq d_model"],
                       hook: HookPoint,
                       direction: t.Tensor,
+                      last_positions,
                       alpha: float = 1,
                       top_features: int = None
                       ):
 
         assert direction.shape == resid.shape[-1:], f"Shape mismatch: {direction.shape} vs {resid.shape[-1:]}"
+        batch_idx = t.arange(resid.shape[0], device=resid.device)
 
         direction = direction / direction.norm()
-        print()
-        print(resid.shape)
-        print()
-        resid[:, -1, :] += alpha * direction
+        resid[batch_idx, last_positions, :] += alpha * direction
         return resid
 
     model.reset_hooks()
@@ -182,7 +186,7 @@ def intervention_on_residual(
     model.add_hook("hook_embed", lambda tensor, hook: tensor.half())
     for layer, direction in zip(top_k_indices, top_k_directions):        
         direction = direction.clone().detach().half()
-        steering = functools.partial(steering_residual_hook, direction=direction, alpha=alpha, top_features=top_features)
+        steering = functools.partial(steering_residual_hook, direction=direction, alpha=alpha, last_positions=last_positions, top_features=top_features)
         model.add_hook(f"blocks.{layer}.hook_resid_post", steering)
 
     return model
@@ -216,25 +220,25 @@ def parameter_sweep(model_baseline: HookedTransformer,
 
         model_baseline.reset_hooks()
         model_baseline.add_hook("hook_embed", lambda tensor, hook: tensor.half())
-        if metric in ['kl', 'ce', 'cosine']:
-           baseline_probs = get_mass_probs(model_baseline, prompts)
 
         for num_k, k in tqdm(enumerate(ks)):
                 tqdm.write(f"Steering top {k} activations")
                 for num_alpha, alpha in tqdm(enumerate(alphas)):
                     tqdm.write(f"With strength {alpha}")
                     model_baseline.reset_hooks()
-                    if attn:
-                        model_to_evaluate = full_intervention(model_baseline, activation_accuracies, activation_directions, K=k, alpha=alpha, verbose=verbose)
-                    else:
-                        model_to_evaluate = intervention_on_residual(model=model_baseline, activation_accuracies=activation_accuracies, activation_directions=activation_directions, k=k, alpha=alpha, verbose=verbose)
-                    if metric in ['kl', 'ce', 'cosine']:
-                        eval_probs = get_mass_probs(model_to_evaluate, prompts)
-                        metrics[num_k, num_alpha] = probs_mass_eval(baseline_probs, eval_probs, metric=metric)
-                    elif metric == 'boolprobs':
-                        if labels is None:
+                    if labels is None:
                             raise ValueError("Labels must be provided for truth assignment evaluation.")
-                        metrics[num_k, num_alpha], prob_diff[num_k, num_alpha] = mass_truth_assignment_eval(model_to_evaluate, prompts, shots=shots, labels=labels)
+                    metrics[num_k, num_alpha], prob_diff[num_k, num_alpha] = mass_truth_assignment_eval(model_baseline, 
+                                                                                                        prompts, 
+                                                                                                        attn=attn, 
+                                                                                                        shots=shots, 
+                                                                                                        labels=labels,
+                                                                                                        activation_accuracies=activation_accuracies,
+                                                                                                        activation_directions=activation_directions,
+                                                                                                        k=k,
+                                                                                                        alpha=alpha,
+                                                                                                        verbose=verbose
+                                                                                                        )
         if metric == 'boolprobs':
             return metrics, prob_diff
         else:
@@ -242,42 +246,14 @@ def parameter_sweep(model_baseline: HookedTransformer,
 
 ''' *** P(True)-P(False) ***'''
 
-def truth_assignment_single_eval(
-              model: HookedTransformer,
-              prompt: str,
-              label: int,
-              true_tokens,
-              false_tokens
-              ):
-
-    true_token_ids = [model.tokenizer.convert_tokens_to_ids(token) for token in true_tokens if token in model.tokenizer.get_vocab()]
-    false_token_ids = [model.tokenizer.convert_tokens_to_ids(token) for token in false_tokens if token in model.tokenizer.get_vocab()]
-    with t.no_grad():
-        with t.amp.autocast(device_type='cuda', dtype=t.float16):
-            tokens = model.to_tokens(prompt)
-            logits = model(tokens)
-    log_probs = t.nn.functional.log_softmax(logits, dim=-1)
-    log_p_true = t.logsumexp(log_probs[0, -1, true_token_ids], dim=0).item()
-    log_p_false = t.logsumexp(log_probs[0, -1, false_token_ids], dim=0).item()
-    most_probable_token_id = t.argmax(log_probs[0, -1]).item()
-    most_probable_token = model.tokenizer.convert_ids_to_tokens([most_probable_token_id])[0]
-    print(f"Prompt: {prompt}")
-    print(f"P(True): {np.exp(log_p_true)}, P(False): {np.exp(log_p_false)}")
-    successful = int(int(log_p_true >= log_p_false) != label)
-    if np.exp(log_p_true) + np.exp(log_p_false) < 0.1:
-        print(f"Broken! Answer: {most_probable_token}")
-        successful = 0
-
-    prob_diff = np.exp(log_p_true) - np.exp(log_p_false) if label == 1 else np.exp(log_p_false) - np.exp(log_p_true)
-
-    return successful, prob_diff
-
 def mass_truth_assignment_eval(
-              model: HookedTransformer,
+              model_baseline: HookedTransformer,
               statements: List[str],
               labels: List[int],
+              activation_accuracies, activation_directions, k, alpha, verbose,
               true_tokens: List[str] = ['true','Ġtrue','True','ĠTrue','▁true','▁True'],
               false_tokens: List[str] = ['false','Ġfalse','False','ĠFalse','▁true','▁True'],
+              attn = True,
               shots: List[str] = None,
               batch_size: int = 100
               ) -> float:
@@ -288,9 +264,9 @@ def mass_truth_assignment_eval(
 
     assert len(statements) == len(labels), "Number of prompts and labels must match"
 
-    true_token_ids = [model.tokenizer.convert_tokens_to_ids(token) for token in true_tokens if token in model.tokenizer.get_vocab()]
-    false_token_ids = [model.tokenizer.convert_tokens_to_ids(token) for token in false_tokens if token in model.tokenizer.get_vocab()]
-    pad = model.tokenizer.pad_token_id
+    true_token_ids = [model_baseline.tokenizer.convert_tokens_to_ids(token) for token in true_tokens if token in model_baseline.tokenizer.get_vocab()]
+    false_token_ids = [model_baseline.tokenizer.convert_tokens_to_ids(token) for token in false_tokens if token in model_baseline.tokenizer.get_vocab()]
+    pad = model_baseline.tokenizer.pad_token_id
 
     total_metric = 0.0
     total_prob_diff = 0.0
@@ -303,7 +279,13 @@ def mass_truth_assignment_eval(
             for stmt in batch_statements
         ]
 
-        tokens = model.to_tokens(batch_prompts)
+        tokens = model_baseline.to_tokens(batch_prompts)
+        last_positions = (tokens != pad).sum(dim=1) - 1
+
+        if attn:
+            model = full_intervention(model_baseline, activation_accuracies=activation_accuracies, activation_directions=activation_directions, K=k, alpha=alpha, verbose=verbose, last_positions=last_positions)
+        else:
+            model = intervention_on_residual(model=model_baseline, activation_accuracies=activation_accuracies, activation_directions=activation_directions, k=k, alpha=alpha, verbose=verbose, last_positions=last_positions)
         with t.no_grad():
             with t.amp.autocast(device_type='cuda', dtype=t.float16):
                 logits = model(tokens)
