@@ -171,7 +171,10 @@ def intervention_on_residual(
         assert direction.shape == resid.shape[-1:], f"Shape mismatch: {direction.shape} vs {resid.shape[-1:]}"
 
         direction = direction / direction.norm()
+        print("Hook active")
+        print("Before steering", resid[:, -1, :])
         resid[:, -1, :] += alpha * direction
+        print("After steering", resid[:, -1, :])
         return resid
 
     model.reset_hooks()
