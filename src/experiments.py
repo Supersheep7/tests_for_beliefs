@@ -146,6 +146,7 @@ def run_intervention():
             boolp_t, probdiff_t = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list_flipped, labels=y_true, attn=modality=='heads')
             print(boolp_t)
             print(probdiff_t)
+            input("Press Enter to continue on the next direction...")
             # Falses
             print("False --> True...")
             boolp_f, probdiff_f = parameter_sweep(model_baseline=model, prompts=x_false, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list, labels=y_false, attn=modality=='heads')
