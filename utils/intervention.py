@@ -150,7 +150,7 @@ def full_intervention(model: HookedTransformer,
     top_k_directions = force_format(top_k_directions, format='tensor')
 
     # Set the intervention hooks for the top K heads
-    model = set_intervention_hooks(model, top_k_indices, top_k_directions, alpha, verbose, last_positions=last_positions)
+    model = set_intervention_hooks(model, top_k_indices=top_k_indices, top_k_directions=top_k_directions, alpha=alpha, verbose=verbose, last_positions=last_positions)
 
     return model
 
