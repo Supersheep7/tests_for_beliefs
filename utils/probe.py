@@ -116,9 +116,13 @@ class Probe(object):
                 labels_for_mm = t.tensor(self.y_train, device=device)
             pos_acts, neg_acts = data_for_mm[labels_for_mm == 1], data_for_mm[labels_for_mm == 0]
             pos_mean, neg_mean = pos_acts.mean(0), neg_acts.mean(0)
-            self.direction = nn.Parameter(pos_mean - neg_mean, requires_grad=True)
+            direction = pos_mean - neg_mean
             centered_data = t.cat([pos_acts - pos_mean, neg_acts - neg_mean], 0)
-            self.covariance = centered_data.t() @ centered_data / centered_data.shape[0]
+            cov = centered_data.t() @ centered_data / centered_data.shape[0]
+            inv_cov = t.linalg.pinv(cov.float(), hermitian=True, atol=1e-6).to(device)
+            self.direction = nn.Parameter(inv_cov @ direction, requires_grad=True)
+            self.covariance = cov
+
         elif direction_type == None: 
             self.direction = None
         else:
