@@ -22,6 +22,7 @@ from .intervention import generate
 import matplotlib.pyplot as plt
 from .funcs import *
 from src.cfg import load_cfg
+from sklearn.isotonic import IsotonicRegression
 cfg = load_cfg()
 probe_cfg = cfg["probe"]
 device = t.device("cuda" if t.cuda.is_available() else "cpu")
@@ -48,12 +49,15 @@ class MMP(nn.Module):
         else:
             self.inv = nn.Parameter(inv, requires_grad=False).to(device)
 
-    def forward(self, x, iid=True):
-        x = nn.Parameter(t.tensor(x).to(device), requires_grad=False)
+    def forward(self, x, iid=True, project=False):
+        x = x.to(device)
+        
         if iid:
-            return t.nn.Sigmoid()(x @ self.inv @ self.direction).unsqueeze(1)
+            projection = (x @ self.inv @ self.direction).unsqueeze(1)
         else:
-            return t.nn.Sigmoid()(x @ self.direction).unsqueeze(1)
+            projection = (x @ self.direction).unsqueeze(1)
+
+        return projection if project else t.sigmoid(projection)
         
 class MLPProbe(nn.Module):
     def __init__(self, d):
@@ -489,8 +493,11 @@ class Estimator:
         if self.estimator_name in ['logistic_regression', 'mmp']:
             probe = self.probe 
             activations, labels = get_activations(self.model, data, 'residual', focus=self.best_layer)
-            X = einops.rearrange(activations, 'n b d -> (n b) d') # Do we need this? 
-            return probe.predict_proba(X) if self.estimator_name == 'logistic_regression' else probe(X, iid=True).detach().cpu().numpy()
+            X = einops.rearrange(activations, 'n b d -> (n b) d')  
+            projections = probe.decision_function(X) if self.estimator_name == 'logistic_regression' else probe(X, iid=True, project=True).detach().cpu().numpy()
+            ir = IsotonicRegression(out_of_bounds='clip')
+            pseudo_probs = ir.fit_transform(projections, labels)
+            return pseudo_probs 
 
         elif self.estimator_name == 'logits':
             return self.logits_evaluate(data)
