@@ -18,7 +18,7 @@ def force_format(*items, format='tensor', device=None):
         elif isinstance(item, np.ndarray):
             return item
         elif isinstance(item, list):
-            return [to_numpy(x) for x in item]
+            return np.array([to_numpy(x) for x in item])
         else:  # scalar
             return item
     
