@@ -118,6 +118,8 @@ def set_intervention_hooks(model: HookedTransformer,
     if verbose:
         print(f"Setting hooks for top {len(top_k_indices)} heads:")
     for (layer, head), direction in zip(top_k_indices, top_k_directions):
+        layer = int(layer)
+        head = int(head)
         if verbose:
             print(f"Layer {layer}, Head {head}, Direction Norm: {direction.norm().item()}")
         if half:
