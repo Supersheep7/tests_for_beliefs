@@ -127,7 +127,8 @@ def run_intervention():
         directions = t.load(Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "directions_residual"), weights_only=False)
         accuracies = t.load(Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "accuracies_residual"), weights_only=False)
     elif modality == 'heads':
-        directions = t.tensor(t.load(Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "directions_heads"), weights_only=False))
+        directions = t.load(Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "directions_heads"), weights_only=False)
+        directions = t.stack([t.stack(row) for row in directions])
         accuracies = t.tensor(t.load(Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "accuracies_heads"), weights_only=False))
     else:
         print("Invalid modality. Please choose 'residual' or 'heads'.")
