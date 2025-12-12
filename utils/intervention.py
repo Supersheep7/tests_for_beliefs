@@ -142,8 +142,8 @@ def full_intervention(model: HookedTransformer,
     Full intervention function that sets the hooks for the top K heads and returns the model with the hooks set.
     """
 
-    if K > activation_accuracies.shape[0]:
-        raise ValueError(f"K ({K}) cannot be larger than the number of layers ({activation_accuracies.shape[0]})")
+    if K > activation_accuracies.numel():
+        raise ValueError(f"K ({K}) cannot be larger than the number of heads ({activation_accuracies.numel()})")
 
     # Get the top K heads and their directions
     top_k_indices, top_k_directions = mask_top_k(activation_accuracies, activation_directions, K)
@@ -167,8 +167,8 @@ def intervention_on_residual(
                             verbose: bool = False
                             ) -> HookedTransformer:
 
-    if k > activation_accuracies.shape[0]:
-        raise ValueError(f"k ({k}) cannot be larger than the number of layers ({activation_accuracies.shape[0]})")
+    if k > activation_accuracies.numel():
+        raise ValueError(f"k ({k}) cannot be larger than the number of layers ({activation_accuracies.numel()})")
 
     top_k_indices = np.argsort(activation_accuracies)[-k:][::-1]
     top_k_directions = [t.as_tensor(activation_directions[i]) for i in top_k_indices]
