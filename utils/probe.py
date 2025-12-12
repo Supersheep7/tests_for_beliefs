@@ -102,7 +102,7 @@ class Probe(object):
         self.covariance = None
         self.std = None
 
-    def initialize_direction(self, direction_type, full_dataset=True):
+    def initialize_direction(self, direction_type, full_dataset=True, whitened=True):
         
         if direction_type == 'mmp':
             """
@@ -119,9 +119,12 @@ class Probe(object):
             direction = pos_mean - neg_mean
             centered_data = t.cat([pos_acts - pos_mean, neg_acts - neg_mean], 0)
             cov = centered_data.t() @ centered_data / centered_data.shape[0]
-            inv_cov = t.linalg.pinv(cov.float(), hermitian=True, atol=1e-6).to(device)
-            inv_cov = inv_cov.half()
-            self.direction = nn.Parameter(inv_cov @ direction, requires_grad=True)
+            if whitened:
+                inv_cov = t.linalg.pinv(cov.float(), hermitian=True, atol=1e-6).to(device)
+                inv_cov = inv_cov.half()
+                self.direction = nn.Parameter(inv_cov @ direction, requires_grad=True)
+            else:
+                self.direction = nn.Parameter(direction, requires_grad=True)
             self.covariance = cov
 
         elif direction_type == None: 
