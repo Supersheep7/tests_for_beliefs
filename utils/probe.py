@@ -109,10 +109,10 @@ class Probe(object):
             We take the mass mean of positive and negative activations and subtract them to get the direction.
             """
             if full_dataset:
-                data_for_mm = t.cat([self.X_train, self.X_test], dim=0).to(device)
+                data_for_mm = t.cat([self.unnormalized_X_train, self.unnormalized_X_test], dim=0).to(device)
                 labels_for_mm = t.cat([self.y_train, self.y_test], dim=0)
             else:
-                data_for_mm = t.tensor(self.X_train, device=device)
+                data_for_mm = t.tensor(self.unnormalized_X_train, device=device)
                 labels_for_mm = t.tensor(self.y_train, device=device)
             pos_acts, neg_acts = data_for_mm[labels_for_mm == 1], data_for_mm[labels_for_mm == 0]
             pos_mean, neg_mean = pos_acts.mean(0), neg_acts.mean(0)
@@ -288,6 +288,8 @@ class SupervisedProbe(Probe):
                  ):
         super().__init__(probe_cfg=probe_cfg)
         self.input_dim = X_train.shape[-1]
+        self.unnormalized_X_train = X_train
+        self.unnormalized_X_test = X_test
         X_train, X_test = self.normalize(X_train, X_test) if self.var_normalize else (X_train, X_test)
         self.X_train, self.X_test, self.y_train, self.y_test = force_format(X_train, X_test, y_train, y_test, format='tensor', device=self.device)
 
