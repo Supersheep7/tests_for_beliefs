@@ -167,7 +167,7 @@ def intervention_on_residual(
                             verbose: bool = False
                             ) -> HookedTransformer:
 
-    if k > activation_accuracies.numel():
+    if k > len(activation_accuracies):
         raise ValueError(f"k ({k}) cannot be larger than the number of layers ({activation_accuracies.numel()})")
 
     top_k_indices = np.argsort(activation_accuracies)[-k:][::-1]

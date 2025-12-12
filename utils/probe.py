@@ -106,7 +106,7 @@ class Probe(object):
         self.covariance = None
         self.std = None
 
-    def initialize_direction(self, direction_type, full_dataset=True, whitened=True):
+    def initialize_direction(self, direction_type, full_dataset=True, whitened=False):
         
         if direction_type == 'mmp':
             """
@@ -483,10 +483,6 @@ class Estimator:
 
         else:
             raise ValueError(f"Unsupported estimator: {self.estimator_name}")
-
-    def calibrate_estimator(self):
-        # TODO: setup a calibration procedure for the linear probes
-        pass
 
     def extract_proba(self, data) -> np.ndarray:
         
