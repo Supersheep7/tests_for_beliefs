@@ -119,6 +119,7 @@ class Probe(object):
             direction = pos_mean - neg_mean
             centered_data = t.cat([pos_acts - pos_mean, neg_acts - neg_mean], 0)
             cov = centered_data.t() @ centered_data / centered_data.shape[0]
+            print("TYPE COV:", type(cov))
             inv_cov = t.linalg.pinv(cov.float().half(), hermitian=True, atol=1e-6).to(device)
             self.direction = nn.Parameter(inv_cov @ direction, requires_grad=True)
             self.covariance = cov
