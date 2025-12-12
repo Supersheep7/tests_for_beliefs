@@ -89,7 +89,7 @@ def run_accuracy():
         save_results(accuracies, "accuracies", modality='residual')
         save_results(directions, "directions", modality='residual')
         save_results(probes, "probes", modality='residual')
-    elif modality == 'heads' or modality == 'both':
+    if modality == 'heads' or modality == 'both':
         activations, labels = get_activations(model, data, 'heads')
         heads = [decompose_mha(x) for x in activations.values()]
         accuracies = []
@@ -111,9 +111,6 @@ def run_accuracy():
         save_results(accuracies, "accuracies", modality='heads')
         save_results(directions, "directions", modality='heads')
         save_results(probes, "probes", modality='heads')
-    else:
-        print("Invalid modality. Please choose 'residual' or 'heads'.")
-        return
 
     print("Results saved in folder 'ROOT/results'")
 
