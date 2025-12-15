@@ -83,8 +83,6 @@ def compute_attention_sign_mask(model: HookedTransformer,
     
     head_directions = force_format(head_directions, format='tensor')
     resid_mid_directions = force_format(resid_mid_directions, format='tensor')
-    print("head directions:", head_directions)
-    print("residual directions: ", resid_mid_directions)
     n_layers, n_heads, d_head = head_directions.shape
 
     signed_directions = head_directions.clone()
@@ -106,7 +104,7 @@ def compute_attention_sign_mask(model: HookedTransformer,
                 w_head = W_O_h @ w_mid
                 dotted = t.dot(d_z.float(), w_head.float())
                 print(dotted)
-                if dotted < 0:
+                if dotted > 0:
                     flipped += 1
                     signed_directions[l, h] = -d_z
 
@@ -120,7 +118,7 @@ def compute_attention_sign_mask(model: HookedTransformer,
                 w_head = W_O_h @ w_mid
                 dotted = t.dot(d_z.float(), w_head.float())
                 print(dotted)
-                if dotted < 0:
+                if dotted > 0:
                     flipped += 1
                     signed_directions[l, h] = -d_z
 
