@@ -131,7 +131,7 @@ def compute_attention_sign_mask(model: HookedTransformer,
     print(f"Flipped {flipped} heads")
     print()
 
-    return signed_directions.half()
+    return signed_directions
     
 def set_intervention_hooks(model: HookedTransformer,
                            top_k_indices: List[Tuple],
@@ -161,8 +161,9 @@ def set_intervention_hooks(model: HookedTransformer,
         batch_idx = t.arange(z.shape[0], device=z.device)
 
         head_direction = head_direction / head_direction.norm()
+        head_direction_clamped = head_direction * alpha
 
-        z[batch_idx, last_positions, head_idx, :] += alpha * head_direction
+        z[batch_idx, last_positions, head_idx, :] += head_direction_clamped.half()
 
         return z
 
@@ -243,7 +244,8 @@ def intervention_on_residual(
         batch_idx = t.arange(resid.shape[0], device=resid.device)
 
         direction = direction / direction.norm()
-        resid[batch_idx, last_positions, :] += alpha * direction
+        direction_clamped = direction * alpha
+        resid[batch_idx, last_positions, :] += direction_clamped.half()
         return resid
 
     model.reset_hooks()
