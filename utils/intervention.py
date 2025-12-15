@@ -81,8 +81,9 @@ def compute_attention_sign_mask(model: HookedTransformer,
                                 resid_mid_directions: t.Tensor
                                 ) -> t.Tensor:
     
+    head_directions = force_format(head_directions, format='tensor')
+    resid_mid_directions = force_format(resid_mid_directions, format='tensor')
     n_layers, n_heads, d_head = head_directions.shape
-    d_model = resid_mid_directions.shape[-1]
 
     signed_directions = head_directions.clone()
 
@@ -112,7 +113,7 @@ def compute_attention_sign_mask(model: HookedTransformer,
     print()
     print(f"Flipped {flipped} out of {n_layers * n_heads} head directions based on residual mid directions.")
     print()
-    
+
     return signed_directions
     
 def set_intervention_hooks(model: HookedTransformer,
