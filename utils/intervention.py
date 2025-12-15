@@ -374,7 +374,7 @@ def mass_truth_assignment_eval(
             print(f"Prompt: {batch_prompts[j]}")
             print(f"P(True): {np.exp(log_p_true):.6f}, P(False): {np.exp(log_p_false):.6f}")
 
-            if np.exp(log_p_true) + np.exp(log_p_false) < 0.1:
+            if np.exp(log_p_true) + np.exp(log_p_false) < 0.3:
                 print(f"Broken! Answer: {most_probable_token}")
                 successful = 0
             else:
