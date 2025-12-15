@@ -83,6 +83,8 @@ def compute_attention_sign_mask(model: HookedTransformer,
     
     head_directions = force_format(head_directions, format='tensor')
     resid_mid_directions = force_format(resid_mid_directions, format='tensor')
+    print("head directions shape: ", head_directions.shape)
+    print("residual directions shape: ", resid_mid_directions.shape)
     n_layers, n_heads, d_head = head_directions.shape
 
     signed_directions = head_directions.clone()
@@ -91,20 +93,25 @@ def compute_attention_sign_mask(model: HookedTransformer,
 
     for l in range(n_layers):
         w_mid = resid_mid_directions[l]  # (d_model,)
+        print("This should be d_model:", w_mid.shape)
 
         # full W_O for this layer
         W_O = model.blocks[l].attn.W_O    # (n_heads*d_head, d_model)
+        print("This should be (n_heads*d_head, d_model):", W_O.shape)
 
         for h in range(n_heads):
             d_z = signed_directions[l, h]  # (d_head,)
+            print("This should be d_head:", d_z.shape)
 
             h_start = h * d_head
             h_end = h_start + d_head
 
             W_O_h = W_O[h_start:h_end, :]  # (d_head, d_model)
+            print("This should be (d_head, d_model):", W_O_h.shape)
 
             # pull back resid_mid probe into head space
             w_head = W_O_h @ w_mid         # (d_head,)
+            print("This should be (d_head,):", w_head.shape)
 
             # resolve sign
             if t.dot(d_z, w_head) < 0:
