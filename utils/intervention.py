@@ -104,7 +104,7 @@ def compute_attention_sign_mask(model: HookedTransformer,
                 w_head = W_O_h @ w_mid
                 dotted = t.dot(d_z.float(), w_head.float())
                 print(dotted)
-                if dotted > 0:
+                if dotted < 0:
                     flipped += 1
                     signed_directions[l, h] = -d_z
 
@@ -118,7 +118,7 @@ def compute_attention_sign_mask(model: HookedTransformer,
                 w_head = W_O_h @ w_mid
                 dotted = t.dot(d_z.float(), w_head.float())
                 print(dotted)
-                if dotted > 0:
+                if dotted < 0:
                     flipped += 1
                     signed_directions[l, h] = -d_z
 
@@ -128,6 +128,8 @@ def compute_attention_sign_mask(model: HookedTransformer,
     print()
     print(f"Flipped {flipped} heads")
     print()
+
+    signed_directions = head_directions.clone() # override
 
     return signed_directions
     
