@@ -394,7 +394,7 @@ def get_activations(model: HookedTransformer, data, modality: str = 'residual', 
                               [get_act_name('resid_post')], attn=False) 
     elif modality == 'mid':
         if model_name == 'gpt-j':
-           hookname = 'attn_out'
+           hookname = 'mlp_in'
         else:
             hookname = 'resid_mid'
         if focus is None:
@@ -407,7 +407,7 @@ def get_activations(model: HookedTransformer, data, modality: str = 'residual', 
                               [layer],
                               [get_act_name(hookname)], attn=False) 
     activations, labels = extractor.process()
-    print(activations.shape)
+    print(activations[f"blocks.20.{hookname}"].shape)
     model.to(t.device('cpu'))
     gc.collect()
     t.cuda.empty_cache()
