@@ -397,13 +397,13 @@ def get_activations(model: HookedTransformer, data, modality: str = 'residual', 
             if focus is None:
               extractor.set_hooks(
                                   [i for i in range(model.cfg.n_layers)],
-                                  [f"blocks.{i}.hook_mlp_in" for i in range(model.cfg.n_layers)],
+                                  [f"hook_mlp_in"],
                                   attn=False)
             else: 
               layer = focus
               extractor.set_hooks(
                                   [layer],
-                                  [f"blocks.{layer}.hook_mlp_in"],
+                                  [f"hook_mlp_in"],
                                   attn=False)
         else:
             if focus is None:
