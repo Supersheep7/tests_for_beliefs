@@ -140,6 +140,8 @@ def run_intervention():
     elif modality == 'heads':
         directions = t.load(Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "directions_heads"), weights_only=False)
         directions = t.stack([t.stack(row) for row in directions])
+        resid_mid_directions = t.load(Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "directions_mid"), weights_only=False)
+        directions = compute_attention_sign_mask(model, directions, resid_mid_directions)       # Sign the directions based on residual mid directions
         accuracies = t.tensor(t.load(Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "accuracies_heads"), weights_only=False))
     else:
         print("Invalid modality. Please choose 'residual' or 'heads'.")

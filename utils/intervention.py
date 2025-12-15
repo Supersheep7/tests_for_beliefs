@@ -76,6 +76,39 @@ def mask_top_k(activation_accuracies: np.array,
 
     return top_k_indices, top_k_directions
 
+def compute_attention_sign_mask(model: HookedTransformer,
+                                head_directions: t.Tensor,
+                                resid_mid_directions: t.Tensor
+                                ) -> t.Tensor:
+    
+    n_layers, n_heads, d_head = head_directions.shape
+    d_model = resid_mid_directions.shape[-1]
+
+    signed_directions = head_directions.clone()
+
+    for l in range(n_layers):
+        w_mid = resid_mid_directions[l]  # (d_model,)
+
+        # full W_O for this layer
+        W_O = model.blocks[l].attn.W_O    # (n_heads*d_head, d_model)
+
+        for h in range(n_heads):
+            d_z = signed_directions[l, h]  # (d_head,)
+
+            h_start = h * d_head
+            h_end = h_start + d_head
+
+            W_O_h = W_O[h_start:h_end, :]  # (d_head, d_model)
+
+            # pull back resid_mid probe into head space
+            w_head = W_O_h @ w_mid         # (d_head,)
+
+            # resolve sign
+            if t.dot(d_z, w_head) < 0:
+                signed_directions[l, h] = -d_z
+
+    return signed_directions
+    
 def set_intervention_hooks(model: HookedTransformer,
                            top_k_indices: List[Tuple],
                            top_k_directions: List[t.Tensor],
