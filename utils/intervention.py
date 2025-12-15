@@ -129,7 +129,9 @@ def compute_attention_sign_mask(model: HookedTransformer,
     print(f"Flipped {flipped} heads")
     print()
 
-    signed_directions = head_directions.clone() # override
+    take = input("Use signed directions? (y/n): ")
+    if take.lower() != 'y':
+        signed_directions = head_directions.clone() # override
 
     return signed_directions
     
@@ -160,7 +162,7 @@ def set_intervention_hooks(model: HookedTransformer,
         # Steer only the d_head corresponding to the given head_index
         batch_idx = t.arange(z.shape[0], device=z.device)
 
-        # head_direction = head_direction / head_direction.norm()
+        head_direction = head_direction / head_direction.norm()
         head_direction_clamped = head_direction * alpha
 
         z[batch_idx, last_positions, head_idx, :] += head_direction_clamped.half()
@@ -243,7 +245,7 @@ def intervention_on_residual(
         assert direction.shape == resid.shape[-1:], f"Shape mismatch: {direction.shape} vs {resid.shape[-1:]}"
         batch_idx = t.arange(resid.shape[0], device=resid.device)
 
-        # direction = direction / direction.norm()
+        direction = direction / direction.norm()
         direction_clamped = direction * alpha
         resid[batch_idx, last_positions, :] += direction_clamped.half()
         return resid

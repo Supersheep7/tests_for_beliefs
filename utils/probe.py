@@ -119,11 +119,8 @@ class Probe(object):
                 data_for_mm = t.tensor(self.unnormalized_X_train, device=device)
                 labels_for_mm = t.tensor(self.y_train, device=device)
             pos_acts, neg_acts = data_for_mm[labels_for_mm == 1], data_for_mm[labels_for_mm == 0]
-            print("pos acts example:", pos_acts[0], "neg acts example:", neg_acts[0])
             pos_mean, neg_mean = pos_acts.float().mean(0), neg_acts.float().mean(0)
-            print("pos mean:", pos_mean, "\nneg mean:", neg_mean)
             direction = pos_mean - neg_mean
-            print("passed direction:", direction)
             centered_data = t.cat([pos_acts - pos_mean, neg_acts - neg_mean], 0)
             cov = centered_data.t() @ centered_data / centered_data.shape[0]
             if whitened:
