@@ -119,6 +119,7 @@ class Probe(object):
                 data_for_mm = t.tensor(self.unnormalized_X_train, device=device)
                 labels_for_mm = t.tensor(self.y_train, device=device)
             pos_acts, neg_acts = data_for_mm[labels_for_mm == 1], data_for_mm[labels_for_mm == 0]
+            print("pos acts example:", pos_acts[0], "neg acts example:", neg_acts[0])
             pos_mean, neg_mean = pos_acts.mean(0), neg_acts.mean(0)
             print("pos mean:", pos_mean, "\nneg mean:", neg_mean)
             direction = pos_mean - neg_mean
