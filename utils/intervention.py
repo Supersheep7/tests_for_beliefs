@@ -104,7 +104,7 @@ def compute_attention_sign_mask(model: HookedTransformer,
                 d_z = signed_directions[l, h]
                 W_O_h = W_O[h]  # (d_head, d_model)
                 w_head = W_O_h @ w_mid
-                dotted = t.dot(d_z, w_head)
+                dotted = t.dot(d_z.float(), w_head.float())
                 print(dotted)
                 if dotted < 0:
                     flipped += 1
@@ -118,7 +118,7 @@ def compute_attention_sign_mask(model: HookedTransformer,
                 h_end = h_start + d_head
                 W_O_h = W_O[h_start:h_end, :]  # (d_head, d_model)
                 w_head = W_O_h @ w_mid
-                dotted = t.dot(d_z, w_head)
+                dotted = t.dot(d_z.float(), w_head.float())
                 print(dotted)
                 if dotted < 0:
                     flipped += 1
@@ -127,11 +127,11 @@ def compute_attention_sign_mask(model: HookedTransformer,
         else:
             raise ValueError(f"Unexpected W_O shape {W_O.shape}")
         
-        print()
-        print(f"Flipped {flipped} heads")
-        print()
+    print()
+    print(f"Flipped {flipped} heads")
+    print()
 
-        return signed_directions
+    return signed_directions
     
 def set_intervention_hooks(model: HookedTransformer,
                            top_k_indices: List[Tuple],
