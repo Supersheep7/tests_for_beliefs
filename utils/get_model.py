@@ -32,6 +32,6 @@ def get_model(model_name=None):
     model = mymodels[MODEL]()
     model.to(t.device('cuda' if t.cuda.is_available() else 'cpu'))
     model.cfg.use_attn_out = False
-    print(model.hook_dict.keys())
+    # print(model.hook_dict.keys())
 
     return model
