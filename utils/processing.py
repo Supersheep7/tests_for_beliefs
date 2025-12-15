@@ -394,7 +394,7 @@ def get_activations(model: HookedTransformer, data, modality: str = 'residual', 
                               [get_act_name('resid_post')], attn=False) 
     elif modality == 'mid':
         if model_name == 'gpt-j':
-           hookname = 'mlp_in'
+            hookname = 'mlp_in'
         else:
             hookname = 'resid_mid'
         if focus is None:
