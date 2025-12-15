@@ -123,6 +123,7 @@ class Probe(object):
             pos_mean, neg_mean = pos_acts.float().mean(0), neg_acts.float().mean(0)
             print("pos mean:", pos_mean, "\nneg mean:", neg_mean)
             direction = pos_mean - neg_mean
+            direction = direction.half()
             print("passed direction:", direction)
             centered_data = t.cat([pos_acts - pos_mean, neg_acts - neg_mean], 0)
             cov = centered_data.t() @ centered_data / centered_data.shape[0]
@@ -282,7 +283,7 @@ class Probe(object):
             self.X_train = t.tensor(self.X_train, dtype=t.float, device=self.device)
             self.X_test = t.tensor(self.X_test, dtype=t.float, device=self.device)
         full_dataset = t.cat([self.X_train, self.X_test], dim=0)
-        project_on_direction = full_dataset @ self.direction
+        project_on_direction = full_dataset.float() @ self.direction
         self.std = project_on_direction.std(dim=0, keepdim=True)
 
         return self.std

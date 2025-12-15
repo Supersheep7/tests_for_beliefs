@@ -131,7 +131,7 @@ def compute_attention_sign_mask(model: HookedTransformer,
     print(f"Flipped {flipped} heads")
     print()
 
-    return signed_directions
+    return signed_directions.half()
     
 def set_intervention_hooks(model: HookedTransformer,
                            top_k_indices: List[Tuple],
