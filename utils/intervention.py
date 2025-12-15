@@ -96,8 +96,7 @@ def compute_attention_sign_mask(model: HookedTransformer,
         print("This should be d_model:", w_mid.shape)
 
         # full W_O for this layer
-        W_O = model.blocks[l].attn.W_O    # (n_heads*d_head, d_model)
-        print("This should be (n_heads*d_head, d_model):", W_O.shape)
+        W_O = model.blocks[l].attn.W_O    # (n_heads*d_head, d_model) or (n_heads, d_head, d_model)
 
         if W_O.ndim == 3 and W_O.shape[0] == n_heads:
             # per-head layout (LLaMA style)
@@ -105,7 +104,9 @@ def compute_attention_sign_mask(model: HookedTransformer,
                 d_z = signed_directions[l, h]
                 W_O_h = W_O[h]  # (d_head, d_model)
                 w_head = W_O_h @ w_mid
-                if t.dot(d_z, w_head) < 0:
+                dotted = t.dot(d_z, w_head)
+                print(dotted)
+                if dotted < 0:
                     flipped += 1
                     signed_directions[l, h] = -d_z
 
@@ -117,7 +118,9 @@ def compute_attention_sign_mask(model: HookedTransformer,
                 h_end = h_start + d_head
                 W_O_h = W_O[h_start:h_end, :]  # (d_head, d_model)
                 w_head = W_O_h @ w_mid
-                if t.dot(d_z, w_head) < 0:
+                dotted = t.dot(d_z, w_head)
+                print(dotted)
+                if dotted < 0:
                     flipped += 1
                     signed_directions[l, h] = -d_z
 
