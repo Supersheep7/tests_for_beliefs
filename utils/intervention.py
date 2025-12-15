@@ -99,29 +99,36 @@ def compute_attention_sign_mask(model: HookedTransformer,
         W_O = model.blocks[l].attn.W_O    # (n_heads*d_head, d_model)
         print("This should be (n_heads*d_head, d_model):", W_O.shape)
 
-        for h in range(n_heads):
-            d_z = signed_directions[l, h]  # (d_head,)
-            print("This should be d_head:", d_z.shape)
+        if W_O.ndim == 3 and W_O.shape[0] == n_heads:
+            # per-head layout (LLaMA style)
+            for h in range(n_heads):
+                d_z = signed_directions[l, h]
+                W_O_h = W_O[h]  # (d_head, d_model)
+                w_head = W_O_h @ w_mid
+                if t.dot(d_z, w_head) < 0:
+                    flipped += 1
+                    signed_directions[l, h] = -d_z
 
-            h_start = h * d_head
-            h_end = h_start + d_head
+        elif W_O.ndim == 2 and W_O.shape[0] == n_heads * d_head:
+            # flattened layout (GPT style)
+            for h in range(n_heads):
+                d_z = signed_directions[l, h]
+                h_start = h * d_head
+                h_end = h_start + d_head
+                W_O_h = W_O[h_start:h_end, :]  # (d_head, d_model)
+                w_head = W_O_h @ w_mid
+                if t.dot(d_z, w_head) < 0:
+                    flipped += 1
+                    signed_directions[l, h] = -d_z
 
-            W_O_h = W_O[h_start:h_end, :]  # (d_head, d_model)
-            print("This should be (d_head, d_model):", W_O_h.shape)
+        else:
+            raise ValueError(f"Unexpected W_O shape {W_O.shape}")
+        
+        print()
+        print(f"Flipped {flipped} heads")
+        print()
 
-            # pull back resid_mid probe into head space
-            w_head = W_O_h @ w_mid         # (d_head,)
-            print("This should be (d_head,):", w_head.shape)
-
-            # resolve sign
-            if t.dot(d_z, w_head) < 0:
-                flipped += 1
-                signed_directions[l, h] = -d_z
-    print()
-    print(f"Flipped {flipped} out of {n_layers * n_heads} head directions based on residual mid directions.")
-    print()
-
-    return signed_directions
+        return signed_directions
     
 def set_intervention_hooks(model: HookedTransformer,
                            top_k_indices: List[Tuple],
