@@ -309,7 +309,6 @@ class ActivationExtractor():
             tensor = tensor.detach()
             last_token = tensor[:, self.pos, :, :].unsqueeze(0) if attn else tensor[..., self.pos, :].unsqueeze(0)  
             last_token = last_token.to(dtype=t.float16, device=t.device('cpu'))
-            print(last_token.shape)
 
             if hook.name in self.activations:
                 self.activations[hook.name] = t.cat([self.activations[hook.name], last_token], dim=0)
