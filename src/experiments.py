@@ -68,7 +68,7 @@ def run_accuracy():
     while True:
         modality = input("Choose the target ['residual', 'heads', 'mid', 'all']: ").strip().lower()
         print("Your input:", modality)
-        if modality not in ['residual', 'heads', 'mid' 'all']:
+        if modality not in ['residual', 'heads', 'mid', 'all']:
             print("Invalid modality. Please choose 'residual' or 'heads'.")
         else: 
             break
