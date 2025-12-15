@@ -306,7 +306,6 @@ class ActivationExtractor():
             self.hooks.append(("hook_embed", lambda tensor, hook: tensor.half()))
         
         def get_act_hook(tensor, hook):
-            print(tensor.shape)
             tensor = tensor.detach()
             last_token = tensor[:, self.pos, :, :].unsqueeze(0) if attn else tensor[..., self.pos, :].unsqueeze(0)  
             last_token = last_token.to(dtype=t.float16, device=t.device('cpu'))
@@ -321,7 +320,6 @@ class ActivationExtractor():
         for layer in layers:
             for name in names:
                 self.hooks.append((f"blocks.{layer}.{name}", get_act_hook))
-                print(f"Hook set for blocks.{layer}.{name}")
           
                 
     def extract_activations_batch(self, 
@@ -399,13 +397,13 @@ def get_activations(model: HookedTransformer, data, modality: str = 'residual', 
             if focus is None:
               extractor.set_hooks(
                                   [i for i in range(model.cfg.n_layers)],
-                                  [f"hook_mlp_in"],
+                                  [f"hook.mlp_in"],
                                   attn=False)
             else: 
               layer = focus
               extractor.set_hooks(
                                   [layer],
-                                  [f"hook_mlp_in"],
+                                  [f"hook.mlp_in"],
                                   attn=False)
         else:
             if focus is None:
