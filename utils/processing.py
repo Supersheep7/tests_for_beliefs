@@ -416,6 +416,7 @@ def get_activations(model: HookedTransformer, data, modality: str = 'residual', 
                                   [layer],
                                   [get_act_name('resid_mid')], attn=False) 
     activations, labels = extractor.process()
+    print(activations)
     model.to(t.device('cpu'))
     gc.collect()
     t.cuda.empty_cache()
