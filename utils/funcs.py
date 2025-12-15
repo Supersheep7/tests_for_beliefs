@@ -90,7 +90,7 @@ def get_top_entries(accuracies, n=5):
     else:
         raise ValueError("Input must be 1D or 2D.")
 
-def save_results(item, datatype, modality='residual'):
+def save_results(item, datatype, model, modality='residual'):
 
     base_dir = ROOT / "results"
     base_dir = Path(base_dir)
@@ -108,11 +108,11 @@ def save_results(item, datatype, modality='residual'):
         raise ValueError(f"Unsupported datatype: {datatype}")
 
     if datatype == "intervention_scores":
-        path = base_dir / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "k"+cfg["intervention"]["k"] / "alpha"+cfg["intervention"]["alpha"] / filename_map[datatype]
+        path = base_dir / model / cfg["probe"]["probe_type"] / "k"+cfg["intervention"]["k"] / "alpha"+cfg["intervention"]["alpha"] / filename_map[datatype]
     elif datatype == "coherence_scores":
-        path = base_dir / cfg["common"]["model"] / cfg["coherence"]["estimator"] / filename_map[datatype]
+        path = base_dir / model / cfg["coherence"]["estimator"] / filename_map[datatype]
     else:
-        path = base_dir / cfg["common"]["model"] / cfg["probe"]["probe_type"] / filename_map[datatype]
+        path = base_dir / model / cfg["probe"]["probe_type"] / filename_map[datatype]
 
     # If file already exists, append a timestamp to avoid clobbering
     if path.exists():

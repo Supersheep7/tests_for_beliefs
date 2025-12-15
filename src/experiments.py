@@ -88,9 +88,9 @@ def run_accuracy(model_name=None):
         top_residuals, top_residual_accuracies = get_top_entries(accuracies, n=5)
         print("Top 5 Residual Positions and their Accuracies:", list(zip(top_residuals, top_residual_accuracies)))
         # print("Directions look like:", directions[0])
-        save_results(accuracies, "accuracies", modality='residual')
-        save_results(directions, "directions", modality='residual')
-        save_results(probes, "probes", modality='residual')
+        save_results(accuracies, "accuracies", model=model_name, modality='residual')
+        save_results(directions, "directions", model=model_name, modality='residual')
+        save_results(probes, "probes", model=model_name, modality='residual')
     if modality == 'mid' or modality == 'all':
         activations, labels = get_activations(model, data, 'mid')
         accuracies, directions, probes = probe_sweep(activations.values(), labels)
@@ -102,9 +102,9 @@ def run_accuracy(model_name=None):
         top_residuals, top_residual_accuracies = get_top_entries(accuracies, n=5)
         print("Top 5 Residual (Mid) Positions and their Accuracies:", list(zip(top_residuals, top_residual_accuracies)))
         # print("Directions look like:", directions[0])
-        save_results(accuracies, "accuracies", modality='mid')
-        save_results(directions, "directions", modality='mid')
-        save_results(probes, "probes", modality='mid')
+        save_results(accuracies, "accuracies", model=model_name, modality='mid')
+        save_results(directions, "directions", model=model_name, modality='mid')
+        save_results(probes, "probes", model=model_name, modality='mid')
     if modality == 'heads' or modality == 'all':
         activations, labels = get_activations(model, data, 'heads')
         heads = [decompose_mha(x) for x in activations.values()]
@@ -125,9 +125,9 @@ def run_accuracy(model_name=None):
             plot_heat(accuracies, title="Attention Heads Probe Accuracies (Sorted)", model=cfg['common']['model'], probe=cfg['probe']['probe_type'])
         else:
             print("Plotting skipped.")
-        save_results(accuracies, "accuracies", modality='heads')
-        save_results(directions, "directions", modality='heads')
-        save_results(probes, "probes", modality='heads')
+        save_results(accuracies, "accuracies", model=model_name, modality='heads')
+        save_results(directions, "directions", model=model_name, modality='heads')
+        save_results(probes, "probes", model=model_name, modality='heads')
 
     print("Results saved in folder 'ROOT/results'")
 
@@ -175,8 +175,8 @@ def run_intervention(model_name=None):
                 if saveplot == 'y':
                     for metric in [boolp_t, probdiff_t, boolp_f, probdiff_f]:
                         plot_sweep(metric, k_list, alpha_list, title="Boolp: True --> False") 
-                save_results(boolp_t, f"intervention_boolp_true_to_false_sweep_{cfg['model']}", modality=modality)
-                save_results(probdiff_t, f"intervention_probdiff_true_to_false_sweep_{cfg['model']}", modality=modality)   
+                save_results(boolp_t, f"intervention_boolp_true_to_false_sweep_{model_name}", modality=modality)
+                save_results(probdiff_t, f"intervention_probdiff_true_to_false_sweep_{model_name}", modality=modality)   
                 break
     x_true, y_true, x_false, y_false = get_data('intervention')
     alpha_list = [0, float(input("Enter alpha value for False --> True: "))]
@@ -185,12 +185,12 @@ def run_intervention(model_name=None):
     k_list_flipped = [int(input("Enter k value for True --> False: "))]
     # Trues
     boolp, probdiff = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions, ks=k_list_flipped, alphas=alpha_list_flipped, labels=y_true, attn=modality=='heads')
-    save_results(boolp[1]-boolp[0], f"intervention_boolp_true_to_false_k{k_list_flipped}_a{alpha_list_flipped[1]}_{cfg['model']}", modality=modality)
-    save_results(probdiff[1]-probdiff[0], f"intervention_probdiff_true_to_false_k{k_list_flipped}_a{alpha_list_flipped[1]}_{cfg['model']}", modality=modality)
+    save_results(boolp[1]-boolp[0], f"intervention_boolp_true_to_false_k{k_list_flipped}_a{alpha_list_flipped[1]}_{model_name}", modality=modality)
+    save_results(probdiff[1]-probdiff[0], f"intervention_probdiff_true_to_false_k{k_list_flipped}_a{alpha_list_flipped[1]}_{model_name}", modality=modality)
     # Falses
     boolp, probdiff = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list_flipped, labels=y_true, attn=modality=='heads')
-    save_results(boolp[1]-boolp[0], f"intervention_boolp_false_to_true_k{k_list}_a{alpha_list[1]}_{cfg['model']}", modality=modality)
-    save_results(probdiff[1]-probdiff[0], f"intervention_probdiff_false_to_true_k{k_list}_a{alpha_list[1]}_{cfg['model']}", modality=modality)
+    save_results(boolp[1]-boolp[0], f"intervention_boolp_false_to_true_k{k_list}_a{alpha_list[1]}_{model_name}", modality=modality)
+    save_results(probdiff[1]-probdiff[0], f"intervention_probdiff_false_to_true_k{k_list}_a{alpha_list[1]}_{model_name}", modality=modality)
 
     return
 
@@ -236,7 +236,7 @@ def run_coherence(model_name=None):
 
     print("Coherence experiment completed.")
     print("Results: ", results_tot)
-    save_results(results_tot, f"coherence_{'_'.join(logics)}_{'_'.join(estimators)}_{cfg['common']['model']}", modality='coherence')
+    save_results(results_tot, f"coherence_{'_'.join(logics)}_{'_'.join(estimators)}_{model_name}", modality='coherence')
     
     return
 
@@ -275,7 +275,7 @@ def run_uniformity(model_name=None):
 
     print("Uniformity experiment completed.")
     print("Results: ", results)              
-    save_results(results, f"uniformity_{cfg['common']['model']}", modality='uniformity')
+    save_results(results, f"uniformity_{model_name}", modality='uniformity')
     print("Results saved in folder 'ROOT/results'")
 
     return
