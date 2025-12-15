@@ -366,7 +366,7 @@ class ActivationExtractor():
         print("Activation extraction complete.")
         return self.activations, self.y
 
-def get_activations(model: HookedTransformer, data, modality: str = 'residual', focus = None):
+def get_activations(model: HookedTransformer, data, modality: str = 'residual', focus = None, model_name = None):
 
     print("Extracting activations...")
     model.to(cfg["common"]["device"])
@@ -393,7 +393,7 @@ def get_activations(model: HookedTransformer, data, modality: str = 'residual', 
                               [layer],
                               [get_act_name('resid_post')], attn=False) 
     elif modality == 'mid':
-        if model.name == 'gpt-j-6B':
+        if model_name == 'gpt-j':
            hookname = 'attn_out'
         else:
             hookname = 'resid_mid'

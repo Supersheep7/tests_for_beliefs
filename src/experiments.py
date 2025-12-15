@@ -35,7 +35,7 @@ def run_visualizations(model_name=None):
     model = get_model(model_name=model_name)
     data = get_data()
     if modality == 'residual':
-        activations, labels = get_activations(model, data, 'residual')
+        activations, labels = get_activations(model, data, 'residual', model_name=model_name)
         while True:
             layer = int(input("Enter the layer number for visualization: "))
             if 0 <= layer < len(activations):
@@ -48,7 +48,7 @@ def run_visualizations(model_name=None):
             if retry != 'y':
                 break
     elif modality == 'heads':
-        activations, labels = get_activations(model, data, 'heads')
+        activations, labels = get_activations(model, data, 'heads', model_name=model_name)
         heads = [decompose_mha(x) for x in activations.values()]
         while True:
             layer = int(input("Enter the layer number for visualization: "))
@@ -78,7 +78,7 @@ def run_accuracy(model_name=None):
     top_mid_accuracies = None
     top_heads_accuracies = None
     if modality == 'residual' or modality == 'all':
-        activations, labels = get_activations(model, data, 'residual')
+        activations, labels = get_activations(model, data, 'residual', model_name=model_name)
         accuracies, directions, probes = probe_sweep(activations.values(), labels)
         print_answer = input("Do you want to print the plot? [y/n]: ").strip().lower()
         if print_answer == 'y':
@@ -92,7 +92,7 @@ def run_accuracy(model_name=None):
         save_results(directions, "directions", model=model_name, modality='residual')
         save_results(probes, "probes", model=model_name, modality='residual')
     if modality == 'mid' or modality == 'all':
-        activations, labels = get_activations(model, data, 'mid')
+        activations, labels = get_activations(model, data, 'mid', model_name=model_name)
         accuracies, directions, probes = probe_sweep(activations.values(), labels)
         print_answer = input("Do you want to print the plot? [y/n]: ").strip().lower()
         if print_answer == 'y':
@@ -106,7 +106,7 @@ def run_accuracy(model_name=None):
         save_results(directions, "directions", model=model_name, modality='mid')
         save_results(probes, "probes", model=model_name, modality='mid')
     if modality == 'heads' or modality == 'all':
-        activations, labels = get_activations(model, data, 'heads')
+        activations, labels = get_activations(model, data, 'heads', model_name=model_name)
         heads = [decompose_mha(x) for x in activations.values()]
         accuracies = []
         directions = []
@@ -253,7 +253,7 @@ def run_uniformity(model_name=None):
         for i, data_sets in enumerate(folds):            
             for j, train_set in enumerate(data_sets[0]):
 
-                activations, labels = get_activations(model, train_set, 'residual', focus=best_layer)
+                activations, labels = get_activations(model, train_set, 'residual', focus=best_layer, model_name=model_name)
                 X = einops.rearrange(activations, 'n b d -> (n b) d') # Do we need this? 
                 y = einops.rearrange(labels, 'n b -> (n b)')
                 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.05, random_state=42)
@@ -265,7 +265,7 @@ def run_uniformity(model_name=None):
 
                 for test_set in data_sets[1]:
             
-                    activations, labels = get_activations(model, test_set, 'residual', focus=best_layer)
+                    activations, labels = get_activations(model, test_set, 'residual', focus=best_layer, model_name=model_name)
                     X = einops.rearrange(activations, 'n b d -> (n b) d') # Do we need this? 
                     y = einops.rearrange(labels, 'n b -> (n b)')
                     y_pred = probe.predict(X)
