@@ -123,7 +123,6 @@ class Probe(object):
             pos_mean, neg_mean = pos_acts.float().mean(0), neg_acts.float().mean(0)
             print("pos mean:", pos_mean, "\nneg mean:", neg_mean)
             direction = pos_mean - neg_mean
-            direction = direction.half()
             print("passed direction:", direction)
             centered_data = t.cat([pos_acts - pos_mean, neg_acts - neg_mean], 0)
             cov = centered_data.t() @ centered_data / centered_data.shape[0]
