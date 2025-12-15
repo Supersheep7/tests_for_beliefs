@@ -66,17 +66,18 @@ def run_visualizations():
 def run_accuracy():
     print(f"Running experiment: accuracy")
     while True:
-        modality = input("Choose the target ['residual', 'heads', 'both']: ").strip().lower()
+        modality = input("Choose the target ['residual', 'heads', 'mid', 'all']: ").strip().lower()
         print("Your input:", modality)
-        if modality not in ['residual', 'heads', 'both']:
+        if modality not in ['residual', 'heads', 'mid' 'all']:
             print("Invalid modality. Please choose 'residual' or 'heads'.")
         else: 
             break
     model = get_model()
     data = get_data()
     top_residual_accuracies = None
+    top_mid_accuracies = None
     top_heads_accuracies = None
-    if modality == 'residual' or modality == 'both':
+    if modality == 'residual' or modality == 'all':
         activations, labels = get_activations(model, data, 'residual')
         accuracies, directions, probes = probe_sweep(activations.values(), labels)
         print_answer = input("Do you want to print the plot? [y/n]: ").strip().lower()
@@ -89,7 +90,20 @@ def run_accuracy():
         save_results(accuracies, "accuracies", modality='residual')
         save_results(directions, "directions", modality='residual')
         save_results(probes, "probes", modality='residual')
-    if modality == 'heads' or modality == 'both':
+    if modality == 'mid' or modality == 'all':
+        activations, labels = get_activations(model, data, 'mid')
+        accuracies, directions, probes = probe_sweep(activations.values(), labels)
+        print_answer = input("Do you want to print the plot? [y/n]: ").strip().lower()
+        if print_answer == 'y':
+            plot_line(accuracies, title="Residual Stream (Mid) Probe Accuracies", label=f"Accuracy for model {cfg['common']['model']}")
+        else:
+            print("Plotting skipped.")
+        top_residuals, top_residual_accuracies = get_top_entries(accuracies, n=5)
+        print("Top 5 Residual (Mid) Positions and their Accuracies:", list(zip(top_residuals, top_residual_accuracies)))
+        save_results(accuracies, "accuracies", modality='mid')
+        save_results(directions, "directions", modality='mid')
+        save_results(probes, "probes", modality='mid')
+    if modality == 'heads' or modality == 'all':
         activations, labels = get_activations(model, data, 'heads')
         heads = [decompose_mha(x) for x in activations.values()]
         accuracies = []

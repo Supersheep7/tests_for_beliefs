@@ -382,7 +382,7 @@ def get_activations(model: HookedTransformer, data, modality: str = 'residual', 
           layer, head = focus
           extractor.set_hooks([layer],
                               [f'blocks.{layer}.attn.hook_z_{head}'], attn=True)
-    else:
+    elif modality == 'residual':
         if focus is None:
           extractor.set_hooks(
                               [i for i in range(model.cfg.n_layers)],
@@ -392,6 +392,16 @@ def get_activations(model: HookedTransformer, data, modality: str = 'residual', 
           extractor.set_hooks(
                               [layer],
                               [get_act_name('resid_post')], attn=False) 
+    elif modality == 'mid':
+        if focus is None:
+          extractor.set_hooks(
+                              [i for i in range(model.cfg.n_layers)],
+                              [get_act_name('resid_mid')], attn=False)
+        else: 
+          layer = focus
+          extractor.set_hooks(
+                              [layer],
+                              [get_act_name('resid_mid')], attn=False) 
     activations, labels = extractor.process()
     model.to(t.device('cpu'))
     gc.collect()
