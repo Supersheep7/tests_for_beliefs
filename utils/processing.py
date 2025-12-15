@@ -306,6 +306,7 @@ class ActivationExtractor():
             self.hooks.append(("hook_embed", lambda tensor, hook: tensor.half()))
         
         def get_act_hook(tensor, hook):
+            print(tensor.shape)
             tensor = tensor.detach()
             last_token = tensor[:, self.pos, :, :].unsqueeze(0) if attn else tensor[..., self.pos, :].unsqueeze(0)  
             last_token = last_token.to(dtype=t.float16, device=t.device('cpu'))
