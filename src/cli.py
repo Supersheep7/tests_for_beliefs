@@ -35,9 +35,10 @@ def main():
                         help="Experiment to run")
     parser.add_argument("--set", nargs="*", help="Overrides like train.lr=1e-4")
     parser.add_argument("--hf_token", help="Hugging Face access token")
+    parser.add_argument("--model", help="Model to use")
     parser.add_argument("--seed", type=int, default=666, help="Random seed")
     args = parser.parse_args()
-
+    model = args.model or None
     token = args.hf_token or os.getenv("HF_TOKEN")
     if not token:
         raise ValueError("No Hugging Face token provided. "
@@ -55,7 +56,7 @@ def main():
         print("CUDA NOT available, using CPU")
 
     print(f"Running {args.exp} with {args.config} (seed={args.seed})")
-    EXPERIMENTS[args.exp]()
+    EXPERIMENTS[args.exp](args)
 
 if __name__ == "__main__":
     main()

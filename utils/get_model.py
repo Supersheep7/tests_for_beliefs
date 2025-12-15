@@ -8,11 +8,12 @@ from transformer_lens import HookedTransformer
 import torch as t
 cfg = load_cfg()
 
-MODEL = cfg["common"]["model"]
 HF_TOKEN = cfg["common"]["hf_token"]
 
-def get_model():
+def get_model(model_name=None):
 
+    MODEL = model_name or cfg["common"]["model"]
+    
     mymodels = {
     'gemma': lambda: HookedTransformer.from_pretrained("gemma-2-9b", device=t.device('cpu')).half(),
     'gemma_instruct': lambda: HookedTransformer.from_pretrained("gemma-2-9b-it", device=t.device('cpu')).half(),

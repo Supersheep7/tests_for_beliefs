@@ -15,7 +15,7 @@ from utils.intervention import *
 from coherence_experiments import run_coherence_neg, run_coherence_or, run_coherence_and, run_coherence_ifthen
 cfg = load_cfg()
 
-def asker_kde():
+def asker_kde(model_name=None):
     zoom_strength = float(input("Enter the zoom strength: "))        
     offset = float(input("Enter the offset: "))
     kernel = input("Enable kernel density? [y/n]: ").strip().lower() == 'y'
@@ -23,7 +23,7 @@ def asker_kde():
     pca_mod = input("Use PCA instead of probe directions? [y/n]: ").strip().lower() == 'y'
     return zoom_strength, offset, kernel, scatter, pca_mod    
 
-def run_visualizations():
+def run_visualizations(model_name=None):
     print(f"Running visualizations")
     while True:
         modality = input("Choose the target ['residual', 'heads']: ").strip().lower()
@@ -32,7 +32,7 @@ def run_visualizations():
             print("Invalid modality. Please choose 'residual' or 'heads'.")
         else: 
             break
-    model = get_model()
+    model = get_model(model_name=model_name)
     data = get_data()
     if modality == 'residual':
         activations, labels = get_activations(model, data, 'residual')
@@ -63,7 +63,7 @@ def run_visualizations():
             if retry != 'y':
                 break         
 
-def run_accuracy():
+def run_accuracy(model_name=None):
     print(f"Running experiment: accuracy")
     while True:
         modality = input("Choose the target ['residual', 'heads', 'mid', 'all']: ").strip().lower()
@@ -72,7 +72,7 @@ def run_accuracy():
             print("Invalid modality. Please choose 'residual' or 'heads'.")
         else: 
             break
-    model = get_model()
+    model = get_model(model_name=model_name)
     data = get_data()
     top_residual_accuracies = None
     top_mid_accuracies = None
@@ -133,9 +133,9 @@ def run_accuracy():
 
     return
 
-def run_intervention():
+def run_intervention(model_name=None):
 
-    model = get_model()
+    model = get_model(model_name=model_name)
     modality = input("Choose the target ['residual', 'heads']: ").strip().lower() 
     if modality == 'residual':
         directions = t.load(Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "directions_residual"), weights_only=False)
@@ -194,8 +194,8 @@ def run_intervention():
 
     return
 
-def run_coherence():
-    model = get_model()
+def run_coherence(model_name=None):
+    model = get_model(model_name=model_name)
     logics = [l.strip() for l in input("Choose the logic(s) (comma-separated) [Possible values: 'neg', 'or', 'and', 'ifthen']: ").split(',')]
     estimators = [e.strip() for e in input("Choose the estimator(s) (comma-separated) [Possible values: 'logistic_regression', 'mmp', 'logits', 'self_report']: ").split(',')]
     results_tot = {}
@@ -240,12 +240,12 @@ def run_coherence():
     
     return
 
-def run_uniformity():
+def run_uniformity(model_name=None):
 
     # Fetch best layer (we will go with the residual)
 
     best_layer = int(input("Enter the layer number for uniformity experiment: "))
-    model = get_model()
+    model = get_model(model_name=model_name)
     data = get_data('uniformity')
     results = ()
 
