@@ -320,6 +320,7 @@ class ActivationExtractor():
         for layer in layers:
             for name in names:
                 self.hooks.append((f"blocks.{layer}.{name}", get_act_hook))
+                print(f"Hook set for blocks.{layer}.{name}")
           
                 
     def extract_activations_batch(self, 
