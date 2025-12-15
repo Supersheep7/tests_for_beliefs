@@ -87,6 +87,7 @@ def run_accuracy():
             print("Plotting skipped.")
         top_residuals, top_residual_accuracies = get_top_entries(accuracies, n=5)
         print("Top 5 Residual Positions and their Accuracies:", list(zip(top_residuals, top_residual_accuracies)))
+        print("Directions look like:", directions[0])
         save_results(accuracies, "accuracies", modality='residual')
         save_results(directions, "directions", modality='residual')
         save_results(probes, "probes", modality='residual')
@@ -100,6 +101,7 @@ def run_accuracy():
             print("Plotting skipped.")
         top_residuals, top_residual_accuracies = get_top_entries(accuracies, n=5)
         print("Top 5 Residual (Mid) Positions and their Accuracies:", list(zip(top_residuals, top_residual_accuracies)))
+        print("Directions look like:", directions[0])
         save_results(accuracies, "accuracies", modality='mid')
         save_results(directions, "directions", modality='mid')
         save_results(probes, "probes", modality='mid')
@@ -117,6 +119,7 @@ def run_accuracy():
         accuracies = np.array(accuracies)
         top_heads, top_heads_accuracies = get_top_entries(accuracies, n=5)
         print("Top 5 Heads Positions and their Accuracies:", list(zip(top_heads, top_heads_accuracies)))
+        print("Directions look like:", directions[0])
         print_answer = input("Do you want to print the plot? [y/n]: ").strip().lower()
         if print_answer == 'y':
             plot_heat(accuracies, title="Attention Heads Probe Accuracies (Sorted)", model=cfg['common']['model'], probe=cfg['probe']['probe_type'])
