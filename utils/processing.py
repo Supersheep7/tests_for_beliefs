@@ -393,7 +393,7 @@ def get_activations(model: HookedTransformer, data, modality: str = 'residual', 
                               [layer],
                               [get_act_name('resid_post')], attn=False) 
     elif modality == 'mid':
-        if model_name == 'gpt-j':
+        if model_name in ['gpt-j', 'pythia', 'pythia_instruct']:
             if focus is None:
               extractor.set_hooks(
                                   [i for i in range(model.cfg.n_layers)],
