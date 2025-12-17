@@ -427,7 +427,7 @@ class Estimator:
         false_ids = [model.tokenizer.convert_tokens_to_ids(token) for token in false_tokens if token in model.tokenizer.get_vocab()]
 
         selected_ids = true_ids + false_ids
-        print(selected_ids)
+        pad = model.tokenizer.pad_token_id
         probas = []
         
         for i in range(0, len(data), batch_size):
@@ -441,23 +441,29 @@ class Estimator:
             with t.no_grad():
                 with torch.cuda.amp.autocast(dtype=torch.float16):
                     logits = model(tokens)
-            log_probs = t.nn.functional.log_softmax(logits[:, -1, :], dim=-1)
-            restricted = log_probs[:, selected_ids].exp()
-            print(restricted)
-            p_true = restricted[:, :len(true_ids)].sum(dim=1)
-            p_false = restricted[:, len(true_ids):].sum(dim=1)
-            total_mass = p_true + p_false                     
-            low_conf = total_mass < 0.5
-            if low_conf.any():
-                for idx in low_conf.nonzero(as_tuple=True)[0]:
-                    print(
-                        f"Warning: Low confidence in prediction for statement: "
-                        f"'{batch[idx]}'. P(True)+P(False)={total_mass[idx]:.4f}"
-                    )
-            probs = p_true / total_mass
-            probs = t.where(low_conf, t.full_like(probs, 0.5), probs)
-            probas.extend(probs.cpu().tolist())
-        print(probas)
+            log_probs = t.nn.functional.log_softmax(logits, dim=-1)
+            seq_lens = (tokens != pad).sum(dim=1)
+            last_positions = seq_lens - 1 
+
+            for j, statement in enumerate(batch):
+                log_p_true = t.logsumexp(log_probs[j, last_positions[j], true_ids], dim=0).item()
+                log_p_false = t.logsumexp(log_probs[j, last_positions[j], false_ids], dim=0).item()
+                p_true = np.exp(log_p_true)
+                p_false = np.exp(log_p_false)
+                print(f"Prompt: {statement}")
+                print(f"P(True): {p_true:.6f}, P(False): {p_false:.6f}")
+    
+                total_mass = p_true + p_false                     
+                low_conf = total_mass < 0.5
+                if low_conf.any():
+                    for idx in low_conf.nonzero(as_tuple=True)[0]:
+                        print(
+                            f"Warning: Low confidence in prediction for statement: "
+                            f"'{batch[idx]}'. P(True)+P(False)={total_mass[idx]:.4f}"
+                        )
+                probs = p_true / total_mass
+                probas.append(probs)
+        
         return probas
 
     def self_evaluate(self, data: list, batch_size=100) -> np.ndarray:
