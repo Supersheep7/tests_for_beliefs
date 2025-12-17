@@ -420,8 +420,12 @@ class Estimator:
     def logits_evaluate(self, data: list, batch_size=100) -> np.ndarray:
         
         model = self.model
-        true_ids = [model.tokenizer.convert_tokens_to_ids(token) for token in ['true', 'True', 'TRUE', 'Ġtrue', 'ĠTrue', 'ĠTRUE', '▁true', '▁True', '▁TRUE']]
-        false_ids = [model.tokenizer.convert_tokens_to_ids(token) for token in ['false', 'False', 'FALSE', 'Ġfalse', 'ĠFalse', 'ĠFALSE', '▁false', '▁False', '▁FALSE']]
+        true_tokens = ['true','True','TRUE','Ġtrue','ĠTrue','ĠTRUE','▁true','▁True','▁TRUE']
+        false_tokens = ['false','False','FALSE','Ġfalse','ĠFalse','ĠFALSE','▁false','▁False','▁FALSE']
+
+        true_ids = [model.tokenizer.convert_tokens_to_ids(token) for token in true_tokens if token in model.tokenizer.get_vocab()]
+        false_ids = [model.tokenizer.convert_tokens_to_ids(token) for token in false_tokens if token in model.tokenizer.get_vocab()]
+
         selected_ids = true_ids + false_ids
         probas = []
         
