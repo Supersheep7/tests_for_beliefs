@@ -427,6 +427,7 @@ class Estimator:
         false_ids = [model.tokenizer.convert_tokens_to_ids(token) for token in false_tokens if token in model.tokenizer.get_vocab()]
 
         selected_ids = true_ids + false_ids
+        print(selected_ids)
         probas = []
         
         for i in range(0, len(data), batch_size):
@@ -436,10 +437,13 @@ class Estimator:
                 for statement in batch
             ]
             tokens = model.to_tokens(prompts)
-            with torch.cuda.amp.autocast(dtype=torch.float16):
-                logits = model(tokens)
+            print(tokens)
+            with t.no_grad():
+                with torch.cuda.amp.autocast(dtype=torch.float16):
+                    logits = model(tokens)
             log_probs = t.nn.functional.log_softmax(logits[:, -1, :], dim=-1)
             restricted = log_probs[:, selected_ids].exp()
+            print(restricted)
             p_true = restricted[:, :len(true_ids)].sum(dim=1)
             p_false = restricted[:, len(true_ids):].sum(dim=1)
             total_mass = p_true + p_false                     
