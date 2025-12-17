@@ -15,7 +15,7 @@ from utils.intervention import *
 from coherence_experiments import run_coherence_neg, run_coherence_or, run_coherence_and, run_coherence_ifthen
 cfg = load_cfg()
 
-def asker_kde(model_name=None):
+def asker_kde(model_name=cfg["common"]["model"]):
     zoom_strength = float(input("Enter the zoom strength: "))        
     offset = float(input("Enter the offset: "))
     kernel = input("Enable kernel density? [y/n]: ").strip().lower() == 'y'
@@ -23,7 +23,7 @@ def asker_kde(model_name=None):
     pca_mod = input("Use PCA instead of probe directions? [y/n]: ").strip().lower() == 'y'
     return zoom_strength, offset, kernel, scatter, pca_mod    
 
-def run_visualizations(model_name=None):
+def run_visualizations(model_name=cfg["common"]["model"]):
     print(f"Running visualizations")
     while True:
         modality = input("Choose the target ['residual', 'heads']: ").strip().lower()
@@ -63,7 +63,7 @@ def run_visualizations(model_name=None):
             if retry != 'y':
                 break         
 
-def run_accuracy(model_name=None):
+def run_accuracy(model_name=cfg["common"]["model"]):
     print(f"Running experiment: accuracy")
     while True:
         modality = input("Choose the target ['residual', 'heads', 'mid', 'all']: ").strip().lower()
@@ -133,19 +133,19 @@ def run_accuracy(model_name=None):
 
     return
 
-def run_intervention(model_name=None):
+def run_intervention(model_name=cfg["common"]["model"]):
 
     model = get_model(model_name=model_name)
     modality = input("Choose the target ['residual', 'heads']: ").strip().lower() 
     if modality == 'residual':
-        directions = t.load(Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "directions_residual"), weights_only=False)
-        accuracies = t.load(Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "accuracies_residual"), weights_only=False)
+        directions = t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "directions_residual"), weights_only=False)
+        accuracies = t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_residual"), weights_only=False)
     elif modality == 'heads':
-        directions = t.load(Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "directions_heads"), weights_only=False)
+        directions = t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "directions_heads"), weights_only=False)
         directions = t.stack([t.stack(row) for row in directions])
-        resid_mid_directions = t.load(Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "directions_mid"), weights_only=False)
+        resid_mid_directions = t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "directions_mid"), weights_only=False)
         directions = compute_attention_sign_mask(model, directions, resid_mid_directions)       # Sign the directions based on residual mid directions
-        accuracies = t.tensor(t.load(Path(ROOT / "results" / cfg["common"]["model"] / cfg["probe"]["probe_type"] / "accuracies_heads"), weights_only=False))
+        accuracies = t.tensor(t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_heads"), weights_only=False))
     else:
         print("Invalid modality. Please choose 'residual' or 'heads'.")
     sweep = input("Do you want to run an intervention sweep? [y/n]: ").strip().lower() == 'y'
@@ -194,25 +194,21 @@ def run_intervention(model_name=None):
 
     return
 
-def run_coherence(model_name=None):
-    model = get_model(model_name=model_name)
+def run_coherence(model_name=cfg["common"]["model"]):
+    best_layer = t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_residual"), weights_only=False).index(max(t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_residual"), weights_only=False)))
+    print("Loaded best layer:", best_layer)
     logics = [l.strip() for l in input("Choose the logic(s) (comma-separated) [Possible values: 'neg', 'or', 'and', 'ifthen']: ").split(',')]
     estimators = [e.strip() for e in input("Choose the estimator(s) (comma-separated) [Possible values: 'logistic_regression', 'mmp', 'logits', 'self_report']: ").split(',')]
     results_tot = {}
+    model = get_model(model_name=model_name)
     for e in estimators:
         results_estimator = {}
-        estimator = Estimator(estimator_name=e, model=model)
+        estimator = Estimator(estimator_name=e, model=model, best_layer=best_layer)
         estimator.set_context(
-                context = "I am a fact-checking AI. For each statement, I answer whether the statement is true or false.",     
-                shots = [
-                        'Statement: The Eiffel Tower is located in Berlin.\nAnswer: False',
-                        'Statement: Birds can usually fly.\nAnswer: True',
-                        'Statement: The sun revolves around the Earth.\nAnswer: False',
-                        'Statement: Water boils at 100 degrees Celsius at standard atmospheric pressure.\nAnswer: True',
-                ],
+                context = f"The sky is blue. This statement is: True \n\nThe earth is flat. This statement is: False \n\n",
                 context_self = "I am a fact-checking AI. For each statement, I rate the probability that the statement is true on a scale from 0 to 1.",
                 shots_self = [
-                        'Statement: Paris is the capital of France.\nP(true): 0.95',
+                        'Statement: Paris is the capital of France.\nP(True): 0.95',
                         'Statement: The largest bear in the world is currently in Italy.\nP(True): 0.25',
                         'Statement: Milan is the capital of Italy.\nP(True): 0.05',
                         'Statement: Humans have five senses.\nP(True): 0.65',
@@ -229,8 +225,9 @@ def run_coherence(model_name=None):
                 estimator.set_logic('and')
                 results = run_coherence_and(estimator)
             elif logic == 'ifthen':
-                estimator.set_logic('ifthen')
-                results = run_coherence_ifthen(estimator)
+                print("Ifthen experiment was dropped. Skipping...")
+                # estimator.set_logic('ifthen')
+                # results = run_coherence_ifthen(estimator)
             results_estimator[logic] = results
         results_tot[e] = results_estimator
 

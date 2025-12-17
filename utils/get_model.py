@@ -23,8 +23,8 @@ def get_model(model_name=None):
     'llama_instruct': lambda: HookedTransformer.from_pretrained("meta-llama/Llama-3.1-8B-Instruct", device=t.device('cpu')).half(),     # Done
     'llama_medium': lambda: HookedTransformer.from_pretrained("Llama-2-13b", device=t.device('cpu')).half(),
     'llama_medium_instruct': lambda: HookedTransformer.from_pretrained("Llama-2-13b-chat", device=t.device('cpu')).half(),
-    'pythia': lambda: HookedTransformer.from_pretrained("pythia-6.9b-deduped", device=t.device('cpu')).half(),
-    'pythia_instruct': lambda: HookedTransformer.from_pretrained("pythia-6.9b", device=t.device('cpu')).half(),
+    'pythia': lambda: HookedTransformer.from_pretrained("pythia-6.9b-deduped", device=t.device('cpu')).half(),                          # Done
+    'pythia_instruct': lambda: HookedTransformer.from_pretrained("pythia-6.9b", device=t.device('cpu')).half(),                         # Done                        
     'yi': lambda: HookedTransformer.from_pretrained("yi-6b", device=t.device('cpu')).half(),
     'yi_instruct': lambda: HookedTransformer.from_pretrained("yi-6b-chat", device=t.device('cpu')).half()
     }

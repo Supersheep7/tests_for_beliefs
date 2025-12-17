@@ -378,14 +378,13 @@ def probe_sweep(list_of_datasets: List,
     return (accuracies, directions, best_probes)
 
 class Estimator:
-    def __init__(self, estimator_name: str, model):
+    def __init__(self, estimator_name: str, model, best_layer=None):
         self.estimator_name = estimator_name
         self.model = model
         self.train_data = None 
         self.probe = None
         self.logic = None
-        self.best_layer = None 
-        self.best_head = None
+        self.best_layer = None
         self.context = None
         self.context_self = None
 
@@ -418,53 +417,74 @@ class Estimator:
         
         self.context_self = full_context_self
 
-    def logits_evaluate(self, data: list) -> np.ndarray:
+    def logits_evaluate(self, data: list, batch_size=100) -> np.ndarray:
         
         model = self.model
+        true_ids = [model.tokenizer.convert_tokens_to_ids(token) for token in ['true', 'True', 'TRUE', 'Ġtrue', 'ĠTrue', 'ĠTRUE', '▁true', '▁True', '▁TRUE']]
+        false_ids = [model.tokenizer.convert_tokens_to_ids(token) for token in ['false', 'False', 'FALSE', 'Ġfalse', 'ĠFalse', 'ĠFALSE', '▁false', '▁False', '▁FALSE']]
+        selected_ids = true_ids + false_ids
         probas = []
-        for statement in tqdm(data, desc="Evaluating statements, logits-based"):
-            true_token_ids = [model.tokenizer.convert_tokens_to_ids(token) for token in ['true', 'True', 'TRUE', 'Ġtrue', 'ĠTrue', 'ĠTRUE', '▁true', '▁True', '▁TRUE']]
-            false_token_ids = [model.tokenizer.convert_tokens_to_ids(token) for token in ['false', 'False', 'FALSE', 'Ġfalse', 'ĠFalse', 'ĠFALSE', '▁false', '▁False', '▁FALSE']]
-            prompt = f'{self.context}\n\nStatement: {statement}\nAnswer:'
-            tokens = model.to_tokens(prompt)
-            logits = model(tokens)
-            log_probs = t.nn.functional.log_softmax(logits, dim=-1)
-            selected_token_ids = true_token_ids + false_token_ids
-            restricted_log_probs = log_probs[0, -1, selected_token_ids]
-            restricted_probs = t.exp(restricted_log_probs)
-            p_true = restricted_probs[:len(true_token_ids)].sum().item()
-            p_false = restricted_probs[len(true_token_ids):].sum().item()
-            normalized_p_true = p_true / (p_true + p_false)
-            if p_true + p_false < 0.05:
-                 print(f"Warning: Low confidence in prediction for statement: '{statement}'. P(True) + P(False) = {p_true + p_false:.4f}")
-                 normalized_p_true = 0.5
-            probas.append(normalized_p_true)
         
+        for i in range(0, len(data), batch_size):
+            batch = data[i:i+batch_size]
+            prompts = [
+                f"{self.context}{statement} This statement is:"
+                for statement in batch
+            ]
+            tokens = model.to_tokens(prompts)
+            logits = model(tokens)
+            log_probs = t.nn.functional.log_softmax(logits[:, -1, :], dim=-1)
+            restricted = log_probs[:, selected_ids].exp()
+            p_true = restricted[:, :len(true_ids)].sum(dim=1)
+            p_false = restricted[:, len(true_ids):].sum(dim=1)
+            total_mass = p_true + p_false                     
+            low_conf = total_mass < 0.5
+            if low_conf.any():
+                for idx in low_conf.nonzero(as_tuple=True)[0]:
+                    print(
+                        f"Warning: Low confidence in prediction for statement: "
+                        f"'{batch[idx]}'. P(True)+P(False)={total_mass[idx]:.4f}"
+                    )
+            probs = p_true / total_mass
+            probs = t.where(low_conf, t.full_like(probs, 0.5), probs)
+            probas.extend(probs.cpu().tolist())
+        print(probas)
         return probas
 
-    def self_evaluate(self, data: list) -> np.ndarray:
-        
-        model = self.model 
+    def self_evaluate(self, data: list, batch_size=100) -> np.ndarray:
+        model = self.model
         probas = []
 
-        for statement in tqdm(data, desc="Evaluating statements, self-reporting"):
-        
-            try: 
-                prompt = f'{self.context_self}\n\nStatement: {statement}\nAnswer:'
-                with t.no_grad(), t.autocast(device):
-                    answer = generate(model=model, prompt=prompt, temperature=0, max_length=10)
-                    match = re.search(r'\d+\.\d+', answer)
-                    if match:
-                        confidence = float(match.group())
-                    else:
-                        print(f"Warning: No confidence score found in the answer: {answer}")
-                        confidence = float('nan')
-                    probas.append(confidence)  
-            finally:
-                gc.collect()
-                t.cuda.empty_cache()
+        for i in tqdm(range(0, len(data), batch_size),
+                    desc="Evaluating statements, self-reporting"):
+            batch = data[i:i + batch_size]
 
-        return 
+            prompts = [
+                f"{self.context_self}\n\nStatement: {s}\nAnswer:"
+                for s in batch
+            ]
+
+            with t.no_grad(), t.autocast(device):
+                answers = generate(
+                    model=model,
+                    prompt=prompts,        # batched
+                    temperature=0,
+                    max_new_tokens=10
+                )
+
+            for statement, answer in zip(batch, answers):
+                match = re.search(r'\d+\.\d+', answer)
+                if match:
+                    probas.append(float(match.group()))
+                else:
+                    print(
+                        f"Warning: No confidence score found for statement: "
+                        f"'{statement}'. Answer: {answer}"
+                    )
+                    probas.append(float("nan"))
+            print(probas)
+        return np.array(probas)
+
     
     def train_estimator(self):
         if self.estimator_name in ['logistic_regression', 'mmp']:
@@ -484,7 +504,7 @@ class Estimator:
         else:
             raise ValueError(f"Unsupported estimator: {self.estimator_name}")
 
-    def extract_proba(self, data) -> np.ndarray:
+    def extract_proba(self, data, batch_size=100) -> np.ndarray:
         
         if self.estimator_name in ['logistic_regression', 'mmp']:
             probe = self.probe 
@@ -493,6 +513,7 @@ class Estimator:
             projections = probe.decision_function(X) if self.estimator_name == 'logistic_regression' else probe(X, iid=True, project=True).detach().cpu().numpy()
             ir = IsotonicRegression(out_of_bounds='clip')
             pseudo_probs = ir.fit_transform(projections, labels)
+            print(pseudo_probs)
             return pseudo_probs 
 
         elif self.estimator_name == 'logits':
