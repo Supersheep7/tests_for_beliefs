@@ -52,7 +52,7 @@ class CoherenceBuilder():
     return (X_clean_train, y_clean_train, test_df)
 
   def get_neg_data(self):
-    with open(os.path.join(self.path, 'neg_dataset.pkl'), 'r') as f:
+    with open(os.path.join(self.path, 'neg_dataset.pkl'), 'rb') as f:
        raw = pickle.load(f)
     X_train, y_train, test_data  = self.get_data_split('negation', other_dataset=raw)
     data_pos = test_data['statement'].tolist()   
@@ -60,16 +60,20 @@ class CoherenceBuilder():
     return (X_train, y_train), data_pos, data_neg
   
   def get_or_data(self):
-    test_data = pd.read_csv(os.path.join(self.path, 'disjunction.csv'))
-    data_atom = test_data['statement'].tolist()       
-    data_or = test_data['new_statement'].tolist()
-    return data_atom, data_or
+    with open(os.path.join(self.path, 'disj_dataset.pkl'), 'rb') as f:
+       raw = pickle.load(f)
+    X_train, y_train, test_data  = self.get_data_split('disjunction', other_dataset=raw)
+    data_simple = test_data['statement'].tolist()   
+    data_or = test_data['new_statement'].tolist()   
+    return (X_train, y_train), data_simple, data_or
 
   def get_and_data(self):
-    test_data = pd.read_csv(os.path.join(self.path, 'conjunction.csv'))
-    data_atom = test_data['statement'].tolist()   
-    data_and = test_data['new_statement'].tolist()
-    return data_atom, data_and
+    with open(os.path.join(self.path, 'conj_dataset.pkl'), 'rb') as f:
+       raw = pickle.load(f)
+    X_train, y_train, test_data  = self.get_data_split('conjunction', other_dataset=raw)
+    data_simple = test_data['statement'].tolist()   
+    data_and = test_data['new_statement'].tolist()   
+    return (X_train, y_train), data_simple, data_and
 
   def get_ifthen_data(self):
     test_data = pd.read_csv(os.path.join(self.path, 'entailment.csv'))
