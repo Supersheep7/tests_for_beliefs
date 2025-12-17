@@ -29,6 +29,8 @@ class CoherenceBuilder():
 
   def get_data_split(self, task: str, other_dataset=None, cutoff=1500):
 
+    curated_dataset = self.curated_dataset.copy()
+
     if task in ['negation', 'disjunction', 'conjunction']:
         # In this case curated dataset is the logical dataset + the remainder
         remainder = curated_dataset[~curated_dataset['filename'].isin(['common_claim_true_false.csv', 'companies_true_false.csv', 'counterfact_true_false.csv'])]
@@ -63,17 +65,17 @@ class CoherenceBuilder():
     with open(os.path.join(self.path, 'disj_dataset.pkl'), 'rb') as f:
        raw = pickle.load(f)
     X_train, y_train, test_data  = self.get_data_split('disjunction', other_dataset=raw)
-    data_simple = test_data['statement'].tolist()   
+    data_atom = test_data['statement'].tolist()   
     data_or = test_data['new_statement'].tolist()   
-    return (X_train, y_train), data_simple, data_or
+    return (X_train, y_train), data_atom, data_or
 
   def get_and_data(self):
     with open(os.path.join(self.path, 'conj_dataset.pkl'), 'rb') as f:
        raw = pickle.load(f)
     X_train, y_train, test_data  = self.get_data_split('conjunction', other_dataset=raw)
-    data_simple = test_data['statement'].tolist()   
+    data_atom = test_data['statement'].tolist()   
     data_and = test_data['new_statement'].tolist()   
-    return (X_train, y_train), data_simple, data_and
+    return (X_train, y_train), data_atom, data_and
 
   def get_ifthen_data(self):
     test_data = pd.read_csv(os.path.join(self.path, 'entailment.csv'))

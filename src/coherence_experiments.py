@@ -4,7 +4,6 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))
 from utils.processing import get_data, get_activations
-from utils.viz import plot_line, plot_heat, plot_kde_scatter, plot_sweep
 from utils.probe import *
 from cfg import load_cfg
 from utils.intervention import *
