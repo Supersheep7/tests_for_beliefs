@@ -432,7 +432,8 @@ class Estimator:
                 for statement in batch
             ]
             tokens = model.to_tokens(prompts)
-            logits = model(tokens)
+            with torch.cuda.amp.autocast(dtype=torch.float16):
+                logits = model(tokens)
             log_probs = t.nn.functional.log_softmax(logits[:, -1, :], dim=-1)
             restricted = log_probs[:, selected_ids].exp()
             p_true = restricted[:, :len(true_ids)].sum(dim=1)
