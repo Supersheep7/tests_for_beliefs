@@ -24,7 +24,7 @@ class CoherenceBuilder():
   def __init__(self, clean=True):
     self.path = f'{ROOT}/data/datasets/coherence'
     self.batch_extractor = cfg["tlens"]["batch_extractor"]
-    with open(os.path.join(ROOT, 'data/datasets/coherence/curated_dataset.pkl'), 'rb') as f:
+    with open(os.path.join(ROOT, 'data/datasets/coherence/curated_dataset_full.pkl'), 'rb') as f:
       self.curated_dataset = pickle.load(f)
 
   def get_data_split(self, task: str, other_dataset=None, cutoff=1500):
