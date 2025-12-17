@@ -437,7 +437,6 @@ class Estimator:
                 for statement in batch
             ]
             tokens = model.to_tokens(prompts)
-            print(tokens)
             with t.no_grad():
                 with torch.cuda.amp.autocast(dtype=torch.float16):
                     logits = model(tokens)
@@ -450,9 +449,6 @@ class Estimator:
                 log_p_false = t.logsumexp(log_probs[j, last_positions[j], false_ids], dim=0).item()
                 p_true = np.exp(log_p_true)
                 p_false = np.exp(log_p_false)
-                print(f"Prompt: {statement}")
-                print(f"P(True): {p_true:.6f}, P(False): {p_false:.6f}")
-    
                 total_mass = p_true + p_false                     
                 low_conf = total_mass < 0.5
                 if low_conf.any():
