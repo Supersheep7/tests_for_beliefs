@@ -30,7 +30,7 @@ def run_coherence_neg(estimator):
     random_uniform = t.rand_like(probas_pos) + t.rand_like(probas_neg) 
     random_baseline = (t.mean((random_uniform - ceiling)**2))
     score = 1/(1 + mse)
-    random_score = 1/(1 + random_uniform)
+    random_score = 1/(1 + random_baseline)
 
     print("Mse", mse)
     print("Baseline_Mse", random_baseline)

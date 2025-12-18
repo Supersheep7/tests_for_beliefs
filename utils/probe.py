@@ -492,7 +492,6 @@ class Estimator:
                     )
                     probas.append(0.5)
         
-        print(probas)
         return t.tensor(probas)
 
     
