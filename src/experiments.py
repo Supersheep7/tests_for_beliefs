@@ -201,7 +201,7 @@ def run_intervention(model_name=cfg["common"]["model"]):
 def run_coherence(model_name=cfg["common"]["model"]):
     best_layer = t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_residual"), weights_only=False).index(max(t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_residual"), weights_only=False)))
     print("Loaded best layer:", best_layer)
-    logics = [l.strip() for l in input("Choose the logic(s) (comma-separated) [Possible values: 'neg', 'or', 'and', 'ifthen']: ").split(',')]
+    logics = [l.strip() for l in input("Choose the logic(s) (comma-separated) [Possible values: 'neg', 'or', 'and']: ").split(',')]
     estimators = [e.strip() for e in input("Choose the estimator(s) (comma-separated) [Possible values: 'logistic_regression', 'mmp', 'logits', 'self_report']: ").split(',')]
     results_tot = {}
     model = get_model(model_name=model_name)
@@ -237,7 +237,15 @@ def run_coherence(model_name=cfg["common"]["model"]):
 
     print("Coherence experiment completed.")
     print("Results: ", results_tot)
-    save_results(results_tot, "coherence", model=model_name, notes=f"{''.join(logics)}_{'_'.join(estimators)}")
+
+    print()
+    print("= = = WARNING = = =")
+    print()
+    print("= = = We are still testing, so we won't save the results! = = =")
+    print()
+    print("= = = END WARNING = = =")
+    print()
+    save_results(results_tot, "coherence_scores", model=model_name, notes=f"{''.join(logics)}_{'_'.join(estimators)}")
     
     return
 
