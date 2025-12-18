@@ -460,7 +460,7 @@ class Estimator:
                 probs = p_true / total_mass
                 probas.append(probs)
         
-        return probas
+        return np.array(probas)
 
     def self_evaluate(self, data: list, batch_size=100) -> np.ndarray:
         model = self.model
@@ -524,8 +524,7 @@ class Estimator:
             projections = probe.decision_function(X) if self.estimator_name == 'logistic_regression' else probe(X, iid=True, project=True).detach().cpu().numpy()
             ir = IsotonicRegression(out_of_bounds='clip')
             pseudo_probs = ir.fit_transform(projections, labels)
-            print(pseudo_probs)
-            return pseudo_probs 
+            return np.array(pseudo_probs) 
 
         elif self.estimator_name == 'logits':
             return self.logits_evaluate(data)
