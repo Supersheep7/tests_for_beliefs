@@ -173,10 +173,12 @@ def run_intervention(model_name=cfg["common"]["model"]):
             if retry != 'y':
                 saveplot = input("Do you want to save the plots? [y/n]: ").strip().lower()
                 if saveplot == 'y':
-                    for metric in [boolp_t, probdiff_t, boolp_f, probdiff_f]:
-                        plot_sweep(metric, k_list, alpha_list, title="Boolp: True --> False") 
+                    for name, metric in zip(["BoolpTF", "ProbdiffTF", "BoolpFT", "ProbdiffFT"],[boolp_t, probdiff_t, boolp_f, probdiff_f]):
+                        plot_sweep(metric, k_list, alpha_list, title=name) 
                 save_results(boolp_t, f"intervention_boolp_true_to_false_sweep_{model_name}", modality=modality)
                 save_results(probdiff_t, f"intervention_probdiff_true_to_false_sweep_{model_name}", modality=modality)   
+                save_results(boolp_f, f"intervention_boolp_false_to_true_sweep_{model_name}", modality=modality)
+                save_results(probdiff_f, f"intervention_probdiff_false_to_true_sweep_{model_name}", modality=modality)   
                 break
     x_true, y_true, x_false, y_false = get_data('intervention')
     alpha_list = [0, float(input("Enter alpha value for False --> True: "))]
