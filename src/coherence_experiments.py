@@ -21,7 +21,9 @@ def run_coherence_neg(estimator):
 
     pos_neg = probas_pos + probas_neg
     ceiling = t.ones_like(pos_neg)
-    score = 1/(1 + t.mean(t.abs(pos_neg - ceiling)))
+    mae = t.mean(t.abs(pos_neg - ceiling))
+    print(mae)
+    score = 1/(1 + mae)
     return score
 
 def run_coherence_or(estimator):
