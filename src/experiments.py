@@ -186,15 +186,15 @@ def run_intervention(model_name=cfg["common"]["model"]):
     k_list = [int(input("Enter k value for False --> True: "))]
     k_list_flipped = [int(input("Enter k value for True --> False: "))]
     # Trues
-    save_results(boolp, "intervention_scores", model=model_name, modality='heads', direction='tf', k=k_list_flipped[-1], alpha=alpha_list_flipped[-1], notes=f"boolp", modality=modality)
-    save_results(probdiff, "intervention_scores", model=model_name, modality='heads', direction='tf', k=k_list_flipped[-1], alpha=alpha_list_flipped[-1], notes=f"probdiff", modality=modality)
+    save_results(boolp, "intervention_scores", model=model_name, direction='tf', k=k_list_flipped[-1], alpha=alpha_list_flipped[-1], notes=f"boolp", modality=modality)
+    save_results(probdiff, "intervention_scores", model=model_name, direction='tf', k=k_list_flipped[-1], alpha=alpha_list_flipped[-1], notes=f"probdiff", modality=modality)
     
     save_results(boolp[1]-boolp[0], f"intervention_boolp_true_to_false_k{k_list_flipped}_a{alpha_list_flipped[1]}_{model_name}", modality=modality)
     save_results(probdiff[1]-probdiff[0], f"intervention_probdiff_true_to_false_k{k_list_flipped}_a{alpha_list_flipped[1]}_{model_name}", modality=modality)
     # Falses
     boolp, probdiff = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list_flipped, labels=y_true, attn=modality=='heads')
-    save_results(boolp, "intervention_scores", model=model_name, modality='heads', direction='ft', k=k_list[-1], alpha=alpha_list[-1], notes=f"boolp", modality=modality)
-    save_results(probdiff, "intervention_scores", model=model_name, modality='heads', direction='ft', k=k_list[-1], alpha=alpha_list[-1], notes=f"probdiff", modality=modality)
+    save_results(boolp, "intervention_scores", model=model_name, direction='ft', k=k_list[-1], alpha=alpha_list[-1], notes=f"boolp", modality=modality)
+    save_results(probdiff, "intervention_scores", model=model_name, direction='ft', k=k_list[-1], alpha=alpha_list[-1], notes=f"probdiff", modality=modality)
 
     return
 
