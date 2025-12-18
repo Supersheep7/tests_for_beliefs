@@ -108,11 +108,11 @@ def save_results(item, datatype, model, modality='residual', k=0, alpha=0, direc
         raise ValueError(f"Unsupported datatype: {datatype}")
 
     if datatype == "intervention_sweep":
-        path = base_dir / model / cfg["probe"]["probe_type"] / filename_map[datatype]+direction+notes
+        path = base_dir / model / cfg["probe"]["probe_type"] / (filename_map[datatype]+direction+notes)
     if datatype == "intervention_scores":
-        path = base_dir / model / cfg["probe"]["probe_type"] / "k"+k+"alpha"+alpha+filename_map[datatype]+direction+notes
+        path = base_dir / model / cfg["probe"]["probe_type"] / (f"k{k}"f"alpha{alpha}"f"{filename_map[datatype]}"f"{direction}"f"{notes}")
     elif datatype == "coherence_scores":
-        path = base_dir / model / filename_map[datatype]+notes
+        path = base_dir / model / (filename_map[datatype]+notes)
     else:
         path = base_dir / model / cfg["probe"]["probe_type"] / filename_map[datatype]
 

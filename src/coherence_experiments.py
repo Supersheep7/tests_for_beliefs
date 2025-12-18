@@ -18,10 +18,7 @@ def run_coherence_neg(estimator):
 
     probas_pos = estimator.extract_proba(data_pos)
     probas_neg = estimator.extract_proba(data_neg)
-
-    print(probas_pos[:100])
-    print(probas_neg[:100])
-
+    
     pos_neg = probas_pos + probas_neg
     ceiling = t.ones_like(pos_neg)
     score = 1/(1 + t.mean((pos_neg - ceiling) ** 2))
