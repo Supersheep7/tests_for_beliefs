@@ -456,8 +456,8 @@ class Estimator:
                         f"Warning: Low confidence in prediction for statement: "
                         f"'{statement}'. P(True)+P(False)={total_mass:.4f}"
                     )
-                # probs = p_true / total_mass
-                probas.append(p_true)
+                probs = p_true / total_mass
+                probas.append(probs)
         
         return t.tensor(probas)
 
@@ -474,7 +474,7 @@ class Estimator:
                 for s in batch
             ]
 
-            with t.no_grad(), t.autocast(device):
+            with t.no_grad(), t.autocast('cuda'):
                 answers = generate(
                     model=model,
                     prompt=prompts,        # batched
