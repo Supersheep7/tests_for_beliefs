@@ -470,7 +470,7 @@ class Estimator:
             batch = data[i:i + batch_size]
 
             prompts = [
-                f"{self.context_self}\n\nStatement: {s}\nAnswer:"
+                f"{self.context_self}Statement: {s}\nP(True):"
                 for s in batch
             ]
 
@@ -481,8 +481,6 @@ class Estimator:
                     temperature=0,
                     max_length=10
                 )
-            print(prompts)
-            print(answers)
             for statement, answer in zip(batch, answers):
                 match = re.search(r'\d+\.\d+', answer)
                 if match:

@@ -205,18 +205,18 @@ def run_coherence(model_name=cfg["common"]["model"]):
     estimators = [e.strip() for e in input("Choose the estimator(s) (comma-separated) [Possible values: 'logistic_regression', 'mmp', 'logits', 'self_report']: ").split(',')]
     results_tot = {}
     model = get_model(model_name=model_name)
+    shots_self = [
+                        'Statement: Paris is the capital of France.\nP(True): 0.95',
+                        'Statement: The largest bear in the world is currently in Italy.\nP(True): 0.25',
+                        'Statement: Milan is the capital of Italy.\nP(True): 0.05',
+                        'Statement: Humans have five senses.\nP(True): 0.65',
+                ]
     for e in estimators:
         results_estimator = {}
         estimator = Estimator(estimator_name=e, model=model, best_layer=best_layer)
         estimator.set_context(
                 context = f"The sky is blue. This statement is: True \n\nThe earth is flat. This statement is: False \n\n",
-                context_self = "I am a fact-checking AI. For each statement, I rate the probability that the statement is true on a scale from 0 to 1.",
-                shots_self = [
-                        'Statement: Paris is the capital of France.\nP(True): 0.95',
-                        'Statement: The largest bear in the world is currently in Italy.\nP(True): 0.25',
-                        'Statement: Milan is the capital of Italy.\nP(True): 0.05',
-                        'Statement: Humans have five senses.\nP(True): 0.65',
-                ]    
+                context_self = f"I am a fact-checking AI. For each statement, I rate the probability that the statement is true on a scale from 0 to 1. {["\n\n"+shot for shot in shots_self]}\n\n"    
             )
         for logic in logics:
             if logic == 'neg':

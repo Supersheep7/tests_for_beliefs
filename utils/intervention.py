@@ -19,6 +19,7 @@ from .viz import plot_sweep
 def generate(model, prompt, max_length=50, temperature=0.0, top_k=None):
     with t.no_grad():
         tokens = model.to_tokens(prompt)      # left-padded (B, L)
+        print(tokens)
         generated_tokens = tokens.clone()
         batch_size = generated_tokens.size(0)
 
