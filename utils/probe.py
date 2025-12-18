@@ -450,15 +450,12 @@ class Estimator:
                 p_true = np.exp(log_p_true)
                 p_false = np.exp(log_p_false)
                 total_mass = p_true + p_false                     
-                low_conf = total_mass < 0.5
-                if low_conf.any():
-                    low_conf_tensor = torch.tensor(low_conf, dtype=torch.bool)
-                    indices = torch.where(low_conf_tensor)[0]
-                    for idx in indices:
-                        print(
-                            f"Warning: Low confidence in prediction for statement: "
-                            f"'{batch[idx]}'. P(True)+P(False)={total_mass[idx]:.4f}"
-                        )
+                low_conf = total_mass < 0.3
+                if low_conf:
+                    print(
+                        f"Warning: Low confidence in prediction for statement: "
+                        f"'{statement}'. P(True)+P(False)={total_mass:.4f}"
+                    )
                 # probs = p_true / total_mass
                 probas.append(p_true)
         
