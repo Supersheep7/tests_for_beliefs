@@ -47,7 +47,7 @@ def run_coherence_or(estimator):
     probas_atom = estimator.extract_proba(data_atom)
     probas_or = estimator.extract_proba(data_or)
 
-    corrects = (probas_or >= probas_atom)(int)
+    corrects = (probas_or >= probas_atom).int()
     score = t.mean(corrects)
     return score
 
@@ -61,7 +61,7 @@ def run_coherence_and(estimator):
     probas_atom = estimator.extract_proba(data_atom)
     probas_and = estimator.extract_proba(data_or)
 
-    corrects = (probas_and <= probas_atom)(int)
+    corrects = (probas_and <= probas_atom).int()
     score = t.mean(corrects)
     return score
 
