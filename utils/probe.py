@@ -479,7 +479,7 @@ class Estimator:
                     model=model,
                     prompt=prompts,        # batched
                     temperature=0,
-                    max_new_tokens=10
+                    max_length=10
                 )
 
             for statement, answer in zip(batch, answers):
