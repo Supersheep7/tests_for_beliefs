@@ -90,7 +90,7 @@ def get_top_entries(accuracies, n=5):
     else:
         raise ValueError("Input must be 1D or 2D.")
 
-def save_results(item, datatype, model, modality='residual'):
+def save_results(item, datatype, model, modality='residual', k=0, alpha=0, direction='tf', notes=""):
 
     base_dir = ROOT / "results"
     base_dir = Path(base_dir)
@@ -107,10 +107,12 @@ def save_results(item, datatype, model, modality='residual'):
     if datatype not in filename_map:
         raise ValueError(f"Unsupported datatype: {datatype}")
 
+    if datatype == "intervention_sweep":
+        path = base_dir / model / cfg["probe"]["probe_type"] / filename_map[datatype]+direction+notes
     if datatype == "intervention_scores":
-        path = base_dir / model / cfg["probe"]["probe_type"] / "k"+cfg["intervention"]["k"] / "alpha"+cfg["intervention"]["alpha"] / filename_map[datatype]
+        path = base_dir / model / cfg["probe"]["probe_type"] / "k"+k+"alpha"+alpha+filename_map[datatype]+direction+notes
     elif datatype == "coherence_scores":
-        path = base_dir / model / cfg["coherence"]["estimator"] / filename_map[datatype]
+        path = base_dir / model / filename_map[datatype]+notes
     else:
         path = base_dir / model / cfg["probe"]["probe_type"] / filename_map[datatype]
 
