@@ -17,30 +17,25 @@ from .viz import plot_sweep
 '''
 
 def generate(model, prompt, max_length=50, temperature=0.0, top_k=None):
-    """
-    prompt: str or List[str]
-    returns: List[str] (one per prompt)
-    """
-
     with t.no_grad():
-        tokens = model.to_tokens(prompt)          # (B, L)
+        tokens = model.to_tokens(prompt)      # left-padded (B, L)
         generated_tokens = tokens.clone()
         batch_size = generated_tokens.size(0)
 
         finished = t.zeros(batch_size, dtype=t.bool, device=generated_tokens.device)
 
         for _ in range(max_length):
-            logits = model(generated_tokens)       # (B, L, V)
-            next_token_logits = logits[:, -1, :]   # (B, V)
+            logits = model(generated_tokens)  # (B, L, V)
+            next_token_logits = logits[:, -1, :]
 
             if temperature > 0:
-                next_token_logits = next_token_logits / temperature
+                next_token_logits /= temperature
 
             if top_k is not None:
-                top_k_values, _ = t.topk(next_token_logits, top_k, dim=-1)
-                thresholds = top_k_values[:, -1].unsqueeze(-1)
+                top_k_vals, _ = t.topk(next_token_logits, top_k, dim=-1)
+                thresh = top_k_vals[:, -1].unsqueeze(1)
                 next_token_logits = t.where(
-                    next_token_logits < thresholds,
+                    next_token_logits < thresh,
                     t.full_like(next_token_logits, -float("inf")),
                     next_token_logits,
                 )
@@ -48,11 +43,10 @@ def generate(model, prompt, max_length=50, temperature=0.0, top_k=None):
             probs = t.nn.functional.softmax(next_token_logits, dim=-1)
 
             if temperature > 0:
-                next_token = t.multinomial(probs, num_samples=1)   # (B, 1)
+                next_token = t.multinomial(probs, 1)              # (B, 1)
             else:
-                next_token = t.argmax(probs, dim=-1, keepdim=True) # (B, 1)
+                next_token = t.argmax(probs, dim=-1, keepdim=True)
 
-            # Prevent finished sequences from changing
             next_token = t.where(
                 finished.unsqueeze(1),
                 t.full_like(next_token, model.tokenizer.eos_token_id),
@@ -65,11 +59,12 @@ def generate(model, prompt, max_length=50, temperature=0.0, top_k=None):
             if finished.all():
                 break
 
-        # Decode only newly generated tokens
         outputs = []
+        prompt_len = tokens.size(1)
         for i in range(batch_size):
-            gen = generated_tokens[i, tokens.size(1):]
-            outputs.append(model.tokenizer.decode(gen))
+            outputs.append(
+                model.tokenizer.decode(generated_tokens[i, prompt_len:])
+            )
 
     return outputs
 
