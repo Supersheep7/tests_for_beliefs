@@ -452,7 +452,8 @@ class Estimator:
                 total_mass = p_true + p_false                     
                 low_conf = total_mass < 0.5
                 if low_conf.any():
-                    indices = torch.where(low_conf)[0]  
+                    low_conf_tensor = torch.tensor(low_conf, dtype=torch.bool)
+                    indices = torch.where(low_conf_tensor)[0]
                     for idx in indices:
                         print(
                             f"Warning: Low confidence in prediction for statement: "
