@@ -18,6 +18,7 @@ from .viz import plot_sweep
 
 def generate(model, prompt, max_length=50, temperature=0.0, top_k=None):
     with t.no_grad():
+        model.tokenizer.padding_side = "left"
         tokens = model.to_tokens(prompt)      # left-padded (B, L)
         print(tokens)
         generated_tokens = tokens.clone()
