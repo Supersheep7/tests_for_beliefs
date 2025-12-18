@@ -21,7 +21,7 @@ def run_coherence_neg(estimator):
 
     pos_neg = probas_pos - probas_neg
     ceiling = t.ones_like(pos_neg)
-    score = 1/(1 + np.mean((pos_neg - ceiling) ** 2))
+    score = 1/(1 + t.mean((pos_neg - ceiling) ** 2))
     return score
 
 def run_coherence_or(estimator):
@@ -35,7 +35,7 @@ def run_coherence_or(estimator):
     probas_or = estimator.extract_proba(data_or)
 
     corrects = (probas_or >= probas_atom).astype(int)
-    score = np.mean(corrects)
+    score = t.mean(corrects)
     return score
 
 def run_coherence_and(estimator):
@@ -49,7 +49,7 @@ def run_coherence_and(estimator):
     probas_and = estimator.extract_proba(data_or)
 
     corrects = (probas_and <= probas_atom).astype(int)
-    score = np.mean(corrects)
+    score = t.mean(corrects)
     return score
 
 def run_coherence_ifthen(estimator):
@@ -65,6 +65,6 @@ def run_coherence_ifthen(estimator):
 
     probas_bayesed = probas_and/probas_atom
 
-    score = 1/(1 + np.mean(np.abs(probas_ifthen - probas_bayesed)))
+    score = 1/(1 + t.mean(np.abs(probas_ifthen - probas_bayesed)))
 
     return score
