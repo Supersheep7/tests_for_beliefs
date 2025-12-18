@@ -17,34 +17,91 @@ from .viz import plot_sweep
 '''
 
 def generate(model, prompt, max_length=50, temperature=0.0, top_k=None):
+    """
+    prompt: str or List[str]
+    returns: List[str] (one per prompt)
+    """
 
     with t.no_grad():
-        tokens = model.to_tokens(prompt)
+        tokens = model.to_tokens(prompt)          # (B, L)
         generated_tokens = tokens.clone()
+        batch_size = generated_tokens.size(0)
+
+        finished = t.zeros(batch_size, dtype=t.bool, device=generated_tokens.device)
+
         for _ in range(max_length):
-            logits = model(generated_tokens)
-            next_token_logits = logits[0, -1, :]
+            logits = model(generated_tokens)       # (B, L, V)
+            next_token_logits = logits[:, -1, :]   # (B, V)
+
             if temperature > 0:
-                next_token_logits /= temperature
+                next_token_logits = next_token_logits / temperature
 
             if top_k is not None:
-                top_k_values, _ = t.topk(next_token_logits, top_k)
-                threshold = top_k_values[-1]
-                next_token_logits[next_token_logits < threshold] = -float('inf')
+                top_k_values, _ = t.topk(next_token_logits, top_k, dim=-1)
+                thresholds = top_k_values[:, -1].unsqueeze(-1)
+                next_token_logits = t.where(
+                    next_token_logits < thresholds,
+                    t.full_like(next_token_logits, -float("inf")),
+                    next_token_logits,
+                )
 
-            probabilities = t.nn.functional.softmax(next_token_logits, dim=-1)
-            if temperature != 0:
-              next_token = t.multinomial(probabilities, num_samples=1)
-              append = next_token.unsqueeze(0)
+            probs = t.nn.functional.softmax(next_token_logits, dim=-1)
+
+            if temperature > 0:
+                next_token = t.multinomial(probs, num_samples=1)   # (B, 1)
             else:
-              next_token = t.argmax(probabilities)
-              append = next_token.unsqueeze(0).unsqueeze(0)  
-            # print("Next token:", model.tokenizer.decode(next_token))
-            generated_tokens = t.cat([generated_tokens, append], dim=1)
-            if next_token.item() == model.tokenizer.eos_token_id:
+                next_token = t.argmax(probs, dim=-1, keepdim=True) # (B, 1)
+
+            # Prevent finished sequences from changing
+            next_token = t.where(
+                finished.unsqueeze(1),
+                t.full_like(next_token, model.tokenizer.eos_token_id),
+                next_token,
+            )
+
+            generated_tokens = t.cat([generated_tokens, next_token], dim=1)
+
+            finished |= (next_token.squeeze(1) == model.tokenizer.eos_token_id)
+            if finished.all():
                 break
-        generated_text = model.tokenizer.decode(generated_tokens[0, len(tokens[0]):])
-    return generated_text
+
+        # Decode only newly generated tokens
+        outputs = []
+        for i in range(batch_size):
+            gen = generated_tokens[i, tokens.size(1):]
+            outputs.append(model.tokenizer.decode(gen))
+
+    return outputs
+
+# def generate(model, prompt, max_length=50, temperature=0.0, top_k=None):
+
+#     with t.no_grad():
+#         tokens = model.to_tokens(prompt)
+#         generated_tokens = tokens.clone()
+#         for _ in range(max_length):
+#             logits = model(generated_tokens)
+#             next_token_logits = logits[0, -1, :]
+#             if temperature > 0:
+#                 next_token_logits /= temperature
+
+#             if top_k is not None:
+#                 top_k_values, _ = t.topk(next_token_logits, top_k)
+#                 threshold = top_k_values[-1]
+#                 next_token_logits[next_token_logits < threshold] = -float('inf')
+
+#             probabilities = t.nn.functional.softmax(next_token_logits, dim=-1)
+#             if temperature != 0:
+#               next_token = t.multinomial(probabilities, num_samples=1)
+#               append = next_token.unsqueeze(0)
+#             else:
+#               next_token = t.argmax(probabilities)
+#               append = next_token.unsqueeze(0).unsqueeze(0)  
+#             # print("Next token:", model.tokenizer.decode(next_token))
+#             generated_tokens = t.cat([generated_tokens, append], dim=1)
+#             if next_token.item() == model.tokenizer.eos_token_id:
+#                 break
+#         generated_text = model.tokenizer.decode(generated_tokens[0, len(tokens[0]):])
+#     return generated_text
 
 
 def mask_top_k(activation_accuracies: np.array,
