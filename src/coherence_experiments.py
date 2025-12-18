@@ -20,10 +20,21 @@ def run_coherence_neg(estimator):
     probas_neg = estimator.extract_proba(data_neg)
 
     pos_neg = probas_pos + probas_neg
+
+    swapped_pos = probas_pos[t.randperm(len(probas_pos))]
+    swapped_neg = probas_neg[t.randperm(len(probas_neg))]
+    swapped = swapped_pos + swapped_neg
+
     ceiling = t.ones_like(pos_neg)
-    mae = t.mean(t.abs(pos_neg - ceiling))
-    print(mae)
-    score = 1/(1 + mae)
+    mse = t.mean((pos_neg - ceiling)**2)
+    random_baseline = (t.mean((swapped - ceiling)**2))
+    score = 1/(1 + mse)
+    random_score = 1/(1 + random_baseline)
+
+    print("Mse", mse)
+    print("Baseline_Mse", random_baseline)
+    print("Score", score)
+    print("Baseline_Score", random_score)
     return score
 
 def run_coherence_or(estimator):
