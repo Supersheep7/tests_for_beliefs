@@ -19,6 +19,9 @@ def run_coherence_neg(estimator):
     probas_pos = estimator.extract_proba(data_pos)
     probas_neg = estimator.extract_proba(data_neg)
 
+    print(probas_pos[:20])
+    print(probas_neg[:20])
+
     pos_neg = probas_pos + probas_neg
 
     swapped_pos = probas_pos[t.randperm(len(probas_pos))]
@@ -47,7 +50,7 @@ def run_coherence_or(estimator):
     probas_atom = estimator.extract_proba(data_atom)
     probas_or = estimator.extract_proba(data_or)
 
-    corrects = (probas_or >= probas_atom).astype(int)
+    corrects = (probas_or >= probas_atom)(int)
     score = t.mean(corrects)
     return score
 
@@ -61,7 +64,7 @@ def run_coherence_and(estimator):
     probas_atom = estimator.extract_proba(data_atom)
     probas_and = estimator.extract_proba(data_or)
 
-    corrects = (probas_and <= probas_atom).astype(int)
+    corrects = (probas_and <= probas_atom)(int)
     score = t.mean(corrects)
     return score
 
