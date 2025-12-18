@@ -216,7 +216,11 @@ def run_coherence(model_name=cfg["common"]["model"]):
         estimator = Estimator(estimator_name=e, model=model, best_layer=best_layer)
         estimator.set_context(
                 context = f"The sky is blue. This statement is: True \n\nThe earth is flat. This statement is: False \n\n",
-                context_self = f"I am a fact-checking AI. For each statement, I rate the probability that the statement is true on a scale from 0 to 1. {["\n\n"+shot for shot in shots_self]}\n\n"    
+                context_self = (
+    f"I am a fact-checking AI. For each statement, I rate the probability "
+    f"that the statement is true on a scale from 0 to 1."
+    f"{''.join('\n\n' + shot for shot in shots_self)}\n\n"
+)    
             )
         for logic in logics:
             if logic == 'neg':
