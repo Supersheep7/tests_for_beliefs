@@ -175,10 +175,10 @@ def run_intervention(model_name=cfg["common"]["model"]):
                 if saveplot == 'y':
                     for name, metric in zip(["BoolpTF", "ProbdiffTF", "BoolpFT", "ProbdiffFT"],[boolp_t, probdiff_t, boolp_f, probdiff_f]):
                         plot_sweep(metric, k_list, alpha_list, title=name) 
-                save_results(boolp_t, "intervention_sweep", model=model_name, modality='heads', direction='tf', notes=f"boolp_ks_{ks}_alphas_{alphas}", modality=modality)
-                save_results(boolp_f, "intervention_sweep", model=model_name, modality='heads', direction='ft', notes=f"boolp_ks_{ks}_alphas_{alphas}", modality=modality)
-                save_results(probdiff_t, "intervention_sweep", model=model_name, modality='heads', direction='tf', notes=f"pdiff_ks_{ks}_alphas_{alphas}", modality=modality)
-                save_results(probdiff_f, "intervention_sweep", model=model_name, modality='heads', direction='ft', notes=f"pdiff_ks_{ks}_alphas_{alphas}", modality=modality)   
+                save_results(boolp_t, "intervention_sweep", model=model_name, direction='tf', notes=f"boolp_ks_{ks}_alphas_{alphas}", modality=modality)
+                save_results(boolp_f, "intervention_sweep", model=model_name, direction='ft', notes=f"boolp_ks_{ks}_alphas_{alphas}", modality=modality)
+                save_results(probdiff_t, "intervention_sweep", model=model_name, direction='tf', notes=f"pdiff_ks_{ks}_alphas_{alphas}", modality=modality)
+                save_results(probdiff_f, "intervention_sweep", model=model_name, direction='ft', notes=f"pdiff_ks_{ks}_alphas_{alphas}", modality=modality)   
                 break
     x_true, y_true, x_false, y_false = get_data('intervention')
     alpha_list = [0, float(input("Enter alpha value for False --> True: "))]
