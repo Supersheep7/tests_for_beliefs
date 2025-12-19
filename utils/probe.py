@@ -23,6 +23,7 @@ import matplotlib.pyplot as plt
 from .funcs import *
 from src.cfg import load_cfg
 from sklearn.isotonic import IsotonicRegression
+from sklearn.metrics import roc_auc_score
 cfg = load_cfg()
 probe_cfg = cfg["probe"]
 device = t.device("cuda" if t.cuda.is_available() else "cpu")
@@ -529,6 +530,60 @@ class Estimator:
             probe.train()
             print("Fitting IR...")
             projections = probe.get_projections(X)
+
+            # Quick data collection for viz
+
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+            import numpy as np
+
+            # Example variables
+            # x = np.array of projections
+            # y = np.array of binary labels (0 or 1)
+
+            # 1. Scatter plot with jitter
+            plt.figure(figsize=(6,4))
+            plt.scatter(projections, y + 0.02*np.random.randn(len(y)), alpha=0.5)
+            plt.xlabel("Projection")
+            plt.ylabel("Label")
+            plt.title("Projection vs Label")
+            plt.tight_layout()
+            plt.savefig("projection_scatter.png")
+            plt.close()
+
+            # 2. Histogram by class
+            plt.figure(figsize=(6,4))
+            plt.hist(projections[y==0], bins=30, alpha=0.5, label='y=0')
+            plt.hist(projections[y==1], bins=30, alpha=0.5, label='y=1')
+            plt.xlabel("Projection")
+            plt.ylabel("Count")
+            plt.legend()
+            plt.title("Distribution of Projections by Label")
+            plt.tight_layout()
+            plt.savefig("projection_hist.png")
+            plt.close()
+
+            # 3. Smoothed density by class
+            plt.figure(figsize=(6,4))
+            sns.kdeplot(projections[y==0], fill=True, label='y=0')
+            sns.kdeplot(projections[y==1], fill=True, label='y=1')
+            plt.xlabel("Projection")
+            plt.ylabel("Density")
+            plt.title("Kernel Density of Projections")
+            plt.legend()
+            plt.tight_layout()
+            plt.savefig("projection_kde.png")
+            plt.close()
+
+
+            ## Check AUC
+
+            y_auc = probe(X)
+            auc = roc_auc_score(y, y_auc)
+            print("AUC:", auc)
+
+            ## Check AUC
+
             y = y.detach().cpu().numpy()
             ir = IsotonicRegression(out_of_bounds='clip')
             ir.fit(projections, y)
