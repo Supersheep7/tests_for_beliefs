@@ -48,6 +48,7 @@ class CoherenceBuilder():
 
     # Trim for batch size
     train_set = train_set.iloc[:-(len(train_set) % self.batch_extractor), :]
+    test_df = test_df.iloc[:-(len(test_df) % self.batch_extractor), :]
     X_clean_train = list(train_set['statement'])
     y_clean_train = list(train_set['label'])
     
