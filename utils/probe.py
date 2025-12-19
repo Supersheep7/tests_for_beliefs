@@ -254,12 +254,12 @@ class Probe(object):
                 plt.grid(True)
                 plt.show()
 
-    def get_projections(self, X):
+    def get_predict(self, X):
         probe = self.probe
         if self.probe_type == 'logistic_regression':
-            projections = probe.decision_function(X)
+            projections = probe.predict(X)
         elif self.probe_type == 'mmp':
-            projections = probe(X, iid=True, project=True).detach().cpu().numpy()
+            projections = probe(X, iid=True).detach().cpu().numpy()
         return projections
     
     def save_best_probe(self,
