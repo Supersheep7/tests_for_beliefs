@@ -137,6 +137,7 @@ class Probe(object):
                 self.direction = direction
             print(pos_acts[:10])
             print(neg_acts[:10])
+
             self.covariance = cov
 
         elif direction_type == None: 
@@ -515,7 +516,7 @@ class Estimator:
     def train_estimator(self):
         if self.estimator_name in ['logistic_regression', 'mmp']:
             # train probe 
-            print("Traing estimator...")
+            print("Training estimator...")
             data = self.train_data
             activations, labels = get_activations(self.model, data, 'residual', focus=self.best_layer)
             activations = next(iter(activations.values()))
@@ -529,8 +530,9 @@ class Estimator:
             print("Training start...")
             probe.train()
             print("Fitting IR...")
+            print("X_train shape", X_train.shape)
             probas = probe.predict(X_train)
-            print("Example tensor", probas[:20])
+            print("Example tensor", probas.shape, probas[:20])
             y = y_train.detach().cpu().numpy()
             num_ones = np.sum(y == 1)
             num_zeros = np.sum(y == 0)
