@@ -525,6 +525,7 @@ class Estimator:
             y = y.detach().cpu().numpy()
             ir = IsotonicRegression(out_of_bounds='clip')
             ir.fit(projections, y)
+            self.probe = probe
             self.ir = ir
 
         else:
