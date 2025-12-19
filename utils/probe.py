@@ -529,15 +529,16 @@ class Estimator:
             print("Training start...")
             probe.train()
             print("Fitting IR...")
-            projections = probe.predict(X)
-            print("Example tensor", projections[:20])
-            y = y.detach().cpu().numpy()
-            num_ones = y.count(1)
-            num_zeros = y.count(0)
+            probas = probe.predict(X_train)
+            print("Example tensor", probas[:20])
+            y = y_train.detach().cpu().numpy()
+            num_ones = np.sum(y == 1)
+            num_zeros = np.sum(y == 0)
             print("Number of 1s:", num_ones)
             print("Number of 0s:", num_zeros)
             ir = IsotonicRegression(out_of_bounds='clip')
-            ir.fit(projections, y)
+            ir.fit(probas, y)
+
             self.probe = probe
             self.ir = ir
 
