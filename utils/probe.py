@@ -50,12 +50,14 @@ class MMP(nn.Module):
             self.inv = nn.Parameter(inv, requires_grad=False).to(device)
 
     def forward(self, x, iid=True, project=False):
-        x = x.to(device)
+        inv = self.inv.half()
+        direction = self.direction.half()
+        x = x.to(device).half()
         
         if iid:
-            projection = (x @ self.inv @ self.direction).unsqueeze(1)
+            projection = (x @ inv @ direction).unsqueeze(1)
         else:
-            projection = (x @ self.direction).unsqueeze(1)
+            projection = (x @ direction).unsqueeze(1)
 
         return projection if project else t.sigmoid(projection)
         
