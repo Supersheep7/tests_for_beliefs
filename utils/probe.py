@@ -246,6 +246,14 @@ class Probe(object):
                 plt.grid(True)
                 plt.show()
 
+    def get_projections(self, X):
+        probe = self.probe
+        if self.probe_type == 'logistic_regression':
+            projections = probe.decision_function(X)
+        elif self.probe_type == 'mmp':
+            projections = probe(X, iid=True, project=True).detach().cpu().numpy()
+        return projections
+    
     def save_best_probe(self,
                         filename: str
     ) -> None:
@@ -510,8 +518,9 @@ class Estimator:
                                 X_test=X_test, y_test=y_test,
                                 probe_cfg=probe_cfg)
             probe.initialize_probe(override_probe_type=self.estimator_name)
+            print("Training start...")
             probe.train()
-            projections = probe.decision_function(X) if self.estimator_name == 'logistic_regression' else probe(X, iid=True, project=True).detach().cpu().numpy()
+            projections = probe.get_projections(X)
             print("Fitting IR...")
             ir = IsotonicRegression(out_of_bounds='clip')
             ir.fit(projections, labels)
@@ -528,7 +537,7 @@ class Estimator:
             activations, labels = get_activations(self.model, data, 'residual', focus=self.best_layer)
             activations = next(iter(activations.values()))
             X = einops.rearrange(activations, 'n b d -> (n b) d')  
-            projections = probe.decision_function(X) if self.estimator_name == 'logistic_regression' else probe(X, iid=True, project=True).detach().cpu().numpy()
+            projections = probe.get_projections(X)
             pseudo_probs = ir.transform(projections)
             return t.tensor(pseudo_probs)
 
