@@ -501,7 +501,7 @@ class Estimator:
             print("Traing estimator...")
             data = self.train_data
             activations, labels = get_activations(self.model, data, 'residual', focus=self.best_layer)
-            next(iter(activations.values()))
+            activations = next(iter(activations.values()))
             X = einops.rearrange(activations, 'n b d -> (n b) d') # Do we need this? 
             y = einops.rearrange(labels, 'n b -> (n b)')
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.05, random_state=42)
@@ -520,6 +520,7 @@ class Estimator:
         if self.estimator_name in ['logistic_regression', 'mmp']:
             probe = self.probe 
             activations, labels = get_activations(self.model, data, 'residual', focus=self.best_layer)
+            activations = next(iter(activations.values()))
             X = einops.rearrange(activations, 'n b d -> (n b) d')  
             projections = probe.decision_function(X) if self.estimator_name == 'logistic_regression' else probe(X, iid=True, project=True).detach().cpu().numpy()
             ir = IsotonicRegression(out_of_bounds='clip')
