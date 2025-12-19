@@ -387,6 +387,7 @@ class Estimator:
         self.best_layer = None
         self.context = None
         self.context_self = None
+        self.ir = None
 
     def set_logic(self, logic: str):
         self.logic = logic
@@ -502,7 +503,7 @@ class Estimator:
             data = self.train_data
             activations, labels = get_activations(self.model, data, 'residual', focus=self.best_layer)
             activations = next(iter(activations.values()))
-            X = einops.rearrange(activations, 'n b d -> (n b) d') # Do we need this? 
+            X = einops.rearrange(activations, 'n b d -> (n b) d') 
             y = einops.rearrange(labels, 'n b -> (n b)')
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.05, random_state=42)
             probe = SupervisedProbe(X_train=X_train, y_train=y_train,
@@ -510,7 +511,11 @@ class Estimator:
                                 probe_cfg=probe_cfg)
             probe.initialize_probe(override_probe_type=self.estimator_name)
             probe.train()
-            self.probe = probe
+            projections = probe.decision_function(X) if self.estimator_name == 'logistic_regression' else probe(X, iid=True, project=True).detach().cpu().numpy()
+            print("Fitting IR...")
+            ir = IsotonicRegression(out_of_bounds='clip')
+            ir.fit(projections, labels)
+            self.ir = ir
 
         else:
             raise ValueError(f"Unsupported estimator: {self.estimator_name}")
@@ -519,12 +524,12 @@ class Estimator:
         
         if self.estimator_name in ['logistic_regression', 'mmp']:
             probe = self.probe 
+            ir = self.ir
             activations, labels = get_activations(self.model, data, 'residual', focus=self.best_layer)
             activations = next(iter(activations.values()))
             X = einops.rearrange(activations, 'n b d -> (n b) d')  
             projections = probe.decision_function(X) if self.estimator_name == 'logistic_regression' else probe(X, iid=True, project=True).detach().cpu().numpy()
-            ir = IsotonicRegression(out_of_bounds='clip')
-            pseudo_probs = ir.fit_transform(projections, labels)
+            pseudo_probs = ir.transform(projections)
             return t.tensor(pseudo_probs)
 
         elif self.estimator_name == 'logits':
