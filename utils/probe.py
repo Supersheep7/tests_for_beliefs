@@ -531,13 +531,15 @@ class Estimator:
             probe.train()
             print("Fitting IR...")
             print("X_train shape", X_train.shape)
-            probas = probe.predict(X_train)
+            probas = probe.predict(X_train)[:, 1]
             print("Example tensor", probas.shape, probas[:20])
+            means = X_train.mean(axis=0)
+            stds = X_train.std(axis=0)
+
+            print("Feature means:", means)
+            print("Feature stds:", stds)
+
             y = y_train.detach().cpu().numpy()
-            num_ones = np.sum(y == 1)
-            num_zeros = np.sum(y == 0)
-            print("Number of 1s:", num_ones)
-            print("Number of 0s:", num_zeros)
             ir = IsotonicRegression(out_of_bounds='clip')
             ir.fit(probas, y)
 
