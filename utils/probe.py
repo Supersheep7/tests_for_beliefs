@@ -53,6 +53,9 @@ class MMP(nn.Module):
         inv = self.inv.half()
         direction = self.direction.half()
         x = x.to(device).half()
+
+        print("WITH INV",x@inv@direction)
+        print("NO INV",x@direction)
         
         if iid:
             projection = (x @ inv @ direction).unsqueeze(1)
@@ -130,7 +133,9 @@ class Probe(object):
                 inv_cov = inv_cov.half()
                 self.direction = nn.Parameter(inv_cov @ direction, requires_grad=True)
             else:
-                self.direction = nn.Parameter(direction, requires_grad=True)
+                self.direction = direction
+            print(pos_acts[:10])
+            print(neg_acts[:10])
             self.covariance = cov
 
         elif direction_type == None: 

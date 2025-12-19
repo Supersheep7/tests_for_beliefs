@@ -362,8 +362,6 @@ class ActivationExtractor():
         """
         Split data into batches. We need to add padding or something like that
         """
-        print(len(data))
-        print(batch_size)
         result = [data[i:i + batch_size] for i in range(0, len(data), batch_size)]
         assert len(result[-1]) % batch_size == 0, "Data length must be divisible by batch_size"
         return result
