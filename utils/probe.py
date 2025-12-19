@@ -520,8 +520,10 @@ class Estimator:
             probe.initialize_probe(override_probe_type=self.estimator_name)
             print("Training start...")
             probe.train()
-            projections = probe.get_projections(X)
             print("Fitting IR...")
+            projections = probe.get_projections(X)
+            projections = projections.detach().cpu().numpy()
+            labels = labels.detach().cpu().numpy()
             ir = IsotonicRegression(out_of_bounds='clip')
             ir.fit(projections, labels)
             self.ir = ir
@@ -538,6 +540,7 @@ class Estimator:
             activations = next(iter(activations.values()))
             X = einops.rearrange(activations, 'n b d -> (n b) d')  
             projections = probe.get_projections(X)
+            projections = projections.detach().cpu().numpy()
             pseudo_probs = ir.transform(projections)
             return t.tensor(pseudo_probs)
 
