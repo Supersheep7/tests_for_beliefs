@@ -522,7 +522,6 @@ class Estimator:
             probe.train()
             print("Fitting IR...")
             projections = probe.get_projections(X)
-            projections = projections
             labels = labels.detach().cpu().numpy()
             ir = IsotonicRegression(out_of_bounds='clip')
             ir.fit(projections, labels)
