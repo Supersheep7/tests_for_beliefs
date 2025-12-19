@@ -257,7 +257,7 @@ class Probe(object):
     def predict(self, X):
         probe = self.probe
         if self.probe_type == 'logistic_regression':
-            projections = probe.predict(X)
+            projections = probe.predict_proba(X)
         elif self.probe_type == 'mmp':
             projections = probe(X, iid=True).detach().cpu().numpy()
         return projections
@@ -532,7 +532,10 @@ class Estimator:
             projections = probe.predict(X)
             print("Example tensor", projections[:20])
             y = y.detach().cpu().numpy()
-            print("Example labels", projections[:20])
+            num_ones = y.count(1)
+            num_zeros = y.count(0)
+            print("Number of 1s:", num_ones)
+            print("Number of 0s:", num_zeros)
             ir = IsotonicRegression(out_of_bounds='clip')
             ir.fit(projections, y)
             self.probe = probe
