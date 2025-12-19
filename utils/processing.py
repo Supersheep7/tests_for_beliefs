@@ -299,7 +299,10 @@ class ActivationExtractor():
         
         self.model = model.to(device)
         self.X = self.batchify(data, batch_size)
-        self.y = t.tensor(self.batchify(labels, batch_size), dtype=t.float32).to(device)
+        if labels == None:
+          self.y = None
+        else:
+          self.y = t.tensor(self.batchify(labels, batch_size), dtype=t.float32).to(device)
         self.hooks = []
         self.activations = {}
         self.half = half

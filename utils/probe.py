@@ -535,6 +535,7 @@ class Estimator:
         if self.estimator_name in ['logistic_regression', 'mmp']:
             probe = self.probe 
             ir = self.ir
+            data = (data, None) # Useful for get_activations loop
             activations, labels = get_activations(self.model, data, 'residual', focus=self.best_layer)
             activations = next(iter(activations.values()))
             X = einops.rearrange(activations, 'n b d -> (n b) d')  
