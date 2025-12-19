@@ -254,7 +254,7 @@ class Probe(object):
                 plt.grid(True)
                 plt.show()
 
-    def get_predict(self, X):
+    def predict(self, X):
         probe = self.probe
         if self.probe_type == 'logistic_regression':
             projections = probe.predict(X)
