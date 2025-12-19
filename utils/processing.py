@@ -294,7 +294,7 @@ class ActivationExtractor():
                  labels: List, 
                  device: t.device = t.device('cuda' if t.cuda.is_available() else 'cpu'),
                  half: bool = True,
-                 batch_size=32,
+                 batch_size=512,
                  pos=-1):
         
         self.model = model.to(device)
@@ -361,6 +361,8 @@ class ActivationExtractor():
         """
         Split data into batches. We need to add padding or something like that
         """
+        print(len(data))
+        print(batch_size)
         result = [data[i:i + batch_size] for i in range(0, len(data), batch_size)]
         assert len(result[-1]) % batch_size == 0, "Data length must be divisible by batch_size"
         return result
