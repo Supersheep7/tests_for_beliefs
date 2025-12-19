@@ -19,6 +19,9 @@ def run_coherence_neg(estimator):
     probas_pos = estimator.extract_proba(data_pos)
     probas_neg = estimator.extract_proba(data_neg)
 
+    print("POS Sample", probas_pos[:50])
+    print("NEG Sample", probas_neg[:50])
+
     pos_neg = probas_pos + probas_neg
 
     swapped_pos = probas_pos[t.randperm(len(probas_pos))]
@@ -28,7 +31,7 @@ def run_coherence_neg(estimator):
     ceiling = t.ones_like(pos_neg)
     mse = t.mean((pos_neg - ceiling)**2)
     random_uniform = t.rand_like(probas_pos) + t.rand_like(probas_neg) 
-    random_baseline = (t.mean((random_uniform - ceiling)**2))
+    random_baseline = (t.mean((swapped - ceiling)**2))
     score = 1/(1 + mse)
     random_score = 1/(1 + random_baseline)
 
