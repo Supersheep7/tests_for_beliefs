@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+from sklearn.metrics import accuracy_score
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))
@@ -201,6 +202,9 @@ class Probe(object):
             X_train, y_train = force_format(self.X_train, self.y_train, format='numpy', device=None)
             self.initialize_probe()
             self.probe.fit(X_train, y_train)
+            y_pred = self.probe.predict(X_train)
+            acc = accuracy_score(y_pred, y_train)
+            print("Final acc on train :", acc) 
             self.best_probe = copy.deepcopy(self.probe)
 
         elif self.probe_type == "mmp":
@@ -242,8 +246,7 @@ class Probe(object):
                 with t.no_grad():
                     current_acc = self.get_acc()
                     accuracies.append(current_acc)
-            print("Losses", epoch_losses)
-            print("Accuracies", accuracies)
+            
             if self.verbose:
                 # Plot the training and validation loss
                 plt.figure(figsize=(10, 6))
