@@ -120,7 +120,8 @@ class TrueFalseBuilder():
     print(os.listdir(self.path))
 
 def to_split(df, domains):
-   return df[df['filename'] == domains[0]] if len(domains) == 1 else df[df['filename'].isin(domains)]
+   print(df['filename'].unique())
+   return df[df['filename'].isin(domains)]
 
 def stratify(df, category_column='filename', test_size=0.2, random_state=42):
    
@@ -141,8 +142,8 @@ def split_curated_df_logic(df):
    train_df, test_df = stratify(df)
 
    train_datas = [
-                train_df,
                 to_split(train_df, ['common_claim_true_false.csv']),
+                train_df,
                 to_split(train_df, ['common_claim_true_false.csv', 'conj_common_claim_true_false.csv', 'disj_common_claim_true_false.csv', 'neg_common_claim_true_false.csv']),
                 to_split(train_df, ['common_claim_true_false.csv', 'disj_common_claim_true_false.csv', 'conj_common_claim_true_false.csv']),
                 to_split(train_df, ['common_claim_true_false.csv', 'conj_common_claim_true_false.csv', 'neg_common_claim_true_false.csv']),
