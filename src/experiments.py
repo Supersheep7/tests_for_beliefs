@@ -294,7 +294,6 @@ def run_uniformity(model_name=None):
             accuracy_on_train = accuracy_score(y_test, y_pred_on_train)
             print("Accuracy on train: ", accuracy_on_train)
             
-
             for j, test_set in enumerate(test_datasets):
 
                 # test_0, ... , test_n-1
@@ -303,9 +302,12 @@ def run_uniformity(model_name=None):
         
                 activations, labels = get_activations(model, data, 'residual', focus=best_layer, model_name=model_name, batch_size=16)
                 activations = next(iter(activations.values()))
-                X = einops.rearrange(activations, 'n b d -> (n b) d') # Do we need this? 
+                X = einops.rearrange(activations, 'n b d -> (n b) d')
                 y = einops.rearrange(labels, 'n b -> (n b)')
+                probas = probe.predict(X, proba=True)
+                print(probas)
                 y_pred = probe.predict(X)
+                print(y_pred)
                 y = y.cpu().detach().numpy()
                 acc = accuracy_score(y, y_pred)
 
