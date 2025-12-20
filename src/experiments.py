@@ -297,8 +297,8 @@ def run_uniformity(model_name=None):
             train_std = torch.where(train_std == 0, torch.ones_like(train_std), train_std)
             train_std = torch.nan_to_num(train_std, nan=1.0)
 
-            normalized_X_test  = (X_test - train_mean)
-            normalized_X_test  /= train_std
+            X_test  = (X_test - train_mean)
+            X_test  /= train_std
             y_pred = probe.predict(X_test)
             y_test = y_test.cpu().detach().numpy()
             acc = accuracy_score(y_test, y_pred)
@@ -317,13 +317,11 @@ def run_uniformity(model_name=None):
 
                 # Normalization loop
 
-                X = (X_test - train_mean)
+                X = (X - train_mean)
                 X /= train_std
 
                 probas = probe.predict(X, proba=True)
-                print(probas)
                 y_pred = probe.predict(X)
-                print(y_pred)
                 y = y.cpu().detach().numpy()
                 acc = accuracy_score(y, y_pred)
 
