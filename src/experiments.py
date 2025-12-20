@@ -261,51 +261,43 @@ def run_uniformity(model_name=None):
     best_layer = t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_residual"), weights_only=False).index(max(t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_residual"), weights_only=False)))
     print("Loaded best layer:", best_layer)
     model = get_model(model_name=model_name)
-    data = get_data('uniformity')
+    folds = get_data('uniformity') # folds_logic, folds_domain
     results = ()
 
-    for fold_n, folds in enumerate(data):
+    for fold_n, fold in enumerate(folds):
 
-        # folds_logic, folds_domain
-
-        for i, data_sets in enumerate(folds):            
+        train_datasets = fold[0]
+        test_datasets = fold[1]
             
-            # train_data, test_data
+        for i, train_set in enumerate(train_datasets):
 
-            train_datasets = data_sets[0]
-            test_datasets = data_sets[1]
-            print("Len train:", len(train_datasets))
-            print("Len test:", len(test_datasets))
+            # train_0, ..., train_n-1
+            print(train_set)
+            data = (list(train_set['statement']), list(train_set['label']))
             
-            for j, train_set in enumerate(train_datasets):
+            activations, labels = get_activations(model, data, 'residual', focus=best_layer, model_name=model_name)
+            X = einops.rearrange(activations, 'n b d -> (n b) d') # Do we need this? 
+            y = einops.rearrange(labels, 'n b -> (n b)')
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.05, random_state=42)
+            probe = SupervisedProbe(X_train=X_train, y_train=y_train,
+                            X_test=X_test, y_test=y_test,
+                            probe_cfg=probe_cfg)
+            probe.initialize_probe(override_probe_type='logistic_regression')
+            probe.train()
 
-                # train_0, ..., train_n-1
-                print(train_set)
-                data = (list(train_set['statement']), list(train_set['label']))
-                
-                activations, labels = get_activations(model, data, 'residual', focus=best_layer, model_name=model_name)
+            for j, test_set in test_datasets:
+
+                # test_0, ... , test_n-1
+
+                data = (list(test_set['statement']), list(test_set['label']))
+        
+                activations, labels = get_activations(model, test_set, 'residual', focus=best_layer, model_name=model_name)
                 X = einops.rearrange(activations, 'n b d -> (n b) d') # Do we need this? 
                 y = einops.rearrange(labels, 'n b -> (n b)')
-                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.05, random_state=42)
-                probe = SupervisedProbe(X_train=X_train, y_train=y_train,
-                                X_test=X_test, y_test=y_test,
-                                probe_cfg=probe_cfg)
-                probe.initialize_probe(override_probe_type='logistic_regression')
-                probe.train()
+                y_pred = probe.predict(X)
+                acc = accuracy_score(y, y_pred)
 
-                for test_set in test_datasets:
-
-                    # test_0, ... , test_n-1
-
-                    data = (list(test_set['statement']), list(test_set['label']))
-            
-                    activations, labels = get_activations(model, test_set, 'residual', focus=best_layer, model_name=model_name)
-                    X = einops.rearrange(activations, 'n b d -> (n b) d') # Do we need this? 
-                    y = einops.rearrange(labels, 'n b -> (n b)')
-                    y_pred = probe.predict(X)
-                    acc = accuracy_score(y, y_pred)
-
-                    results[fold_n][i][j].append(acc)
+                results[fold_n][i][j].append(acc)
 
     print("Uniformity experiment completed.")
     print("Results: ", results)              
