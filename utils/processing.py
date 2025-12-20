@@ -13,6 +13,8 @@ from datasets import load_dataset
 import pandas as pd
 import os
 import gc 
+import hashlib
+
 from tqdm import tqdm
 import random
 import numpy as np
@@ -120,40 +122,51 @@ class TrueFalseBuilder():
     print(os.listdir(self.path))
 
 def to_split(df, domains):
-   print(df['filename'].unique())
    return df[df['filename'].isin(domains)]
 
-def stratify(df, category_column='filename', test_size=0.2, random_state=42):
-   
-    # Get unique categories
-    categories = df[category_column].unique()
-    
-    # Split categories themselves (not individual rows)
-    train_cats, test_cats = train_test_split(categories, test_size=test_size, random_state=random_state)
-    
-    # Assign rows based on category split
-    train_df = df[df[category_column].isin(train_cats)].reset_index(drop=True)
-    test_df = df[df[category_column].isin(test_cats)].reset_index(drop=True)
-    
-    return train_df, test_df
+def stratify(
+    df,
+    category_column="filename",
+    test_size=0.2,
+    seed=42,
+):
+    df = df.copy()
+
+    def row_score(row):
+        key = f"{row[category_column]}|{row.name}|{seed}"
+        return int(hashlib.md5(key.encode()).hexdigest(), 16)
+
+    df["_score"] = df.apply(row_score, axis=1)
+
+    df["_rank"] = df.groupby(category_column)["_score"].rank(
+        method="first", pct=True
+    )
+
+    train_df = df[df["_rank"] > test_size]
+    test_df  = df[df["_rank"] <= test_size]
+
+    return (
+        train_df.drop(columns=["_score", "_rank"]).reset_index(drop=True),
+        test_df.drop(columns=["_score", "_rank"]).reset_index(drop=True),
+    )
 
 def split_curated_df_logic(df):
 
    train_df, test_df = stratify(df)
 
    train_datas = [
+                # train_df,
                 to_split(train_df, ['common_claim_true_false.csv']),
-                train_df,
-                to_split(train_df, ['common_claim_true_false.csv', 'conj_common_claim_true_false.csv', 'disj_common_claim_true_false.csv', 'neg_common_claim_true_false.csv']),
-                to_split(train_df, ['common_claim_true_false.csv', 'disj_common_claim_true_false.csv', 'conj_common_claim_true_false.csv']),
-                to_split(train_df, ['common_claim_true_false.csv', 'conj_common_claim_true_false.csv', 'neg_common_claim_true_false.csv']),
-                to_split(train_df, ['common_claim_true_false.csv', 'disj_common_claim_true_false.csv', 'neg_common_claim_true_false.csv']),
-                to_split(train_df, ['common_claim_true_false.csv', 'conj_common_claim_true_false.csv']),
-                to_split(train_df, ['common_claim_true_false.csv', 'disj_common_claim_true_false.csv']),
-                to_split(train_df, ['common_claim_true_false.csv', 'neg_common_claim_true_false.csv']),
-                to_split(train_df, ['conj_common_claim_true_false.csv']),
-                to_split(train_df, ['disj_common_claim_true_false.csv']),
-                to_split(train_df, ['neg_common_claim_true_false.csv']),
+                # to_split(train_df, ['common_claim_true_false.csv', 'conj_common_claim_true_false.csv', 'disj_common_claim_true_false.csv', 'neg_common_claim_true_false.csv']),
+                # to_split(train_df, ['common_claim_true_false.csv', 'disj_common_claim_true_false.csv', 'conj_common_claim_true_false.csv']),
+                # to_split(train_df, ['common_claim_true_false.csv', 'conj_common_claim_true_false.csv', 'neg_common_claim_true_false.csv']),
+                # to_split(train_df, ['common_claim_true_false.csv', 'disj_common_claim_true_false.csv', 'neg_common_claim_true_false.csv']),
+                # to_split(train_df, ['common_claim_true_false.csv', 'conj_common_claim_true_false.csv']),
+                # to_split(train_df, ['common_claim_true_false.csv', 'disj_common_claim_true_false.csv']),
+                # to_split(train_df, ['common_claim_true_false.csv', 'neg_common_claim_true_false.csv']),
+                # to_split(train_df, ['conj_common_claim_true_false.csv']),
+                # to_split(train_df, ['disj_common_claim_true_false.csv']),
+                # to_split(train_df, ['neg_common_claim_true_false.csv']),
    ]
 
    test_datas = [
@@ -180,18 +193,18 @@ def split_curated_df_domains(df):
   train_df, test_df = stratify(df)
 
   train_datas = [
-              train_df,
+              # train_df,
               to_split(train_df, ['common_claim_true_false.csv']),
-              to_split(train_df, ['common_claim_true_false.csv', 'cities.csv']),
-              to_split(train_df, ['cities.csv']),
-              to_split(train_df, ['common_claim_true_false.csv', 'companies_true_false.csv']),
-              to_split(train_df, ['companies_true_false.csv']),
-              to_split(train_df, ['common_claim_true_false.csv', 'sp_en_trans.csv']),
-              to_split(train_df, ['sp_en_trans.csv']),
-              to_split(train_df, ['common_claim_true_false.csv', 'larger_than.csv']),
-              to_split(train_df, ['larger_than.csv']),
-              to_split(train_df, ['common_claim_true_false.csv', 'counterfact_true_false.csv']),
-              to_split(train_df, ['counterfact_true_false.csv'])
+              # to_split(train_df, ['common_claim_true_false.csv', 'cities.csv']),
+              # to_split(train_df, ['cities.csv']),
+              # to_split(train_df, ['common_claim_true_false.csv', 'companies_true_false.csv']),
+              # to_split(train_df, ['companies_true_false.csv']),
+              # to_split(train_df, ['common_claim_true_false.csv', 'sp_en_trans.csv']),
+              # to_split(train_df, ['sp_en_trans.csv']),
+              # to_split(train_df, ['common_claim_true_false.csv', 'larger_than.csv']),
+              # to_split(train_df, ['larger_than.csv']),
+              # to_split(train_df, ['common_claim_true_false.csv', 'counterfact_true_false.csv']),
+              # to_split(train_df, ['counterfact_true_false.csv'])
   ]
 
   test_datas = [
