@@ -278,6 +278,11 @@ def get_data(experiment: str = 'accuracy', sweep: bool = False, logic: str = Non
       common_disj = disj_dataset[disj_dataset['filename'] == 'disj_common_claim_true_false.csv']
       df_all = pd.concat([df_all, common_neg, common_conj, common_disj])
 
+      df_all['label'] = df_all['label'].where(
+      df_all['neg_label'].isna() & df_all['new_label'].isna(),
+      df_all['neg_label'].combine_first(df_all['new_label'])
+      )
+
       folds_logic = split_curated_df_logic(df_all)
       folds_domains = split_curated_df_domains(df_all)
 
