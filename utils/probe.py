@@ -242,7 +242,8 @@ class Probe(object):
                 with t.no_grad():
                     current_acc = self.get_acc()
                     accuracies.append(current_acc)
-
+            print("Losses", epoch_losses)
+            print("Accuracies", accuracies)
             if self.verbose:
                 # Plot the training and validation loss
                 plt.figure(figsize=(10, 6))

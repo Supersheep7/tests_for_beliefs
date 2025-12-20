@@ -280,9 +280,12 @@ def run_uniformity(model_name=None):
             
             activations, labels = get_activations(model, data, 'residual', focus=best_layer, model_name=model_name)
             activations = next(iter(activations.values()))
+            print(activations)
             X = einops.rearrange(activations, 'n b d -> (n b) d') # Do we need this? 
+            print(X)
             y = einops.rearrange(labels, 'n b -> (n b)')
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.05, random_state=42)
+            print(y)
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
             probe = SupervisedProbe(X_train=X_train, y_train=y_train,
                             X_test=X_test, y_test=y_test,
                             probe_cfg=probe_cfg)
