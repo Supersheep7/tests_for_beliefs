@@ -271,8 +271,9 @@ def run_uniformity(model_name=None):
             
         for i, train_set in enumerate(train_datasets):
 
+            print("Openend training set n ", i)
+
             # train_0, ..., train_n-1
-            print(train_set)
             data = (list(train_set['statement']), list(train_set['label']))
             
             activations, labels = get_activations(model, data, 'residual', focus=best_layer, model_name=model_name)
@@ -296,6 +297,8 @@ def run_uniformity(model_name=None):
                 y = einops.rearrange(labels, 'n b -> (n b)')
                 y_pred = probe.predict(X)
                 acc = accuracy_score(y, y_pred)
+
+                print("accuracy on test set ", j, " : ", acc)
 
                 results[fold_n][i][j].append(acc)
 
