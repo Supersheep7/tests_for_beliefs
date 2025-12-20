@@ -271,10 +271,16 @@ def run_uniformity(model_name=None):
         for i, data_sets in enumerate(folds):            
             
             # train_data, test_data
+
+            train_datasets = data_sets[0]
+            test_datasets = data_sets[1]
+            print("Len train:", len(train_datasets))
+            print("Len test:", len(test_datasets))
             
-            for j, train_set in enumerate(data_sets[0]):
+            for j, train_set in enumerate(train_datasets):
 
                 # train_0, ..., train_n-1
+                print(train_set)
                 data = (list(train_set['statement']), list(train_set['label']))
                 
                 activations, labels = get_activations(model, data, 'residual', focus=best_layer, model_name=model_name)
@@ -287,7 +293,7 @@ def run_uniformity(model_name=None):
                 probe.initialize_probe(override_probe_type='logistic_regression')
                 probe.train()
 
-                for test_set in data_sets[1]:
+                for test_set in test_datasets:
 
                     # test_0, ... , test_n-1
 
