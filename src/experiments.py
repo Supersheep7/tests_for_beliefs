@@ -268,6 +268,11 @@ def run_uniformity(model_name=None):
 
         train_datasets = fold[0]
         test_datasets = fold[1]
+
+        print(len(test_datasets))
+        print(test_datasets[0])
+
+        return
             
         for i, train_set in enumerate(train_datasets):
 
