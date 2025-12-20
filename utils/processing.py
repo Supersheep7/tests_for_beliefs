@@ -382,6 +382,7 @@ class ActivationExtractor():
         Split data into batches. We need to add padding or something like that
         """
         n = len(data) // batch_size * batch_size
+        print(len(data))
         print("Cut", len(data)-n)
         data = data[:n]
         return [data[i:i + batch_size] for i in range(0, n, batch_size)]
