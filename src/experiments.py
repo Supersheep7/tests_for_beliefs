@@ -299,6 +299,7 @@ def run_uniformity(model_name=None):
                 X = einops.rearrange(activations, 'n b d -> (n b) d') # Do we need this? 
                 y = einops.rearrange(labels, 'n b -> (n b)')
                 y_pred = probe.predict(X)
+                y = y.cpu().detach().numpy()
                 acc = accuracy_score(y, y_pred)
 
                 print("accuracy on test set ", j, " : ", acc)
