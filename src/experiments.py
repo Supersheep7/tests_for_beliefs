@@ -13,6 +13,7 @@ from utils.probe import *
 from cfg import load_cfg
 from utils.intervention import *
 from coherence_experiments import run_coherence_neg, run_coherence_or, run_coherence_and, run_coherence_ifthen
+from collections import defaultdict
 cfg = load_cfg()
 
 def asker_kde(model_name=cfg["common"]["model"]):
@@ -262,7 +263,8 @@ def run_uniformity(model_name=None):
     print("Loaded best layer:", best_layer)
     model = get_model(model_name=model_name)
     folds = get_data('uniformity') # folds_logic, folds_domain
-    results = ()
+    
+    results = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
 
     for fold_n, fold in enumerate(folds):
 
