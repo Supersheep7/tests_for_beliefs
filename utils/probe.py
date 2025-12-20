@@ -540,6 +540,7 @@ class Estimator:
             print("Feature stds:", stds)
 
             y = y_train.detach().cpu().numpy()
+            print("Y_train shape", y.shape)
             ir = IsotonicRegression(out_of_bounds='clip')
             ir.fit(probas, y)
 

@@ -258,14 +258,23 @@ def run_uniformity(model_name=None):
 
     # Fetch best layer (we will go with the residual)
 
-    best_layer = int(input("Enter the layer number for uniformity experiment: "))
+    best_layer = t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_residual"), weights_only=False).index(max(t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_residual"), weights_only=False)))
+    print("Loaded best layer:", best_layer)
     model = get_model(model_name=model_name)
     data = get_data('uniformity')
     results = ()
 
     for fold_n, folds in enumerate(data):
+
+        # folds_logic, folds_domain
+
         for i, data_sets in enumerate(folds):            
+            
+            # train_data, test_data
+            
             for j, train_set in enumerate(data_sets[0]):
+
+                # train_0, ..., train_n-1
 
                 activations, labels = get_activations(model, train_set, 'residual', focus=best_layer, model_name=model_name)
                 X = einops.rearrange(activations, 'n b d -> (n b) d') # Do we need this? 
@@ -278,6 +287,8 @@ def run_uniformity(model_name=None):
                 probe.train()
 
                 for test_set in data_sets[1]:
+
+                    # test_0, ... , test_n-1
             
                     activations, labels = get_activations(model, test_set, 'residual', focus=best_layer, model_name=model_name)
                     X = einops.rearrange(activations, 'n b d -> (n b) d') # Do we need this? 
