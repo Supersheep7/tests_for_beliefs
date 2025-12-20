@@ -397,14 +397,14 @@ class ActivationExtractor():
         print("Activation extraction complete.")
         return self.activations, self.y
 
-def get_activations(model: HookedTransformer, data, modality: str = 'residual', focus = None, model_name = None):
+def get_activations(model: HookedTransformer, data, modality: str = 'residual', focus = None, model_name = None, batch_size=cfg["tlens"]["batch_extractor"]):
 
     print("Extracting activations...")
     model.to(cfg["common"]["device"])
     model.reset_hooks() 
     statements, labels = data
     extractor = ActivationExtractor(model=model, data=statements, labels=labels, device=cfg["common"]["device"], half=True,
-                                      batch_size=cfg["tlens"]["batch_extractor"], pos=-1)
+                                      batch_size=batch_size, pos=-1)
     if modality == 'heads':
         if focus is None:
           extractor.set_hooks([i for i in range(model.cfg.n_layers)],

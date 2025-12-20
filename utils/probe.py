@@ -255,12 +255,19 @@ class Probe(object):
                 plt.grid(True)
                 plt.show()
 
-    def predict(self, X):
+    def predict(self, X, proba=False):
         probe = self.probe
         if self.probe_type == 'logistic_regression':
-            projections = probe.predict_proba(X)
+            if proba:
+                projections = probe.predict_proba(X)
+            else:
+                projections = probe.predict(X)
         elif self.probe_type == 'mmp':
-            projections = probe(X, iid=True).detach().cpu().numpy()
+            if proba:
+                projections = probe(X, iid=True).detach().cpu().numpy()
+            else: 
+                # TO DO (If needed): implement prediction
+                projections = probe(X, iid=True).detach().cpu().numpy()
         return projections
     
     def save_best_probe(self,
@@ -559,7 +566,7 @@ class Estimator:
             activations, labels = get_activations(self.model, data, 'residual', focus=self.best_layer)
             activations = next(iter(activations.values()))
             X = einops.rearrange(activations, 'n b d -> (n b) d')  
-            projections = probe.predict(X)
+            projections = probe.predict(X, proba=True)
             pseudo_probs = ir.transform(projections)
             return t.tensor(pseudo_probs)
 
