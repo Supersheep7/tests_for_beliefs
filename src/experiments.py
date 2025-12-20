@@ -285,9 +285,10 @@ def run_uniformity(model_name=None):
                             X_test=X_test, y_test=y_test,
                             probe_cfg=probe_cfg)
             probe.initialize_probe(override_probe_type='logistic_regression')
+            print("Training Probe...")
             probe.train()
 
-            for j, test_set in test_datasets:
+            for j, test_set in enumerate(test_datasets):
 
                 # test_0, ... , test_n-1
 
