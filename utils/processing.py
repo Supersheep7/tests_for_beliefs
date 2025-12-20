@@ -283,20 +283,6 @@ def get_data(experiment: str = 'accuracy', sweep: bool = False, logic: str = Non
       df_all['neg_label'].combine_first(df_all['new_label'])
       )
 
-      neg_ok = (
-    df_all.loc[df_all['neg_label'].notna(), 'label']
-    == df_all.loc[df_all['neg_label'].notna(), 'neg_label']
-).all()
-
-      new_ok = (
-          df_all.loc[df_all['new_label'].notna(), 'label']
-          == df_all.loc[df_all['new_label'].notna(), 'new_label']
-      ).all()
-
-      print(f"neg_label → label correct: {neg_ok}")
-      print(f"new_label → label correct: {new_ok}")
-
-
       folds_logic = split_curated_df_logic(df_all)
       folds_domains = split_curated_df_domains(df_all)
 
