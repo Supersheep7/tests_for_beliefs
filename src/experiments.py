@@ -294,7 +294,7 @@ def run_uniformity(model_name=None):
 
                 data = (list(test_set['statement']), list(test_set['label']))
         
-                activations, labels = get_activations(model, test_set, 'residual', focus=best_layer, model_name=model_name)
+                activations, labels = get_activations(model, data, 'residual', focus=best_layer, model_name=model_name)
                 activations = next(iter(activations.values()))
                 X = einops.rearrange(activations, 'n b d -> (n b) d') # Do we need this? 
                 y = einops.rearrange(labels, 'n b -> (n b)')
