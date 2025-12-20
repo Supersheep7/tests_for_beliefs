@@ -155,18 +155,18 @@ def split_curated_df_logic(df):
    train_df, test_df = stratify(df)
 
    train_datas = [
-                # train_df,
+                train_df,
                 to_split(train_df, ['common_claim_true_false.csv']),
-                # to_split(train_df, ['common_claim_true_false.csv', 'conj_common_claim_true_false.csv', 'disj_common_claim_true_false.csv', 'neg_common_claim_true_false.csv']),
-                # to_split(train_df, ['common_claim_true_false.csv', 'disj_common_claim_true_false.csv', 'conj_common_claim_true_false.csv']),
-                # to_split(train_df, ['common_claim_true_false.csv', 'conj_common_claim_true_false.csv', 'neg_common_claim_true_false.csv']),
-                # to_split(train_df, ['common_claim_true_false.csv', 'disj_common_claim_true_false.csv', 'neg_common_claim_true_false.csv']),
-                # to_split(train_df, ['common_claim_true_false.csv', 'conj_common_claim_true_false.csv']),
-                # to_split(train_df, ['common_claim_true_false.csv', 'disj_common_claim_true_false.csv']),
-                # to_split(train_df, ['common_claim_true_false.csv', 'neg_common_claim_true_false.csv']),
-                # to_split(train_df, ['conj_common_claim_true_false.csv']),
-                # to_split(train_df, ['disj_common_claim_true_false.csv']),
-                # to_split(train_df, ['neg_common_claim_true_false.csv']),
+                to_split(train_df, ['common_claim_true_false.csv', 'conj_common_claim_true_false.csv', 'disj_common_claim_true_false.csv', 'neg_common_claim_true_false.csv']),
+                to_split(train_df, ['common_claim_true_false.csv', 'disj_common_claim_true_false.csv', 'conj_common_claim_true_false.csv']),
+                to_split(train_df, ['common_claim_true_false.csv', 'conj_common_claim_true_false.csv', 'neg_common_claim_true_false.csv']),
+                to_split(train_df, ['common_claim_true_false.csv', 'disj_common_claim_true_false.csv', 'neg_common_claim_true_false.csv']),
+                to_split(train_df, ['common_claim_true_false.csv', 'conj_common_claim_true_false.csv']),
+                to_split(train_df, ['common_claim_true_false.csv', 'disj_common_claim_true_false.csv']),
+                to_split(train_df, ['common_claim_true_false.csv', 'neg_common_claim_true_false.csv']),
+                to_split(train_df, ['conj_common_claim_true_false.csv']),
+                to_split(train_df, ['disj_common_claim_true_false.csv']),
+                to_split(train_df, ['neg_common_claim_true_false.csv']),
    ]
 
    test_datas = [
