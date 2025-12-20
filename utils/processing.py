@@ -127,7 +127,7 @@ def to_split(df, domains):
 def stratify(
     df,
     category_column="filename",
-    test_size=0.2,
+    test_size=0.25,
     seed=42,
 ):
     df = df.copy()
