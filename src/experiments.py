@@ -272,10 +272,10 @@ def run_uniformity(model_name=None):
             
             # train_data, test_data
             
-            for j, train_set in enumerate(data_sets):
+            for j, train_set in enumerate(data_sets[0]):
 
                 # train_0, ..., train_n-1
-                data = (train_set['statement'], train_set['label'])
+                data = (list(train_set['statement']), list(train_set['label']))
                 
                 activations, labels = get_activations(model, data, 'residual', focus=best_layer, model_name=model_name)
                 X = einops.rearrange(activations, 'n b d -> (n b) d') # Do we need this? 
@@ -291,7 +291,7 @@ def run_uniformity(model_name=None):
 
                     # test_0, ... , test_n-1
 
-                    data = (test_set['statement'], test_set['label'])
+                    data = (list(test_set['statement']), list(test_set['label']))
             
                     activations, labels = get_activations(model, test_set, 'residual', focus=best_layer, model_name=model_name)
                     X = einops.rearrange(activations, 'n b d -> (n b) d') # Do we need this? 
