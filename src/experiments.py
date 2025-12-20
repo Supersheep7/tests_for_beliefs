@@ -280,11 +280,8 @@ def run_uniformity(model_name=None):
             
             activations, labels = get_activations(model, data, 'residual', focus=best_layer, model_name=model_name)
             activations = next(iter(activations.values()))
-            print(activations)
             X = einops.rearrange(activations, 'n b d -> (n b) d') # Do we need this? 
-            print(X)
             y = einops.rearrange(labels, 'n b -> (n b)')
-            print(y)
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
             probe = SupervisedProbe(X_train=X_train, y_train=y_train,
                             X_test=X_test, y_test=y_test,
@@ -292,6 +289,20 @@ def run_uniformity(model_name=None):
             probe.initialize_probe(override_probe_type='logistic_regression')
             print("Training Probe...")
             probe.train()
+
+            # Normalization loop
+
+            train_mean = X_train.mean(dim=0, keepdim=True)
+            train_std = X_train.std(dim=0, keepdim=True, unbiased=False)
+            train_std = torch.where(train_std == 0, torch.ones_like(train_std), train_std)
+            train_std = torch.nan_to_num(train_std, nan=1.0)
+
+            normalized_X_test  = (X_test - train_mean)
+            normalized_X_test  /= train_std
+            y_pred = probe.predict(X_test)
+            y_test = y_test.cpu().detach().numpy()
+            acc = accuracy_score(y_test, y_pred)
+            print("accuracy on first test set: ", acc)
             
             for j, test_set in enumerate(test_datasets):
 
@@ -303,6 +314,12 @@ def run_uniformity(model_name=None):
                 activations = next(iter(activations.values()))
                 X = einops.rearrange(activations, 'n b d -> (n b) d')
                 y = einops.rearrange(labels, 'n b -> (n b)')
+
+                # Normalization loop
+
+                X = (X_test - train_mean)
+                X /= train_std
+
                 probas = probe.predict(X, proba=True)
                 print(probas)
                 y_pred = probe.predict(X)

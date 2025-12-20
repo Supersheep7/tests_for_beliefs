@@ -136,8 +136,6 @@ class Probe(object):
                 self.direction = nn.Parameter(inv_cov @ direction, requires_grad=True)
             else:
                 self.direction = direction
-            print(pos_acts[:10])
-            print(neg_acts[:10])
 
             self.covariance = cov
 
@@ -204,7 +202,6 @@ class Probe(object):
             self.probe.fit(X_train, y_train)
             y_pred = self.probe.predict(X_train)
             acc = accuracy_score(y_pred, y_train)
-            print("Final acc on train :", acc) 
             self.best_probe = copy.deepcopy(self.probe)
 
         elif self.probe_type == "mmp":
