@@ -305,7 +305,7 @@ class ActivationExtractor():
         
         self.model = model.to(device)
         self.X = self.batchify(data, batch_size)
-        if labels == None:
+        if labels is None:
           self.y = None
         else:
           self.y = t.tensor(self.batchify(labels, batch_size), dtype=t.float32).to(device)
@@ -368,8 +368,8 @@ class ActivationExtractor():
         Split data into batches. We need to add padding or something like that
         """
         n = len(data) // batch_size * batch_size
+        print("Cut", len(data)-n)
         data = data[:n]
-        print("Cut", n)
         return [data[i:i + batch_size] for i in range(0, n, batch_size)]
         
     def process(self
