@@ -289,6 +289,7 @@ def run_uniformity(model_name=None):
             probe.initialize_probe(override_probe_type='logistic_regression')
             print("Training Probe...")
             probe.train()
+            y_test = y_test.cpu().detach().numpy()
             y_pred_on_train = probe.predict(X_test)
             accuracy_on_train = accuracy_score(y_test, y_pred_on_train)
             print("Accuracy on train: ", accuracy_on_train)
