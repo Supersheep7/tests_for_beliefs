@@ -261,8 +261,8 @@ def run_uniformity(model_name=None):
 
     best_layer = t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_residual"), weights_only=False).index(max(t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_residual"), weights_only=False)))
     print("Loaded best layer:", best_layer)
-    model = get_model(model_name=model_name)
     folds = get_data('uniformity') # folds_logic, folds_domain
+    model = get_model(model_name=model_name)
     
     results = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
 

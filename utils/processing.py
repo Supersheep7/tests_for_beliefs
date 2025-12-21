@@ -38,6 +38,8 @@ class CoherenceBuilder():
         remainder = curated_dataset[~curated_dataset['filename'].isin(['common_claim_true_false.csv', 'companies_true_false.csv', 'counterfact_true_false.csv'])]
         curated_dataset = pd.concat([remainder, other_dataset])
 
+        print(curated_dataset['filename'].unique())
+
         # DEBUG
 
         curated_dataset = curated_dataset[curated_dataset['filename'] == 'common_claim_true_false.csv']
