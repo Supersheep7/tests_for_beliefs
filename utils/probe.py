@@ -544,21 +544,14 @@ class Estimator:
             train_std = torch.where(train_std == 0, torch.ones_like(train_std), train_std)
             train_std = torch.nan_to_num(train_std, nan=1.0)
 
-            X_test = (X_test - train_mean)
-            X_test /= train_std
-            y_pred = probe.predict(X_test)
-
-            print(probe.predict(X_test, proba=True))
-
-            print(y_pred)
-
-            y_test = y_test.cpu().detach().numpy()
-            acc = accuracy_score(y_test, y_pred)
-            print("accuracy on first test set: ", acc)
-
-            return
+            X_train = (X_train - train_mean)
+            X_train /= train_std
             
-            probas = probe.predict(X_train)[:, 1]
+            probas = probe.predict(X_train, proba=True)[:, 1]
+
+            for proba in probas:
+                print(proba)
+
             y = y_train.detach().cpu().numpy()
             ir = IsotonicRegression(out_of_bounds='clip')
             ir.fit(probas, y)
