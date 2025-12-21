@@ -531,15 +531,11 @@ class Estimator:
             data = self.train_data
             activations, labels = get_activations(self.model, data, 'residual', focus=self.best_layer)
             activations = next(iter(activations.values()))
-            print(activations.shape)
-            print(labels.shape)
-            X = einops.rearrange(activations, 'n b d -> (n b) d').detach().cpu().numpy()
-            y = einops.rearrange(labels, 'n b -> (n b)').detach().cpu().numpy()
-            vals, counts = np.unique(y, return_counts=True)
-            print(vals, counts)
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-
+            X_train, X_test, y_train, y_test = train_test_split(activations, labels, test_size=0.2, random_state=42)
+            X_train = einops.rearrange(X_train, 'n b d -> (n b) d').detach().cpu().numpy()
+            y_train = einops.rearrange(y_train, 'n b -> (n b)').detach().cpu().numpy()
+            X_test = einops.rearrange(X_test, 'n b d -> (n b) d').detach().cpu().numpy()
+            y_test = einops.rearrange(y_test, 'n b -> (n b)').detach().cpu().numpy()
 
             clf = Pipeline([
                 ("scaler", StandardScaler()),
