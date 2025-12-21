@@ -251,7 +251,7 @@ def run_coherence(model_name=cfg["common"]["model"]):
     print()
     print("= = = END WARNING = = =")
     print()
-    # save_results(results_tot, "coherence_scores", model=model_name, notes=f"{''.join(logics)}_{'_'.join(estimators)}")
+    save_results(results_tot, "coherence_scores", model=model_name, notes=f"{''.join(logics)}_{'_'.join(estimators)}")
     
     return
 
