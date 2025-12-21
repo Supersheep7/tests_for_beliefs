@@ -535,20 +535,31 @@ class Estimator:
                                 X_test=X_test, y_test=y_test,
                                 probe_cfg=probe_cfg)
             probe.initialize_probe(override_probe_type=self.estimator_name)
-            print("Training start...")
             probe.train()
-            print("Fitting IR...")
-            print("X_train shape", X_train.shape)
+
+            # Normalization loop
+
+            train_mean = X_train.mean(dim=0, keepdim=True)
+            train_std = X_train.std(dim=0, keepdim=True, unbiased=False)
+            train_std = torch.where(train_std == 0, torch.ones_like(train_std), train_std)
+            train_std = torch.nan_to_num(train_std, nan=1.0)
+
+            X_test  = (X_test - train_mean)
+            X_test  /= train_std
+            y_pred = probe.predict(X_test)
+
+            print(probe.predict(X_test, proba=True))
+
+            print(y_pred)
+
+            y_test = y_test.cpu().detach().numpy()
+            acc = accuracy_score(y_test, y_pred)
+            print("accuracy on first test set: ", acc)
+
+            return
+            
             probas = probe.predict(X_train)[:, 1]
-            print("Example tensor", probas.shape, probas[:20])
-            means = X_train.mean(axis=0)
-            stds = X_train.std(axis=0)
-
-            print("Feature means:", means)
-            print("Feature stds:", stds)
-
             y = y_train.detach().cpu().numpy()
-            print("Y_train shape", y.shape)
             ir = IsotonicRegression(out_of_bounds='clip')
             ir.fit(probas, y)
 
