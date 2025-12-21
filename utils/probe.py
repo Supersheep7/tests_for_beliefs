@@ -50,7 +50,7 @@ class MassMeanClassifier(BaseEstimator, ClassifierMixin):
         direction: torch.Tensor of shape (d,)
                    Already represents the mass-mean difference between classes
         """
-        self.direction = direction / direction.norm()  # normalize for scale invariance
+        self.direction = direction
         self.device = self.direction.device
 
     def fit(self, X=None, y=None):
@@ -58,10 +58,12 @@ class MassMeanClassifier(BaseEstimator, ClassifierMixin):
         return self
 
     def predict_proba(self, X):
-        # convert to torch tensor if needed
-        X_t = t.from_numpy(X).to(self.device).float()
+        if not isinstance(X, t.Tensor):
+            X_t = t.from_numpy(X).to(self.device).float()
+        else:
+            X_t = X.to(self.device).float()
         # project onto the direction
-        proj = X_t @ self.direction
+        proj = X_t @ self.direction.float()
         # map to [0,1] pseudo-probability
         probs = t.sigmoid(proj).cpu().numpy()
         return np.column_stack([1 - probs, probs])  # shape (n_samples, 2)
@@ -599,6 +601,10 @@ class Estimator:
 
                 # compute mass-mean difference
                 direction = X_pos.mean(dim=0) - X_neg.mean(dim=0)
+                direction = direction / direction.norm()
+                proj_train = X_t @ direction
+                direction /= proj_train.std()
+
                 clf = MassMeanClassifier(direction)
             
             # evaluate
