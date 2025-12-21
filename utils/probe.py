@@ -537,6 +537,7 @@ class Estimator:
             probe.initialize_probe(override_probe_type=self.estimator_name)
             print("Train start...")
             probe.train()
+            print("Accuracy from the inside: ", probe.get_acc())
 
             # Normalization loop
 

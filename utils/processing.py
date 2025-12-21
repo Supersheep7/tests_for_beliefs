@@ -84,7 +84,6 @@ class CoherenceBuilder():
        raw = pickle.load(f)
     X_train, y_train, test_data  = self.get_data_split('negation', other_dataset=raw)
     data_pos = test_data['statement'].tolist()   
-    print(X_train[:10])
     data_neg = test_data['new_statement'].tolist()   
     return (X_train, y_train), data_pos, data_neg
   
