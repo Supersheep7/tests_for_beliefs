@@ -433,8 +433,8 @@ def get_activations(model: HookedTransformer, data, modality: str = 'residual', 
           extractor.set_hooks([i for i in range(model.cfg.n_layers)],
                               [get_act_name('z')], attn=True)
         else: 
-          print("FOCUSED on layer ", layer, "head ", head)
           layer, head = focus
+          print("FOCUSED on layer ", layer, "head ", head)
           extractor.set_hooks([layer],
                               [f'blocks.{layer}.attn.hook_z_{head}'], attn=True)
     elif modality == 'residual':
@@ -443,8 +443,8 @@ def get_activations(model: HookedTransformer, data, modality: str = 'residual', 
                               [i for i in range(model.cfg.n_layers)],
                               [get_act_name('resid_post')], attn=False)
         else: 
-          print("FOCUSED on layer ", layer)
           layer = focus
+          print("FOCUSED on layer ", layer)
           extractor.set_hooks(
                               [layer],
                               [get_act_name('resid_post')], attn=False) 
@@ -456,8 +456,8 @@ def get_activations(model: HookedTransformer, data, modality: str = 'residual', 
                                   [f"hook_attn_out"],
                                   attn=False)
             else: 
-              print("FOCUSED on layer ", layer)
               layer = focus
+              print("FOCUSED on layer ", layer)
               extractor.set_hooks(
                                   [layer],
                                   [f"hook_attn_out"],
