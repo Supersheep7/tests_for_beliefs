@@ -525,7 +525,7 @@ class Estimator:
 
     def smoother(self, probs, temp=1):
 
-        probs = 1 / (1 + np.exp(- (probs - 0.5) * 2 / temp))
+        probs = 1 / (1 + np.exp(-probs / temp))
 
         return probs
 
