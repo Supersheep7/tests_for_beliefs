@@ -529,7 +529,7 @@ class Estimator:
             # train probe 
             print("Training estimator...")
             data = self.train_data
-            print(data.head())
+            print(data)
             activations, labels = get_activations(self.model, data, 'residual', focus=self.best_layer)
             activations = activations[f'blocks.{self.best_layer}.hook_resid_post']
             X_train, X_test, y_train, y_test = train_test_split(activations, labels, test_size=0.2, random_state=42)
