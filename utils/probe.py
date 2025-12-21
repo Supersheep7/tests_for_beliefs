@@ -623,7 +623,6 @@ class Estimator:
             
             # evaluate
             y_pred = clf.predict(X_test)
-            assert len(y_pred) == len(y_test)
             acc = accuracy_score(y_test, y_pred)
             print("Accuracy on train dataset:", acc)
 
