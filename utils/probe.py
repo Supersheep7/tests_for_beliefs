@@ -45,13 +45,14 @@ Neural is a tentative copy of SAPLMA as described in Azaria & Mitchell 2023
 from sklearn.base import BaseEstimator, ClassifierMixin
 
 class MassMeanClassifier(BaseEstimator, ClassifierMixin):
-    def __init__(self, direction):
+    def __init__(self, direction, inv_cov):
         """
         direction: torch.Tensor of shape (d,)
                    Already represents the mass-mean difference between classes
         """
         self.direction = direction
         self.device = self.direction.device
+        self.inv_cov = inv_cov
 
     def fit(self, X=None, y=None):
         # no training needed; direction is precomputed
@@ -63,7 +64,7 @@ class MassMeanClassifier(BaseEstimator, ClassifierMixin):
         else:
             X_t = X.to(self.device).float()
         # project onto the direction
-        proj = X_t @ self.direction.float()
+        proj = X_t @ self.inv_cov @ self.direction.float()
         # map to [0,1] pseudo-probability
         probs = t.sigmoid(proj).cpu().numpy()
         return np.column_stack([1 - probs, probs])  # shape (n_samples, 2)
@@ -590,22 +591,26 @@ class Estimator:
 
             else:
                 # X_train: shape (n_samples, d), y_train: 0/1 labels
-                X_t = t.from_numpy(X_train).float()
+                X_t = t.from_numpy(X_train).float()  # or keep it as tensor
 
-                # separate positive and negative samples
+                # compute covariance (d x d)
+                cov = t.cov(X_t.T)  # note: X_t.T shape is (d, n_samples)
+
+                # compute pseudo-inverse
+                atol = 1e-3  # tolerance
+                inv_cov = t.linalg.pinv(cov, hermitian=True, atol=atol)
+
+                # move to half precision if needed (like your MMP)
+                inv_cov = inv_cov.half()
+
+                # direction: mass-mean difference
                 pos_mask = t.from_numpy(y_train).bool()
                 neg_mask = ~pos_mask
-
                 X_pos = X_t[pos_mask]
                 X_neg = X_t[neg_mask]
+                direction = (X_pos.mean(dim=0) - X_neg.mean(dim=0)).half()
 
-                # compute mass-mean difference
-                direction = X_pos.mean(dim=0) - X_neg.mean(dim=0)
-                direction = direction / direction.norm()
-                proj_train = X_t @ direction
-                direction /= proj_train.std()
-
-                clf = MassMeanClassifier(direction)
+                clf = MassMeanClassifier(direction, inv_cov)
             
             # evaluate
             y_pred = clf.predict(X_test)
