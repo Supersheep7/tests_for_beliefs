@@ -537,15 +537,21 @@ class Estimator:
             X_test = einops.rearrange(X_test, 'n b d -> (n b) d').detach().cpu().numpy()
             y_test = einops.rearrange(y_test, 'n b -> (n b)').detach().cpu().numpy()
 
-            clf = Pipeline([
-                ("scaler", StandardScaler()),
-                ("logreg", LogisticRegression(
-                    max_iter=1000,
-                    n_jobs=-1,
-                    solver="lbfgs",
-                    multi_class="auto"
-                ))
-            ])
+            if self.estimator_name == 'logistic_regression':
+
+                clf = Pipeline([
+                    ("scaler", StandardScaler()),
+                    ("logreg", LogisticRegression(
+                        max_iter=1000,
+                        n_jobs=-1,
+                        solver="lbfgs",
+                        multi_class="auto"
+                    ))
+                ])
+
+            else:
+
+                clf = None # TO DO, MMP
 
             print("Train start...")
             clf.fit(X_train, y_train)
@@ -583,14 +589,13 @@ class Estimator:
             # acc = accuracy_score(y_test, y_pred)
             # print("accuracy on first test set: ", acc)
 
-            probas = clf.predict_proba(X_test)
+            probas = clf.predict_proba(X_train)[:, 1]
             print("Print first 30 Probas from the training set before IR")
             for proba in probas[:30]:
                 print(proba)
 
-            y = y_train
             ir = IsotonicRegression(out_of_bounds='clip')
-            ir.fit(probas, y)
+            ir.fit(probas, y_train)
             print("Print first 30 Probas from the training set post IR")
             pseudoprobs = ir.transform(probas)
             for pseudoprob in pseudoprobs[:30]:
