@@ -595,7 +595,7 @@ class Estimator:
             else:
                 # X_train: shape (n_samples, d), y_train: 0/1 labels
                 scaler = StandardScaler()
-                X_train_scaled = scaler.fit_transform(X_train.detach().cpu().numpy())
+                X_train_scaled = scaler.fit_transform(X_train)
 
                 X_t = t.from_numpy(X_train_scaled).float()  # or keep it as tensor
 
@@ -620,7 +620,7 @@ class Estimator:
                 self.mmp_scaler = scaler
             
             # evaluate
-            y_pred = clf.predict(scaler.transform(X_test.detach().cpu().numpy()))
+            y_pred = clf.predict(scaler.transform(X_test))
             assert len(y_pred) == len(y_test)
             acc = accuracy_score(y_test, y_pred)
             print("Accuracy on train dataset:", acc)
