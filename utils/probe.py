@@ -64,7 +64,7 @@ class MassMeanClassifier(BaseEstimator, ClassifierMixin):
         else:
             X_t = X.to(self.device).float()
         # project onto the direction
-        proj = X_t @ self.inv_cov @ self.direction.float()
+        proj = X_t.float() @ self.inv_cov.float() @ self.direction.float()
         # map to [0,1] pseudo-probability
         probs = t.sigmoid(proj).cpu().numpy()
         return np.column_stack([1 - probs, probs])  # shape (n_samples, 2)
