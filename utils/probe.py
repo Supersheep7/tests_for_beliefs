@@ -416,6 +416,7 @@ class Estimator:
         self.context = None
         self.context_self = None
         self.ir = None
+        self.mmp_direction = None
 
     def set_logic(self, logic: str):
         self.logic = logic
@@ -553,6 +554,8 @@ class Estimator:
                         multi_class="auto"
                     ))
                 ])
+                print("Train start...")
+                clf.fit(X_train, y_train)
 
             else:
                 # X_train: shape (n_samples, d), y_train: 0/1 labels
@@ -567,12 +570,12 @@ class Estimator:
 
                 # compute mass-mean difference
                 direction = X_pos.mean(dim=0) - X_neg.mean(dim=0)
-                direction = direction / direction.norm()  # normalize
+                self.mmp_direction = direction / direction.norm()  # normalize
 
                 # define simple prediction functions
                 def mmp_predict_proba(X):
                     X_t = t.from_numpy(X).float()
-                    proj = X_t @ direction
+                    proj = X_t @ self.mmp_direction
                     probs = t.sigmoid(proj).numpy()
                     return np.column_stack([1 - probs, probs])
 
@@ -581,10 +584,6 @@ class Estimator:
 
                 # lightweight classifier dict
                 clf = {"predict": mmp_predict, "predict_proba": mmp_predict_proba}
-
-
-            print("Train start...")
-            clf.fit(X_train, y_train)
             
             # evaluate
             y_pred = clf.predict(X_test)
