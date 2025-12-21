@@ -34,12 +34,14 @@ class CoherenceBuilder():
     curated_dataset = self.curated_dataset.copy()
 
     if task in ['negation', 'disjunction', 'conjunction']:
+        
         # In this case curated dataset is the logical dataset + the remainder
         remainder = curated_dataset[~curated_dataset['filename'].isin(['common_claim_true_false.csv', 'companies_true_false.csv', 'counterfact_true_false.csv'])]
         curated_dataset = pd.concat([remainder, other_dataset])
         
         train_set, test_set = train_test_split(curated_dataset, test_size=0.3, random_state=42, stratify=curated_dataset['filename'])
         test_df = test_set.dropna()
+
         # Plug negations in training set
 
         extra_rows = (
@@ -53,15 +55,7 @@ class CoherenceBuilder():
         train_set = pd.concat(
             [train_set[["statement", "label"]], extra_rows],
             ignore_index=True
-        )         
-
-        # DEBUG
-
-        train_set = curated_dataset[curated_dataset['filename'] == 'cities.csv']
-        print(train_set.head())
-
-        # DEBUG
-                         
+        )           
         
     elif task == 'entailment':
         remainder = curated_dataset[~curated_dataset['filename'].isin(['common_claim_true_false.csv', 'companies_true_false.csv', 'counterfact_true_false.csv',
