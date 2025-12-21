@@ -526,7 +526,6 @@ class Estimator:
             # train probe 
             print("Training estimator...")
             data = self.train_data
-            print(data.head())
             activations, labels = get_activations(self.model, data, 'residual', focus=self.best_layer)
             activations = next(iter(activations.values()))
             X = einops.rearrange(activations, 'n b d -> (n b) d') 
