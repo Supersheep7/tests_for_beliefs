@@ -54,6 +54,12 @@ class CoherenceBuilder():
             [train_set[["statement", "label"]], extra_rows],
             ignore_index=True
         )         
+
+        # DEBUG
+
+        train_set = curated_dataset[curated_dataset['filename'] == 'cities.csv']
+
+        # DEBUG
                          
         
     elif task == 'entailment':
