@@ -530,12 +530,15 @@ class Estimator:
             print("Training estimator...")
             data = self.train_data
             activations, labels = get_activations(self.model, data, 'residual', focus=self.best_layer)
+            print(activations.keys())
             activations = next(iter(activations.values()))
             X_train, X_test, y_train, y_test = train_test_split(activations, labels, test_size=0.2, random_state=42)
             X_train = einops.rearrange(X_train, 'n b d -> (n b) d').detach().cpu().numpy()
             y_train = einops.rearrange(y_train, 'n b -> (n b)').detach().cpu().numpy()
+            print(y_train)
             X_test = einops.rearrange(X_test, 'n b d -> (n b) d').detach().cpu().numpy()
             y_test = einops.rearrange(y_test, 'n b -> (n b)').detach().cpu().numpy()
+            print(y_test)
 
             clf = Pipeline([
                 ("scaler", StandardScaler()),
