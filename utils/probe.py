@@ -523,7 +523,7 @@ class Estimator:
         
         return t.tensor(probas)
 
-    def smoother(self, probs, temp=1.2):
+    def smoother(self, probs, temp=1):
 
         probs = 1 / (1 + np.exp(- (probs - 0.5) * 2 / temp))
 
