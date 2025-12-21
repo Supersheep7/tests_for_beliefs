@@ -528,7 +528,6 @@ class Estimator:
         probs = 1 / (1 + np.exp(-probs / temp))
 
         return probs
-
     
     def train_estimator(self):
         if self.estimator_name in ['logistic_regression', 'mmp']:
@@ -556,8 +555,33 @@ class Estimator:
                 ])
 
             else:
+                # X_train: shape (n_samples, d), y_train: 0/1 labels
+                X_t = t.from_numpy(X_train).float()
 
-                clf = None # TO DO, MMP
+                # separate positive and negative samples
+                pos_mask = t.from_numpy(y_train).bool()
+                neg_mask = ~pos_mask
+
+                X_pos = X_t[pos_mask]
+                X_neg = X_t[neg_mask]
+
+                # compute mass-mean difference
+                direction = X_pos.mean(dim=0) - X_neg.mean(dim=0)
+                direction = direction / direction.norm()  # normalize
+
+                # define simple prediction functions
+                def mmp_predict_proba(X):
+                    X_t = t.from_numpy(X).float()
+                    proj = X_t @ direction
+                    probs = t.sigmoid(proj).numpy()
+                    return np.column_stack([1 - probs, probs])
+
+                def mmp_predict(X):
+                    return (mmp_predict_proba(X)[:, 1] > 0.5).astype(int)
+
+                # lightweight classifier dict
+                clf = {"predict": mmp_predict, "predict_proba": mmp_predict_proba}
+
 
             print("Train start...")
             clf.fit(X_train, y_train)
@@ -568,48 +592,9 @@ class Estimator:
             acc = accuracy_score(y_test, y_pred)
             print("Accuracy on train dataset:", acc)
 
-
-            # probe = SupervisedProbe(X_train=X_train, y_train=y_train,
-            #                     X_test=X_test, y_test=y_test,
-            #                     probe_cfg=probe_cfg)
-            # probe.initialize_probe(override_probe_type=self.estimator_name)
-            # print("Train start...")
-            # probe.train()
-            # print("Accuracy from the inside: ", probe.get_acc())
-
-            # Normalization loop
-
-            # train_mean = X_train.mean(dim=0, keepdim=True)
-            # train_std = X_train.std(dim=0, keepdim=True, unbiased=False)
-            # train_std = torch.where(train_std == 0, torch.ones_like(train_std), train_std)
-            # train_std = torch.nan_to_num(train_std, nan=1.0)
-
-            # X_train = (X_train - train_mean)
-            # X_train /= train_std
-            # X_test = (X_test - train_mean)
-            # X_test /= train_std
-            
-            # y_pred = probe.predict(X_test)
-            # y_test = y_test.cpu().detach().numpy()
-            # acc = accuracy_score(y_test, y_pred)
-            # print("accuracy on first test set: ", acc)
-
             probas = clf.predict_proba(X_train)[:, 1]
-            print("Print first 30 Probas from the training set before IR")
-            for proba in probas[:30]:
-                print(proba)
-
             ir = IsotonicRegression(out_of_bounds='clip')
             ir.fit(probas, y_train)
-            print("Print first 30 Probas from the training set post IR")
-            pseudoprobs = ir.transform(probas)
-            for pseudoprob in pseudoprobs[:30]:
-                print(pseudoprob)
-            
-            smooth = self.smoother(pseudoprobs)
-            print("Print first 30 Probas from the training set post smoothing")
-            for s in smooth[:30]:
-                print(s)
 
             self.probe = clf
             self.ir = ir
@@ -628,7 +613,7 @@ class Estimator:
             X = einops.rearrange(activations, 'n b d -> (n b) d')  
             probas = probe.predict_proba(X)[:, 1]
             pseudo_probs = ir.transform(probas)
-            result = self.smoother(pseudo_probs)
+            result = self.smoother(pseudo_probs, 0.5)
             return t.tensor(result)
 
         elif self.estimator_name == 'logits':
