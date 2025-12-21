@@ -58,6 +58,7 @@ class CoherenceBuilder():
         # DEBUG
 
         train_set = curated_dataset[curated_dataset['filename'] == 'cities.csv']
+        print(train_set.head())
 
         # DEBUG
                          
