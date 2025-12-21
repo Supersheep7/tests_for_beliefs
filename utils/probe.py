@@ -555,16 +555,16 @@ class Estimator:
             print("accuracy on first test set: ", acc)
 
             probas = probe.predict(X_train, proba=True)[:, 1]
-            print("Print Probas from the training set before IR")
-            for proba in probas:
+            print("Print first 30 Probas from the training set before IR")
+            for proba in probas[:30]:
                 print(proba)
 
             y = y_train.detach().cpu().numpy()
             ir = IsotonicRegression(out_of_bounds='clip')
             ir.fit(probas, y)
-            print("Print Probas from the training set post IR")
+            print("Print first 30 Probas from the training set post IR")
             pseudoprobs = ir.transform(probas)
-            for pseudoprob in pseudoprobs:
+            for pseudoprob in pseudoprobs[:30]:
                 print(pseudoprob)
 
             self.probe = probe
