@@ -520,7 +520,7 @@ class Estimator:
                         f"'{statement}'. Answer: {answer}"
                     )
                     probas.append(0.5)
-        
+
         return t.tensor(probas)
 
     def smoother(self, probs, temp=1):
@@ -629,7 +629,7 @@ class Estimator:
             probas = probe.predict_proba(X)[:, 1]
             pseudo_probs = ir.transform(probas)
             result = self.smoother(pseudo_probs)
-            return t.tensor(pseudo_probs)
+            return t.tensor(result)
 
         elif self.estimator_name == 'logits':
             return self.logits_evaluate(data)
