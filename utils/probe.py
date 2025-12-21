@@ -546,15 +546,26 @@ class Estimator:
 
             X_train = (X_train - train_mean)
             X_train /= train_std
+            X_test = (X_test - train_mean)
+            X_test /= train_std
             
-            probas = probe.predict(X_train, proba=True)[:, 1]
+            y_pred = probe.predict(X_test)
+            y_test = y_test.cpu().detach().numpy()
+            acc = accuracy_score(y_test, y_pred)
+            print("accuracy on first test set: ", acc)
 
+            probas = probe.predict(X_train, proba=True)[:, 1]
+            print("Print Probas from the training set before IR")
             for proba in probas:
                 print(proba)
 
             y = y_train.detach().cpu().numpy()
             ir = IsotonicRegression(out_of_bounds='clip')
             ir.fit(probas, y)
+            print("Print Probas from the training set post IR")
+            pseudoprobs = ir.transform(probas)
+            for pseudoprob in pseudoprobs:
+                print(pseudoprob)
 
             self.probe = probe
             self.ir = ir

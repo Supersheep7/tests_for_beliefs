@@ -40,6 +40,21 @@ class CoherenceBuilder():
         
         train_set, test_set = train_test_split(curated_dataset, test_size=0.3, random_state=42, stratify=curated_dataset['filename'])
         test_df = test_set.dropna()
+        # Plug negations in training set
+
+        extra_rows = (
+                      train_set
+                      .loc[train_set["new_statement"].notna() & train_set["neg_label"].notna(),
+                          ["new_statement", "neg_label"]]
+                      .rename(columns={"new_statement": "statement",
+                                      "neg_label": "label"})
+                  )
+
+        train_set = pd.concat(
+            [train_set[["statement", "label"]], extra_rows],
+            ignore_index=True
+        )         
+                         
         
     elif task == 'entailment':
         remainder = curated_dataset[~curated_dataset['filename'].isin(['common_claim_true_false.csv', 'companies_true_false.csv', 'counterfact_true_false.csv',
@@ -62,9 +77,7 @@ class CoherenceBuilder():
        raw = pickle.load(f)
     X_train, y_train, test_data  = self.get_data_split('negation', other_dataset=raw)
     data_pos = test_data['statement'].tolist()   
-    print(data_pos[:10])
     data_neg = test_data['new_statement'].tolist()   
-    print(data_neg[:10])
     return (X_train, y_train), data_pos, data_neg
   
   def get_or_data(self):
