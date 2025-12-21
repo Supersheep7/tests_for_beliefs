@@ -42,6 +42,35 @@ Neural is a tentative copy of SAPLMA as described in Azaria & Mitchell 2023
 
 ''' Part of the following code is adapted from https://github.com/collin-burns/discovering_latent_knowledge/blob/main/CCS.ipynb by Burns et al. 2022 '''
 
+from sklearn.base import BaseEstimator, ClassifierMixin
+
+class MassMeanClassifier(BaseEstimator, ClassifierMixin):
+    def __init__(self, direction):
+        """
+        direction: torch.Tensor of shape (d,)
+                   Already represents the mass-mean difference between classes
+        """
+        self.direction = direction / direction.norm()  # normalize for scale invariance
+        self.device = self.direction.device
+
+    def fit(self, X=None, y=None):
+        # no training needed; direction is precomputed
+        return self
+
+    def predict_proba(self, X):
+        # convert to torch tensor if needed
+        X_t = t.from_numpy(X).to(self.device).float()
+        # project onto the direction
+        proj = X_t @ self.direction
+        # map to [0,1] pseudo-probability
+        probs = t.sigmoid(proj).cpu().numpy()
+        return np.column_stack([1 - probs, probs])  # shape (n_samples, 2)
+
+    def predict(self, X):
+        probs = self.predict_proba(X)
+        return (probs[:, 1] > 0.5).astype(int)
+
+
 class MMP(nn.Module):
 
     def __init__(self, direction, covariance, inv=None, atol=1e-3):
@@ -570,20 +599,7 @@ class Estimator:
 
                 # compute mass-mean difference
                 direction = X_pos.mean(dim=0) - X_neg.mean(dim=0)
-                self.mmp_direction = direction / direction.norm()  # normalize
-
-                # define simple prediction functions
-                def mmp_predict_proba(X):
-                    X_t = t.from_numpy(X).float()
-                    proj = X_t @ self.mmp_direction
-                    probs = t.sigmoid(proj).numpy()
-                    return np.column_stack([1 - probs, probs])
-
-                def mmp_predict(X):
-                    return (mmp_predict_proba(X)[:, 1] > 0.5).astype(int)
-
-                # lightweight classifier dict
-                clf = {"predict": mmp_predict, "predict_proba": mmp_predict_proba}
+                clf = MassMeanClassifier(direction)
             
             # evaluate
             y_pred = clf.predict(X_test)
