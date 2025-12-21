@@ -551,18 +551,23 @@ class Estimator:
                 ))
             ])
 
-            print(clf.named_steps["logreg"].classes_)
             clf.fit(X_train[:100], y_train[:100])
             print("Overfit acc:", clf.score(X_train[:100], y_train[:100]))
 
-
             print("Train start...")
             clf.fit(X_train, y_train)
+            
 
             # evaluate
             y_pred = clf.predict(X_test)
+            assert len(y_pred) == len(y_test)
+            print("Manual acc:", (y_pred == y_test).mean())
             acc = accuracy_score(y_test, y_pred)
             print("Accuracy:", acc)
+
+            clf.fit(X, y)
+            print("Self acc:", clf.score(X, y))
+
 
             # probe = SupervisedProbe(X_train=X_train, y_train=y_train,
             #                     X_test=X_test, y_test=y_test,
