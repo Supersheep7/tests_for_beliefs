@@ -530,7 +530,7 @@ class Estimator:
             activations = next(iter(activations.values()))
             X = einops.rearrange(activations, 'n b d -> (n b) d') 
             y = einops.rearrange(labels, 'n b -> (n b)')
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.05, random_state=42)
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
             probe = SupervisedProbe(X_train=X_train, y_train=y_train,
                                 X_test=X_test, y_test=y_test,
                                 probe_cfg=probe_cfg)
@@ -544,8 +544,8 @@ class Estimator:
             train_std = torch.where(train_std == 0, torch.ones_like(train_std), train_std)
             train_std = torch.nan_to_num(train_std, nan=1.0)
 
-            X_test  = (X_test - train_mean)
-            X_test  /= train_std
+            X_test = (X_test - train_mean)
+            X_test /= train_std
             y_pred = probe.predict(X_test)
 
             print(probe.predict(X_test, proba=True))
