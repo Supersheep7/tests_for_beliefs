@@ -613,8 +613,8 @@ class Estimator:
             X = einops.rearrange(activations, 'n b d -> (n b) d')  
             probas = probe.predict_proba(X)[:, 1]
             pseudo_probs = ir.transform(probas)
-            result = self.smoother(pseudo_probs, 0.5)
-            return t.tensor(result)
+            # result = self.smoother(pseudo_probs, 0.5)
+            return t.tensor(pseudo_probs)
 
         elif self.estimator_name == 'logits':
             return self.logits_evaluate(data)
