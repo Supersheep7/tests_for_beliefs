@@ -600,6 +600,10 @@ class Estimator:
             pseudoprobs = ir.transform(probas)
             for pseudoprob in pseudoprobs[:30]:
                 print(pseudoprob)
+            temp = 2.0  # >1 = più spread, <1 = più sharp
+            smooth = 1 / (1 + np.exp(- (pseudoprobs - 0.5) * 2 / temp))
+            for s in smooth[:30]:
+                print(s)
 
             # self.probe = probe
             self.ir = ir
