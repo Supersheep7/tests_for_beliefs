@@ -201,7 +201,6 @@ def run_intervention(model_name=cfg["common"]["model"]):
 
 def run_coherence(model_name=cfg["common"]["model"]):
     best_layer = t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_residual"), weights_only=False).index(max(t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_residual"), weights_only=False)))
-    print("Loaded best layer:", best_layer)
     logics = [l.strip() for l in input("Choose the logic(s) (comma-separated) [Possible values: 'neg', 'or', 'and']: ").split(',')]
     estimators = [e.strip() for e in input("Choose the estimator(s) (comma-separated) [Possible values: 'logistic_regression', 'mmp', 'logits', 'self_report']: ").split(',')]
     results_tot = {}
@@ -216,6 +215,7 @@ def run_coherence(model_name=cfg["common"]["model"]):
     for e in estimators:
         results_estimator = {}
         estimator = Estimator(estimator_name=e, model=model, best_layer=best_layer)
+        print("Loaded best layer:", best_layer)
         estimator.set_context(
                 context = f"The sky is blue. This statement is: True \n\nThe earth is flat. This statement is: False \n\n",
                 context_self = (

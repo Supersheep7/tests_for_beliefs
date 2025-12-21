@@ -409,10 +409,10 @@ class Estimator:
     def __init__(self, estimator_name: str, model, best_layer=None):
         self.estimator_name = estimator_name
         self.model = model
+        self.best_layer = best_layer
         self.train_data = None 
         self.probe = None
         self.logic = None
-        self.best_layer = None
         self.context = None
         self.context_self = None
         self.ir = None
