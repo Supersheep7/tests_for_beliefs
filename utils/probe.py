@@ -548,7 +548,7 @@ class Estimator:
             ])
 
             clf.fit(X_train[:100], y_train[:100])
-            print("Overfit acc:", clf.score(X_train[:100], y_train[:100]))
+            print("Overfit acc:", clf.score(X_train[100:200], y_train[100:200]))
 
             print("Train start...")
             clf.fit(X_train, y_train)
@@ -560,9 +560,6 @@ class Estimator:
             print("Manual acc:", (y_pred == y_test).mean())
             acc = accuracy_score(y_test, y_pred)
             print("Accuracy:", acc)
-
-            clf.fit(X, y)
-            print("Self acc:", clf.score(X, y))
 
 
             # probe = SupervisedProbe(X_train=X_train, y_train=y_train,
