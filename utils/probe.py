@@ -6,6 +6,9 @@ if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))
 import numpy as np
 from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+import einops
 import copy
 import torch as t
 import torch.nn as nn
@@ -530,33 +533,52 @@ class Estimator:
             activations = next(iter(activations.values()))
             X = einops.rearrange(activations, 'n b d -> (n b) d') 
             y = einops.rearrange(labels, 'n b -> (n b)')
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-            probe = SupervisedProbe(X_train=X_train, y_train=y_train,
-                                X_test=X_test, y_test=y_test,
-                                probe_cfg=probe_cfg)
-            probe.initialize_probe(override_probe_type=self.estimator_name)
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+
+            clf = Pipeline([
+                ("scaler", StandardScaler()),
+                ("logreg", LogisticRegression(
+                    max_iter=1000,
+                    n_jobs=-1,
+                    solver="lbfgs",
+                    multi_class="auto"
+                ))
+            ])
+
             print("Train start...")
-            probe.train()
-            print("Accuracy from the inside: ", probe.get_acc())
+            clf.fit(X_train, y_train)
+
+            # evaluate
+            y_pred = clf.predict(X_test)
+            acc = accuracy_score(y_test, y_pred)
+            print("Accuracy:", acc)
+
+            # probe = SupervisedProbe(X_train=X_train, y_train=y_train,
+            #                     X_test=X_test, y_test=y_test,
+            #                     probe_cfg=probe_cfg)
+            # probe.initialize_probe(override_probe_type=self.estimator_name)
+            # print("Train start...")
+            # probe.train()
+            # print("Accuracy from the inside: ", probe.get_acc())
 
             # Normalization loop
 
-            train_mean = X_train.mean(dim=0, keepdim=True)
-            train_std = X_train.std(dim=0, keepdim=True, unbiased=False)
-            train_std = torch.where(train_std == 0, torch.ones_like(train_std), train_std)
-            train_std = torch.nan_to_num(train_std, nan=1.0)
+            # train_mean = X_train.mean(dim=0, keepdim=True)
+            # train_std = X_train.std(dim=0, keepdim=True, unbiased=False)
+            # train_std = torch.where(train_std == 0, torch.ones_like(train_std), train_std)
+            # train_std = torch.nan_to_num(train_std, nan=1.0)
 
-            X_train = (X_train - train_mean)
-            X_train /= train_std
-            X_test = (X_test - train_mean)
-            X_test /= train_std
+            # X_train = (X_train - train_mean)
+            # X_train /= train_std
+            # X_test = (X_test - train_mean)
+            # X_test /= train_std
             
-            y_pred = probe.predict(X_test)
-            y_test = y_test.cpu().detach().numpy()
-            acc = accuracy_score(y_test, y_pred)
-            print("accuracy on first test set: ", acc)
+            # y_pred = probe.predict(X_test)
+            # y_test = y_test.cpu().detach().numpy()
+            # acc = accuracy_score(y_test, y_pred)
+            # print("accuracy on first test set: ", acc)
 
-            probas = probe.predict(X_train, proba=True)[:, 1]
+            probas = clf.predict_proba(X_test)
             print("Print first 30 Probas from the training set before IR")
             for proba in probas[:30]:
                 print(proba)
@@ -569,7 +591,7 @@ class Estimator:
             for pseudoprob in pseudoprobs[:30]:
                 print(pseudoprob)
 
-            self.probe = probe
+            # self.probe = probe
             self.ir = ir
 
         else:
