@@ -593,6 +593,7 @@ class Estimator:
                 clf.fit(X_train, y_train)
 
             else:
+                print("MMP...")
                 # X_train: shape (n_samples, d), y_train: 0/1 labels
                 scaler = StandardScaler()
                 X_train_scaled = scaler.fit_transform(X_train)
@@ -618,9 +619,10 @@ class Estimator:
 
                 clf = MassMeanClassifier(direction, inv_cov)
                 self.mmp_scaler = scaler
+                X_test = scaler.transform(X_test)
             
             # evaluate
-            y_pred = clf.predict(scaler.transform(X_test))
+            y_pred = clf.predict(X_test)
             assert len(y_pred) == len(y_test)
             acc = accuracy_score(y_test, y_pred)
             print("Accuracy on train dataset:", acc)
@@ -644,7 +646,8 @@ class Estimator:
             activations, labels = get_activations(self.model, data, 'residual', focus=self.best_layer)
             activations = activations[f'blocks.{self.best_layer}.hook_resid_post']
             X = einops.rearrange(activations, 'n b d -> (n b) d')
-            X = self.mmp_scaler.transform(X.detach().cpu().numpy())  
+            if self.estimator_name == 'mmp':
+                X = self.mmp_scaler.transform(X.detach().cpu().numpy())  
             probas = probe.predict_proba(X)[:, 1]
             pseudo_probs = ir.transform(probas)
             # result = self.smoother(pseudo_probs, 0.5)
