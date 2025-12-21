@@ -32,6 +32,7 @@ class CoherenceBuilder():
   def get_data_split(self, task: str, other_dataset=None, cutoff=1500):
 
     curated_dataset = self.curated_dataset.copy()
+    print(curated_dataset['filename'].unique())
 
     if task in ['negation', 'disjunction', 'conjunction']:
         # In this case curated dataset is the logical dataset + the remainder
