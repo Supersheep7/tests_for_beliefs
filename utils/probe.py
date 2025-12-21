@@ -65,8 +65,10 @@ class MassMeanClassifier(BaseEstimator, ClassifierMixin):
             X_t = X.to(self.device).float()
         # project onto the direction
         proj = X_t.float() @ self.inv_cov.float() @ self.direction.float()
+        print(proj.mean().item(), proj.std().item())
         # map to [0,1] pseudo-probability
         probs = t.sigmoid(proj).cpu().numpy()
+        print(probs)
         return np.column_stack([1 - probs, probs])  # shape (n_samples, 2)
 
     def predict(self, X):
@@ -449,6 +451,7 @@ class Estimator:
         self.context_self = None
         self.ir = None
         self.mmp_direction = None
+        self.mmp_scaler = None
 
     def set_logic(self, logic: str):
         self.logic = logic
@@ -591,17 +594,20 @@ class Estimator:
 
             else:
                 # X_train: shape (n_samples, d), y_train: 0/1 labels
-                X_t = t.from_numpy(X_train).float()  # or keep it as tensor
+                scaler = StandardScaler()
+                X_train_scaled = scaler.fit_transform(X_train.detach().cpu().numpy())
+
+                X_t = t.from_numpy(X_train_scaled).float()  # or keep it as tensor
 
                 # compute covariance (d x d)
                 cov = t.cov(X_t.T)  # note: X_t.T shape is (d, n_samples)
 
                 # compute pseudo-inverse
                 atol = 1e-3  # tolerance
-                inv_cov = t.linalg.pinv(cov, hermitian=True, atol=atol)
+                inv_cov = t.linalg.pinv(cov, hermitian=True, atol=atol).float()
 
                 # move to half precision if needed (like your MMP)
-                inv_cov = inv_cov.half()
+                inv_cov = inv_cov.float()
 
                 # direction: mass-mean difference
                 pos_mask = t.from_numpy(y_train).bool()
@@ -611,9 +617,10 @@ class Estimator:
                 direction = (X_pos.mean(dim=0) - X_neg.mean(dim=0)).half()
 
                 clf = MassMeanClassifier(direction, inv_cov)
+                self.mmp_scaler = scaler
             
             # evaluate
-            y_pred = clf.predict(X_test)
+            y_pred = clf.predict(scaler.transform(X_test.detach().cpu().numpy()))
             assert len(y_pred) == len(y_test)
             acc = accuracy_score(y_test, y_pred)
             print("Accuracy on train dataset:", acc)
@@ -636,7 +643,8 @@ class Estimator:
             data = (data, None) # Useful for get_activations loop
             activations, labels = get_activations(self.model, data, 'residual', focus=self.best_layer)
             activations = activations[f'blocks.{self.best_layer}.hook_resid_post']
-            X = einops.rearrange(activations, 'n b d -> (n b) d')  
+            X = einops.rearrange(activations, 'n b d -> (n b) d')
+            X = self.mmp_scaler.transform(X.detach().cpu().numpy())  
             probas = probe.predict_proba(X)[:, 1]
             pseudo_probs = ir.transform(probas)
             # result = self.smoother(pseudo_probs, 0.5)
