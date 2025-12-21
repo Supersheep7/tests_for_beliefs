@@ -529,7 +529,6 @@ class Estimator:
             # train probe 
             print("Training estimator...")
             data = self.train_data
-            print(data)
             activations, labels = get_activations(self.model, data, 'residual', focus=self.best_layer)
             activations = activations[f'blocks.{self.best_layer}.hook_resid_post']
             X_train, X_test, y_train, y_test = train_test_split(activations, labels, test_size=0.2, random_state=42)
@@ -548,13 +547,9 @@ class Estimator:
                 ))
             ])
 
-            clf.fit(X_train[:100], y_train[:100])
-            print("Overfit acc:", clf.score(X_train[100:200], y_train[100:200]))
-
             print("Train start...")
             clf.fit(X_train, y_train)
             
-
             # evaluate
             y_pred = clf.predict(X_test)
             assert len(y_pred) == len(y_test)
@@ -593,7 +588,7 @@ class Estimator:
             for proba in probas[:30]:
                 print(proba)
 
-            y = y_train.detach().cpu().numpy()
+            y = y_train
             ir = IsotonicRegression(out_of_bounds='clip')
             ir.fit(probas, y)
             print("Print first 30 Probas from the training set post IR")
