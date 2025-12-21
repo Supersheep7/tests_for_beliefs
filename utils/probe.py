@@ -523,6 +523,12 @@ class Estimator:
         
         return t.tensor(probas)
 
+    def smoother(self, probs, temp=2):
+
+        probs = 1 / (1 + np.exp(- (probs - 0.5) * 2 / temp))
+
+        return probs
+
     
     def train_estimator(self):
         if self.estimator_name in ['logistic_regression', 'mmp']:
@@ -531,7 +537,7 @@ class Estimator:
             data = self.train_data
             activations, labels = get_activations(self.model, data, 'residual', focus=self.best_layer)
             activations = activations[f'blocks.{self.best_layer}.hook_resid_post']
-            X_train, X_test, y_train, y_test = train_test_split(activations, labels, test_size=0.2, random_state=42)
+            X_train, X_test, y_train, y_test = train_test_split(activations, labels, test_size=0.1, random_state=42)
             X_train = einops.rearrange(X_train, 'n b d -> (n b) d').detach().cpu().numpy()
             y_train = einops.rearrange(y_train, 'n b -> (n b)').detach().cpu().numpy()
             X_test = einops.rearrange(X_test, 'n b d -> (n b) d').detach().cpu().numpy()
@@ -559,9 +565,8 @@ class Estimator:
             # evaluate
             y_pred = clf.predict(X_test)
             assert len(y_pred) == len(y_test)
-            print("Manual acc:", (y_pred == y_test).mean())
             acc = accuracy_score(y_test, y_pred)
-            print("Accuracy:", acc)
+            print("Accuracy on train dataset:", acc)
 
 
             # probe = SupervisedProbe(X_train=X_train, y_train=y_train,
@@ -600,12 +605,13 @@ class Estimator:
             pseudoprobs = ir.transform(probas)
             for pseudoprob in pseudoprobs[:30]:
                 print(pseudoprob)
-            temp = 2.0  # >1 = più spread, <1 = più sharp
-            smooth = 1 / (1 + np.exp(- (pseudoprobs - 0.5) * 2 / temp))
+            
+            smooth = self.smoother(pseudoprobs)
+            print("Print first 30 Probas from the training set post smoothing")
             for s in smooth[:30]:
                 print(s)
 
-            # self.probe = probe
+            self.probe = clf
             self.ir = ir
 
         else:
@@ -618,10 +624,11 @@ class Estimator:
             ir = self.ir
             data = (data, None) # Useful for get_activations loop
             activations, labels = get_activations(self.model, data, 'residual', focus=self.best_layer)
-            activations = next(iter(activations.values()))
+            activations = activations[f'blocks.{self.best_layer}.hook_resid_post']
             X = einops.rearrange(activations, 'n b d -> (n b) d')  
-            projections = probe.predict(X, proba=True)
-            pseudo_probs = ir.transform(projections)
+            probas = probe.predict_proba(X)[:, 1]
+            pseudo_probs = ir.transform(probas)
+            result = self.smoother(pseudo_probs)
             return t.tensor(pseudo_probs)
 
         elif self.estimator_name == 'logits':
