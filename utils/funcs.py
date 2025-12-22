@@ -101,6 +101,7 @@ def save_results(item, datatype, model, modality='residual', k=0, alpha=0, direc
         "directions": f"directions_{modality}",
         "probes": f"probes_{modality}",
         "intervention_scores": f"intervention_scores_{modality}",
+        "intervention_sweep": f"intervention_sweep_{modality}",
         "coherence_scores": f"coherence_scores",
     }
 
