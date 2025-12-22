@@ -280,7 +280,7 @@ def plot_kde_scatter(data, labels, model, n_dir=2, zoom_strength=0,
     )
 
 
-def plot_sweep(data, ks, alphas, metric="DummyMetric", custom_subtitle=None):
+def plot_sweep(data, ks, alphas, metric="DummyMetric", title=None):
 
     plt.figure(figsize=(10, 8))
     ax = plt.gca()
@@ -292,9 +292,9 @@ def plot_sweep(data, ks, alphas, metric="DummyMetric", custom_subtitle=None):
     ax.set_yticks(np.arange(data.shape[0]) + 0.5, ks)
     ax.set_xticks(np.arange(data.shape[1]) + 0.5, alphas)
 
-    if custom_subtitle is not None:
+    if title is not None:
         plt.suptitle(f"Intervention effect | metric: {metric}", fontsize=16)
-        plt.title(f"{custom_subtitle}")
+        plt.title(f"{title}")
     else:
         plt.title(f"Intervention effect | metric: {metric}", fontsize=16, pad=16)
 
