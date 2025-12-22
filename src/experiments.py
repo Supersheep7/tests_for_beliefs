@@ -244,13 +244,13 @@ def run_coherence(model_name=cfg["common"]["model"]):
     print("Coherence experiment completed.")
     print("Results: ", results_tot)
 
-    print()
-    print("= = = WARNING = = =")
-    print()
-    print("= = = We are still testing, so we won't save the results! = = =")
-    print()
-    print("= = = END WARNING = = =")
-    print()
+    # print()
+    # print("= = = WARNING = = =")
+    # print()
+    # print("= = = We are still testing, so we won't save the results! = = =")
+    # print()
+    # print("= = = END WARNING = = =")
+    # print()
     save_results(results_tot, "coherence_scores", model=model_name, notes=f"{''.join(logics)}_{'_'.join(estimators)}")
     
     return
