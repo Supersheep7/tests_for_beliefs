@@ -159,17 +159,17 @@ def run_intervention(model_name=cfg["common"]["model"]):
             alpha_list = [float(a.strip()) for a in alphas.split(',')]
             alpha_list_flipped = [-a for a in alpha_list]
             k_list = [int(k.strip()) for k in ks.split(',')]
+            # Falses
+            print("False --> True...")
+            boolp_f, probdiff_f = parameter_sweep(model_baseline=model, prompts=x_false, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list, labels=y_false, attn=modality=='heads')
+            print(boolp_f)
+            print(probdiff_f)
             # Trues
             print("True --> False...")
             boolp_t, probdiff_t = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list_flipped, labels=y_true, attn=modality=='heads')
             print(boolp_t)
             print(probdiff_t)
             input("Press Enter to continue on the next direction...")
-            # Falses
-            print("False --> True...")
-            boolp_f, probdiff_f = parameter_sweep(model_baseline=model, prompts=x_false, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list, labels=y_false, attn=modality=='heads')
-            print(boolp_f)
-            print(probdiff_f)
             retry = input("Do you want to run another sweep? [y/n]: ").strip().lower()
             if retry != 'y':
                 saveplot = input("Do you want to save the plots? [y/n]: ").strip().lower()
@@ -183,17 +183,15 @@ def run_intervention(model_name=cfg["common"]["model"]):
                 break
     x_true, y_true, x_false, y_false = get_data('intervention')
     alpha_list = [0, float(input("Enter alpha value for False --> True: "))]
-    alpha_list_flipped = [0, float(input("Enter alpha value for True --> False: "))]
     k_list = [int(input("Enter k value for False --> True: "))]
+    alpha_list_flipped = [0, float(input("Enter alpha value for True --> False: "))]
     k_list_flipped = [int(input("Enter k value for True --> False: "))]
     # Trues
+    boolp, probdiff = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions, ks=k_list_flipped, alphas=alpha_list_flipped, labels=y_true, attn=modality=='heads')
     save_results(boolp, "intervention_scores", model=model_name, direction='tf', k=k_list_flipped[-1], alpha=alpha_list_flipped[-1], notes=f"boolp", modality=modality)
     save_results(probdiff, "intervention_scores", model=model_name, direction='tf', k=k_list_flipped[-1], alpha=alpha_list_flipped[-1], notes=f"probdiff", modality=modality)
-    
-    save_results(boolp[1]-boolp[0], f"intervention_boolp_true_to_false_k{k_list_flipped}_a{alpha_list_flipped[1]}_{model_name}", modality=modality)
-    save_results(probdiff[1]-probdiff[0], f"intervention_probdiff_true_to_false_k{k_list_flipped}_a{alpha_list_flipped[1]}_{model_name}", modality=modality)
     # Falses
-    boolp, probdiff = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list_flipped, labels=y_true, attn=modality=='heads')
+    boolp, probdiff = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list, labels=y_true, attn=modality=='heads')
     save_results(boolp, "intervention_scores", model=model_name, direction='ft', k=k_list[-1], alpha=alpha_list[-1], notes=f"boolp", modality=modality)
     save_results(probdiff, "intervention_scores", model=model_name, direction='ft', k=k_list[-1], alpha=alpha_list[-1], notes=f"probdiff", modality=modality)
 
