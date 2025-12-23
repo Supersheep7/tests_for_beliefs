@@ -371,7 +371,7 @@ def mass_truth_assignment_eval(
         ]
 
         tokens = model_baseline.to_tokens(batch_prompts)
-        last_positions = (tokens != pad).sum(dim=1) - 1
+        last_positions = (tokens != pad).sum(dim=1) - 1     # Change to - 0 for GPT-style models
 
         if attn:
             model = full_intervention(model_baseline, activation_accuracies=activation_accuracies, activation_directions=activation_directions, K=k, alpha=alpha, verbose=verbose, last_positions=last_positions)
@@ -383,7 +383,7 @@ def mass_truth_assignment_eval(
 
         log_probs = t.nn.functional.log_softmax(logits, dim=-1)
         seq_lens = (tokens != pad).sum(dim=1)
-        last_positions = seq_lens - 1
+        last_positions = seq_lens - 1               # Change to - 0 for GPT-style models
         last_token_log_probs = log_probs[:, -1, :]
 
         for j, label in enumerate(batch_labels):

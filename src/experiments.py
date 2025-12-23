@@ -137,8 +137,8 @@ def run_accuracy(model_name=cfg["common"]["model"]):
 def run_intervention(model_name=cfg["common"]["model"]):
 
     model = get_model(model_name=model_name)
-    modality = input("Choose the target ['residual', 'heads']: ").strip().lower() 
     while True:
+        modality = input("Choose the target ['residual', 'heads']: ").strip().lower() 
         if modality == 'residual':
             directions = t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "directions_residual"), weights_only=False)
             accuracies = t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_residual"), weights_only=False)
