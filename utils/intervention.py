@@ -387,6 +387,20 @@ def mass_truth_assignment_eval(
         last_token_log_probs = log_probs[:, -1, :]
 
         for j, label in enumerate(batch_labels):
+            j_pos = last_positions[j].item()
+
+            # log-probs at final position
+            lp = log_probs[j, j_pos]          # shape: [vocab_size]
+
+            # top-10
+            topk_logp, topk_ids = t.topk(lp, k=10)
+
+            topk_probs = topk_logp.exp()
+            topk_tokens = model.tokenizer.convert_ids_to_tokens(topk_ids.tolist())
+
+            print("Top-10 tokens:")
+            for tok, p in zip(topk_tokens, topk_probs.tolist()):
+                print(f"  {tok!r}: {p:.6f}")
             log_p_true = t.logsumexp(log_probs[j, last_positions[j], true_token_ids], dim=0).item()
             log_p_false = t.logsumexp(log_probs[j, last_positions[j], false_token_ids], dim=0).item()
             j_pos = last_positions[j].item()
