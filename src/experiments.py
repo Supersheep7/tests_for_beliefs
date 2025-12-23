@@ -164,12 +164,12 @@ def run_intervention(model_name=cfg["common"]["model"]):
             boolp_f, probdiff_f = parameter_sweep(model_baseline=model, prompts=x_false, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list, labels=y_false, attn=modality=='heads')
             print(boolp_f)
             print(probdiff_f)
+            input("Press Enter to continue on the next direction...")
             # Trues
             print("True --> False...")
             boolp_t, probdiff_t = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list_flipped, labels=y_true, attn=modality=='heads')
             print(boolp_t)
             print(probdiff_t)
-            input("Press Enter to continue on the next direction...")
             retry = input("Do you want to run another sweep? [y/n]: ").strip().lower()
             if retry != 'y':
                 saveplot = input("Do you want to save the plots? [y/n]: ").strip().lower()
