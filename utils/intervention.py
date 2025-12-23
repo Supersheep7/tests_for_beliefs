@@ -203,12 +203,11 @@ def set_intervention_hooks(model: HookedTransformer,
     for (layer, head), direction in zip(top_k_indices, top_k_directions):
         layer = int(layer)
         head = int(head)
-        if verbose:
-            print(f"Layer {layer}, Head {head}, Direction Norm: {direction.norm().item()}")
+        # if verbose:
+        #     print(f"Layer {layer}, Head {head}, Direction Norm: {direction.norm().item()}")
         if half:
             direction = direction.clone().detach().half()
         steering = functools.partial(steering_hook, head_idx=head, head_direction=direction, last_positions=last_positions, alpha=alpha)
-        print("adding hook for layer", layer, "head", head)
         model.add_hook(f"blocks.{layer}.attn.hook_z", steering)
 
     return model
