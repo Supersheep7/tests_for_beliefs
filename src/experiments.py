@@ -184,7 +184,7 @@ def run_intervention(model_name=cfg["common"]["model"]):
     x_true, y_true, x_false, y_false = get_data('intervention')
     alpha_list = [0, float(input("Enter alpha value for False --> True: "))]
     k_list = [int(input("Enter k value for False --> True: "))]
-    alpha_list_flipped = [0, float(input("Enter alpha value for True --> False: "))]
+    alpha_list_flipped = [0, -float(input("Enter alpha value for True --> False: "))]
     k_list_flipped = [int(input("Enter k value for True --> False: "))]
     print("True --> False k:", k_list_flipped, " alpha:", alpha_list_flipped)
     print("False --> True k:", k_list, " alpha:", alpha_list)
