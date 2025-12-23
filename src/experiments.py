@@ -157,6 +157,7 @@ def run_intervention(model_name=cfg["common"]["model"]):
             alphas = input("Enter alpha values separated by commas (e.g., 1,3,5): ")
             ks = input("Enter k values separated by commas (e.g., 5,10,20): ")
             alpha_list = [float(a.strip()) for a in alphas.split(',')]
+            print(alpha_list)
             alpha_list_flipped = [-a for a in alpha_list]
             k_list = [int(k.strip()) for k in ks.split(',')]
             # Falses
@@ -183,6 +184,7 @@ def run_intervention(model_name=cfg["common"]["model"]):
                 break
     x_true, y_true, x_false, y_false = get_data('intervention')
     alpha_list = [0, float(input("Enter alpha value for False --> True: "))]
+    print(alpha_list)
     k_list = [int(input("Enter k value for False --> True: "))]
     alpha_list_flipped = [0, -float(input("Enter alpha value (absolute) for True --> False: "))]
     k_list_flipped = [int(input("Enter k value for True --> False: "))]
