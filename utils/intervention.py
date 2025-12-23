@@ -371,7 +371,7 @@ def mass_truth_assignment_eval(
         ]
 
         tokens = model_baseline.to_tokens(batch_prompts)
-        last_positions = (tokens != pad).sum(dim=1) - 1
+        last_positions = (tokens != pad).sum(dim=1)
 
         if attn:
             model = full_intervention(model_baseline, activation_accuracies=activation_accuracies, activation_directions=activation_directions, K=k, alpha=alpha, verbose=verbose, last_positions=last_positions)
