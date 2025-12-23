@@ -138,17 +138,20 @@ def run_intervention(model_name=cfg["common"]["model"]):
 
     model = get_model(model_name=model_name)
     modality = input("Choose the target ['residual', 'heads']: ").strip().lower() 
-    if modality == 'residual':
-        directions = t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "directions_residual"), weights_only=False)
-        accuracies = t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_residual"), weights_only=False)
-    elif modality == 'heads':
-        directions = t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "directions_heads"), weights_only=False)
-        directions = t.stack([t.stack(row) for row in directions])
-        resid_mid_directions = t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "directions_mid"), weights_only=False)
-        directions = compute_attention_sign_mask(model, directions, resid_mid_directions)       # Sign the directions based on residual mid directions
-        accuracies = t.tensor(t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_heads"), weights_only=False))
-    else:
-        print("Invalid modality. Please choose 'residual' or 'heads'.")
+    while True:
+        if modality == 'residual':
+            directions = t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "directions_residual"), weights_only=False)
+            accuracies = t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_residual"), weights_only=False)
+            break
+        elif modality == 'heads':
+            directions = t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "directions_heads"), weights_only=False)
+            directions = t.stack([t.stack(row) for row in directions])
+            resid_mid_directions = t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "directions_mid"), weights_only=False)
+            directions = compute_attention_sign_mask(model, directions, resid_mid_directions)       # Sign the directions based on residual mid directions
+            accuracies = t.tensor(t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_heads"), weights_only=False))
+            break
+        else:
+            print("Invalid modality. Please choose 'residual' or 'heads'.")
     sweep = input("Do you want to run an intervention sweep? [y/n]: ").strip().lower() == 'y'
     if sweep:
         while True:
