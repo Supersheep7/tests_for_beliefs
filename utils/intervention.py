@@ -371,7 +371,7 @@ def mass_truth_assignment_eval(
         ]
 
         tokens = model_baseline.to_tokens(batch_prompts)
-        last_positions = (tokens != pad).sum(dim=1) - 1
+        last_positions = (tokens != pad).sum(dim=1) - 2
 
         if attn:
             model = full_intervention(model_baseline, activation_accuracies=activation_accuracies, activation_directions=activation_directions, K=k, alpha=alpha, verbose=verbose, last_positions=last_positions)
@@ -387,20 +387,20 @@ def mass_truth_assignment_eval(
         last_token_log_probs = log_probs[:, -1, :]
 
         for j, label in enumerate(batch_labels):
-            j_pos = last_positions[j].item()
+            # j_pos = last_positions[j].item()
 
-            # log-probs at final position
-            lp = log_probs[j, j_pos]          # shape: [vocab_size]
+            # # log-probs at final position
+            # lp = log_probs[j, j_pos]          # shape: [vocab_size]
 
-            # top-10
-            topk_logp, topk_ids = t.topk(lp, k=10)
+            # # top-10
+            # topk_logp, topk_ids = t.topk(lp, k=10)
 
-            topk_probs = topk_logp.exp()
-            topk_tokens = model.tokenizer.convert_ids_to_tokens(topk_ids.tolist())
+            # topk_probs = topk_logp.exp()
+            # topk_tokens = model.tokenizer.convert_ids_to_tokens(topk_ids.tolist())
 
-            print("Top-10 tokens:")
-            for tok, p in zip(topk_tokens, topk_probs.tolist()):
-                print(f"  {tok!r}: {p:.6f}")
+            # print("Top-10 tokens:")
+            # for tok, p in zip(topk_tokens, topk_probs.tolist()):
+            #     print(f"  {tok!r}: {p:.6f}")
             log_p_true = t.logsumexp(log_probs[j, last_positions[j], true_token_ids], dim=0).item()
             log_p_false = t.logsumexp(log_probs[j, last_positions[j], false_token_ids], dim=0).item()
             j_pos = last_positions[j].item()
