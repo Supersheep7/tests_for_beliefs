@@ -186,19 +186,23 @@ def run_intervention(model_name=cfg["common"]["model"]):
     k_list = [int(input("Enter k value for False --> True: "))]
     alpha_list_flipped = [0, float(input("Enter alpha value for True --> False: "))]
     k_list_flipped = [int(input("Enter k value for True --> False: "))]
+    print("True --> False k:", k_list_flipped, " alpha:", alpha_list_flipped)
+    print("False --> True k:", k_list, " alpha:", alpha_list)
     # Trues
-    boolp, probdiff = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions, ks=k_list_flipped, alphas=alpha_list_flipped, labels=y_true, attn=modality=='heads')
-    print(boolp)
-    print(probdiff)
-    save_results(boolp, "intervention_scores", model=model_name, direction='tf', k=k_list_flipped[-1], alpha=alpha_list_flipped[-1], notes=f"boolp", modality=modality)
-    save_results(probdiff, "intervention_scores", model=model_name, direction='tf', k=k_list_flipped[-1], alpha=alpha_list_flipped[-1], notes=f"probdiff", modality=modality)
+    print("True --> False...")
+    boolp_t, probdiff_t = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list_flipped, labels=y_true, attn=modality=='heads')
+    print(boolp_t)
+    print(probdiff_t)
+    save_results(boolp_t, "intervention_scores", model=model_name, direction='tf', k=k_list_flipped[-1], alpha=alpha_list_flipped[-1], notes=f"boolp", modality=modality)
+    save_results(probdiff_t, "intervention_scores", model=model_name, direction='tf', k=k_list_flipped[-1], alpha=alpha_list_flipped[-1], notes=f"probdiff", modality=modality)
+    input("Press Enter to continue on the next direction...")
     # Falses
-    boolp, probdiff = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list, labels=y_true, attn=modality=='heads')
-    print(boolp)
-    print(probdiff)
-    save_results(boolp, "intervention_scores", model=model_name, direction='ft', k=k_list[-1], alpha=alpha_list[-1], notes=f"boolp", modality=modality)
-    save_results(probdiff, "intervention_scores", model=model_name, direction='ft', k=k_list[-1], alpha=alpha_list[-1], notes=f"probdiff", modality=modality)
-
+    print("False --> True...")
+    boolp_f, probdiff_f = parameter_sweep(model_baseline=model, prompts=x_false, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list, labels=y_false, attn=modality=='heads')
+    print(boolp_f)
+    print(probdiff_f)
+    save_results(boolp_f, "intervention_scores", model=model_name, direction='ft', k=k_list[-1], alpha=alpha_list[-1], notes=f"boolp", modality=modality)
+    save_results(probdiff_f, "intervention_scores", model=model_name, direction='ft', k=k_list[-1], alpha=alpha_list[-1], notes=f"probdiff", modality=modality)
     return
 
 def run_coherence(model_name=cfg["common"]["model"]):
