@@ -343,7 +343,7 @@ def mass_truth_assignment_eval(
               labels: List[int],
               activation_accuracies, activation_directions, k, alpha, verbose,
               true_tokens: List[str] = ['true','Ġtrue','True','ĠTrue','▁true','▁True'],
-              false_tokens: List[str] = ['false','Ġfalse','False','ĠFalse','▁true','▁True'],
+              false_tokens: List[str] = ['false','Ġfalse','False','ĠFalse','▁false','▁False'],
               attn = True,
               shots: List[str] = None,
               batch_size: int = 100
