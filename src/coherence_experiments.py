@@ -54,14 +54,14 @@ def run_coherence_or(estimator):
     return score
 
 def run_coherence_and(estimator):
-    train_data, data_atom, data_or = get_data(experiment='coherence', logic='and')
+    train_data, data_atom, data_and = get_data(experiment='coherence', logic='and')
 
     if estimator.estimator_name in ['logistic_regression', 'mmp']:
         estimator.set_train_data(train_data)
         estimator.train_estimator()
 
     probas_atom = estimator.extract_proba(data_atom)
-    probas_and = estimator.extract_proba(data_or)
+    probas_and = estimator.extract_proba(data_and)
 
     corrects = (probas_and <= probas_atom).int()
     score = corrects.float().mean()
