@@ -515,8 +515,8 @@ class Estimator:
                 # log-probs at final position
                 lp = log_probs[j, j_pos]          # shape: [vocab_size]
 
-                # top-10
-                topk_logp, topk_ids = t.topk(lp, k=10)
+                # top
+                topk_logp, topk_ids = t.topk(lp, k=1)
 
                 topk_probs = topk_logp.exp()
                 topk_tokens = model.tokenizer.convert_ids_to_tokens(topk_ids.tolist())
