@@ -43,13 +43,14 @@ class CoherenceBuilder():
         test_df = test_set.dropna()
 
         # Plug negations in training set
+        label_name = 'neg_label' if task == 'negation' else 'new_label'
 
         extra_rows = (
                       train_set
-                      .loc[train_set["new_statement"].notna() & train_set["neg_label"].notna(),
-                          ["new_statement", "neg_label"]]
+                      .loc[train_set["new_statement"].notna() & train_set[label_name].notna(),
+                          ["new_statement", label_name]]
                       .rename(columns={"new_statement": "statement",
-                                      "neg_label": "label"})
+                                      label_name: "label"})
                   )
 
         train_set = pd.concat(
