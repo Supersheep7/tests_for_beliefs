@@ -238,18 +238,20 @@ def run_coherence(model_name=cfg["common"]["model"]):
         for logic in logics:
             if logic == 'neg':
                 estimator.set_logic('neg')
-                results = run_coherence_neg(estimator)
+                results, baseline = run_coherence_neg(estimator)
             elif logic == 'or':
                 estimator.set_logic('or')
                 results = run_coherence_or(estimator)
+                baseline = 0.5
             elif logic == 'and':
                 estimator.set_logic('and')
                 results = run_coherence_and(estimator)
+                baseline = 0.5
             elif logic == 'ifthen':
                 print("Ifthen experiment was dropped. Skipping...")
                 # estimator.set_logic('ifthen')
                 # results = run_coherence_ifthen(estimator)
-            results_estimator[logic] = results
+            results_estimator[logic] = (results, baseline)
         results_tot[e] = results_estimator
 
     print("Coherence experiment completed.")

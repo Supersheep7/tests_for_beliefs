@@ -36,7 +36,7 @@ def run_coherence_neg(estimator):
     print("Baseline_Mse", random_baseline)
     print("Score", score)
     print("Baseline_Score", random_score)
-    return score
+    return score, random_score
 
 def run_coherence_or(estimator):
     train_data, data_atom, data_or = get_data(experiment='coherence', logic='or')
