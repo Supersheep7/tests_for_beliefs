@@ -516,12 +516,12 @@ class Estimator:
                 lp = log_probs[j, j_pos]          # shape: [vocab_size]
 
                 # top
-                topk_logp, topk_ids = t.topk(lp, k=1)
+                topk_logp, topk_ids = t.topk(lp, k=10)
 
                 topk_probs = topk_logp.exp()
                 topk_tokens = model.tokenizer.convert_ids_to_tokens(topk_ids.tolist())
-                # for tok, p in zip(topk_tokens, topk_probs.tolist()):
-                #     print(f"  {tok!r}: {p:.6f}")
+                for tok, p in zip(topk_tokens, topk_probs.tolist()):
+                    print(f"  {tok!r}: {p:.6f}")
                 log_p_true = t.logsumexp(log_probs[j, last_positions[j], true_ids], dim=0).item()
                 log_p_false = t.logsumexp(log_probs[j, last_positions[j], false_ids], dim=0).item()
                 p_true = np.exp(log_p_true)
