@@ -50,6 +50,7 @@ def run_coherence_or(estimator):
 
     corrects = (probas_or >= probas_atom).int()
     score = corrects.float().mean()
+    print("Score for OR", score)
     return score
 
 def run_coherence_and(estimator):
@@ -64,6 +65,7 @@ def run_coherence_and(estimator):
 
     corrects = (probas_and <= probas_atom).int()
     score = corrects.float().mean()
+    print("Score for AND", score)
     return score
 
 def run_coherence_ifthen(estimator):
