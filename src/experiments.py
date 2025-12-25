@@ -347,7 +347,7 @@ def run_uniformity(model_name=None):
 
     print("Uniformity experiment completed.")
     print("Results: ", results)              
-    save_results(results, f"uniformity_{model_name}", modality='uniformity')
+    save_results(results, f"uniformity_{model_name}", model=model_name, modality='uniformity')
     print("Results saved in folder 'ROOT/results'")
 
     return
