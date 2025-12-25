@@ -289,7 +289,7 @@ def run_uniformity(model_name=None):
     else: 
         print("Invalid experiment type. Please choose 'logic' or 'domain'.")
         return
-    results = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
+    results = results = defaultdict(lambda: defaultdict(list))
     train_datasets = fold_to_probe[0]
     test_datasets = fold_to_probe[1]
 
