@@ -102,7 +102,8 @@ def save_results(item, datatype, model, modality='residual', k=0, alpha=0, direc
         "probes": f"probes_{modality}",
         "intervention_scores": f"intervention_scores_{modality}",
         "intervention_sweep": f"intervention_sweep_{modality}",
-        "coherence_scores": f"coherence_scores",
+        "uniformity": f"uniformity_{modality}",
+        "coherence_scores": f"coherence_scores"
     }
 
     if datatype not in filename_map:
