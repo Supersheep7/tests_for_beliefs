@@ -211,26 +211,26 @@ def split_curated_df_domains(df):
   train_df, test_df = stratify(df)
 
   train_datas = [
-              # train_df,
-              # to_split(train_df, ['common_claim_true_false.csv']),
-              # to_split(train_df, ['common_claim_true_false.csv', 'cities.csv']),
-              # to_split(train_df, ['cities.csv']),
-              # to_split(train_df, ['common_claim_true_false.csv', 'companies_true_false.csv']),
-              # to_split(train_df, ['companies_true_false.csv']),
-              # to_split(train_df, ['common_claim_true_false.csv', 'sp_en_trans.csv']),
-              # to_split(train_df, ['sp_en_trans.csv']),
-              # to_split(train_df, ['common_claim_true_false.csv', 'larger_than.csv']),
-              # to_split(train_df, ['larger_than.csv']),
-              # to_split(train_df, ['common_claim_true_false.csv', 'counterfact_true_false.csv']),
+              train_df,
+              to_split(train_df, ['common_claim_true_false.csv']),
+              to_split(train_df, ['common_claim_true_false.csv', 'cities.csv']),
+              to_split(train_df, ['cities.csv']),
+              to_split(train_df, ['common_claim_true_false.csv', 'companies_true_false.csv']),
+              to_split(train_df, ['companies_true_false.csv']),
+              to_split(train_df, ['common_claim_true_false.csv', 'sp_en_trans.csv']),
+              to_split(train_df, ['sp_en_trans.csv']),
+              to_split(train_df, ['common_claim_true_false.csv', 'larger_than.csv']),
+              to_split(train_df, ['larger_than.csv']),
+              to_split(train_df, ['common_claim_true_false.csv', 'counterfact_true_false.csv']),
               to_split(train_df, ['counterfact_true_false.csv'])
   ]
 
   test_datas = [
-              # to_split(test_df, ['cities.csv']), 
-              # to_split(test_df, ['common_claim_true_false.csv']),
-              # to_split(test_df, ['companies_true_false.csv']),
-              # to_split(test_df, ['sp_en_trans.csv']),
-              # to_split(test_df, ['larger_than.csv']),
+              to_split(test_df, ['cities.csv']), 
+              to_split(test_df, ['common_claim_true_false.csv']),
+              to_split(test_df, ['companies_true_false.csv']),
+              to_split(test_df, ['sp_en_trans.csv']),
+              to_split(test_df, ['larger_than.csv']),
               to_split(test_df, ['counterfact_true_false.csv'])
             ]
   return (train_datas, test_datas)
