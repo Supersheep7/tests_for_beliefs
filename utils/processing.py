@@ -212,13 +212,13 @@ def split_curated_df_domains(df):
 
   train_datas = [
               train_df,
-              to_split(train_df, ['sp_en_trans.csv']),
               to_split(train_df, ['common_claim_true_false.csv']),
               to_split(train_df, ['common_claim_true_false.csv', 'cities.csv']),
               to_split(train_df, ['cities.csv']),
               to_split(train_df, ['common_claim_true_false.csv', 'companies_true_false.csv']),
               to_split(train_df, ['companies_true_false.csv']),
               to_split(train_df, ['common_claim_true_false.csv', 'sp_en_trans.csv']),
+              to_split(train_df, ['sp_en_trans.csv']),
               to_split(train_df, ['common_claim_true_false.csv', 'larger_than.csv']),
               to_split(train_df, ['larger_than.csv']),
               to_split(train_df, ['common_claim_true_false.csv', 'counterfact_true_false.csv']),

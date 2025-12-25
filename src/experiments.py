@@ -281,6 +281,8 @@ def run_uniformity(model_name=None):
 
     for fold_n, fold in enumerate(folds):
 
+        print("Processing fold n ", fold_n)
+
         train_datasets = fold[0]
         test_datasets = fold[1]
             
@@ -288,12 +290,9 @@ def run_uniformity(model_name=None):
 
             print("Openend training set n ", i)
             print("Domains of training set: ", train_set['filename'].unique())
-            print(train_set.head())
             # train_0, ..., train_n-1
             data = (list(train_set['statement']), list(train_set['label']))
-            print(data)
             activations, labels = get_activations(model, data, 'residual', focus=best_layer, model_name=model_name)
-            print(activations)
             activations = next(iter(activations.values()))
             X = einops.rearrange(activations, 'n b d -> (n b) d') # Do we need this? 
             y = einops.rearrange(labels, 'n b -> (n b)')
