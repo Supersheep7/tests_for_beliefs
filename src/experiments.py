@@ -283,9 +283,9 @@ def run_uniformity(model_name=None):
     folds = get_data('uniformity') # folds_logic, folds_domain
     model = get_model(model_name=model_name)
     if experiment_type == 'domain': 
-        fold_to_probe = folds[1]
-    elif experiment_type == 'logic':
         fold_to_probe = folds[0]
+    elif experiment_type == 'logic':
+        fold_to_probe = folds[1]
     else: 
         print("Invalid experiment type. Please choose 'logic' or 'domain'.")
         return
