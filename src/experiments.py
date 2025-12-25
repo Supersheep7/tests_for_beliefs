@@ -279,80 +279,82 @@ def run_uniformity(model_name=None):
 
     best_layer = t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_residual"), weights_only=False).index(max(t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_residual"), weights_only=False)))
     print("Loaded best layer:", best_layer)
+    experiment_type = input("Enter experiment type ['logic', 'domain']:")
     folds = get_data('uniformity') # folds_logic, folds_domain
     model = get_model(model_name=model_name)
-    
+    if experiment_type == 'domain': 
+        fold_to_probe = folds[1]
+    elif experiment_type == 'logic':
+        fold_to_probe = folds[0]
+    else: 
+        print("Invalid experiment type. Please choose 'logic' or 'domain'.")
+        return
     results = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
+    train_datasets = fold_to_probe[0]
+    test_datasets = fold_to_probe[1]
 
-    for fold_n, fold in enumerate(folds):
+    for i, train_set in enumerate(train_datasets):
 
-        print("Processing fold n ", fold_n)
+        print("Openend training set n ", i)
+        print("Domains of training set: ", train_set['filename'].unique())
+        # train_0, ..., train_n-1
+        data = (list(train_set['statement']), list(train_set['label']))
+        activations, labels = get_activations(model, data, 'residual', focus=best_layer, model_name=model_name)
+        activations = next(iter(activations.values()))
+        X = einops.rearrange(activations, 'n b d -> (n b) d') # Do we need this? 
+        y = einops.rearrange(labels, 'n b -> (n b)')
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        probe = SupervisedProbe(X_train=X_train, y_train=y_train,
+                        X_test=X_test, y_test=y_test,
+                        probe_cfg=probe_cfg)
+        probe.initialize_probe(override_probe_type='logistic_regression')
+        print("Training Probe...")
+        probe.train()
 
-        train_datasets = fold[0]
-        test_datasets = fold[1]
-            
-        for i, train_set in enumerate(train_datasets):
+        # Normalization loop
 
-            print("Openend training set n ", i)
-            print("Domains of training set: ", train_set['filename'].unique())
-            # train_0, ..., train_n-1
-            data = (list(train_set['statement']), list(train_set['label']))
-            activations, labels = get_activations(model, data, 'residual', focus=best_layer, model_name=model_name)
+        train_mean = X_train.mean(dim=0, keepdim=True)
+        train_std = X_train.std(dim=0, keepdim=True, unbiased=False)
+        train_std = torch.where(train_std == 0, torch.ones_like(train_std), train_std)
+        train_std = torch.nan_to_num(train_std, nan=1.0)
+
+        X_test  = (X_test - train_mean)
+        X_test  /= train_std
+        y_pred = probe.predict(X_test)
+        y_test = y_test.cpu().detach().numpy()
+        acc = accuracy_score(y_test, y_pred)
+        print("accuracy on first test set: ", acc)
+        
+        for j, test_set in enumerate(test_datasets):
+
+            # test_0, ... , test_n-1
+            print("Domains of test set: ", test_set['filename'].unique())
+
+            data = (list(test_set['statement']), list(test_set['label']))
+    
+            activations, labels = get_activations(model, data, 'residual', focus=best_layer, model_name=model_name, batch_size=16)
             activations = next(iter(activations.values()))
-            X = einops.rearrange(activations, 'n b d -> (n b) d') # Do we need this? 
+            X = einops.rearrange(activations, 'n b d -> (n b) d')
             y = einops.rearrange(labels, 'n b -> (n b)')
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-            probe = SupervisedProbe(X_train=X_train, y_train=y_train,
-                            X_test=X_test, y_test=y_test,
-                            probe_cfg=probe_cfg)
-            probe.initialize_probe(override_probe_type='logistic_regression')
-            print("Training Probe...")
-            probe.train()
 
             # Normalization loop
 
-            train_mean = X_train.mean(dim=0, keepdim=True)
-            train_std = X_train.std(dim=0, keepdim=True, unbiased=False)
-            train_std = torch.where(train_std == 0, torch.ones_like(train_std), train_std)
-            train_std = torch.nan_to_num(train_std, nan=1.0)
+            X = (X - train_mean)
+            X /= train_std
 
-            X_test  = (X_test - train_mean)
-            X_test  /= train_std
-            y_pred = probe.predict(X_test)
-            y_test = y_test.cpu().detach().numpy()
-            acc = accuracy_score(y_test, y_pred)
-            print("accuracy on first test set: ", acc)
-            
-            for j, test_set in enumerate(test_datasets):
+            probas = probe.predict(X, proba=True)
+            y_pred = probe.predict(X)
+            y = y.cpu().detach().numpy()
+            acc = accuracy_score(y, y_pred)
 
-                # test_0, ... , test_n-1
-                print("Domains of test set: ", test_set['filename'].unique())
+            print("accuracy on test set ", j, " : ", acc)
 
-                data = (list(test_set['statement']), list(test_set['label']))
-        
-                activations, labels = get_activations(model, data, 'residual', focus=best_layer, model_name=model_name, batch_size=16)
-                activations = next(iter(activations.values()))
-                X = einops.rearrange(activations, 'n b d -> (n b) d')
-                y = einops.rearrange(labels, 'n b -> (n b)')
-
-                # Normalization loop
-
-                X = (X - train_mean)
-                X /= train_std
-
-                probas = probe.predict(X, proba=True)
-                y_pred = probe.predict(X)
-                y = y.cpu().detach().numpy()
-                acc = accuracy_score(y, y_pred)
-
-                print("accuracy on test set ", j, " : ", acc)
-
-                results[fold_n][i][j].append(acc)
-                print("Running results: ", results)
+            results[i][j].append(acc)
+            print("Running results: ", results)
     results = to_dict(results)
     print("Uniformity experiment completed.")
     print("Results: ", results)              
-    save_results(results, f"uniformity", model=model_name, modality='uniformity')
+    save_results(results, f"uniformity_{experiment_type}", model=model_name, modality='uniformity')
     print("Results saved in folder 'ROOT/results'")
 
     return
