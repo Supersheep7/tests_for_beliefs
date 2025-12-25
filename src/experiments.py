@@ -16,6 +16,11 @@ from coherence_experiments import run_coherence_neg, run_coherence_or, run_coher
 from collections import defaultdict
 cfg = load_cfg()
 
+def to_dict(d):
+    if isinstance(d, defaultdict):
+        d = {k: to_dict(v) for k, v in d.items()}
+    return d
+
 def asker_kde(model_name=cfg["common"]["model"]):
     zoom_strength = float(input("Enter the zoom strength: "))        
     offset = float(input("Enter the offset: "))
@@ -344,7 +349,7 @@ def run_uniformity(model_name=None):
 
                 results[fold_n][i][j].append(acc)
                 print("Running results: ", results)
-
+    results = to_dict(results)
     print("Uniformity experiment completed.")
     print("Results: ", results)              
     save_results(results, f"uniformity", model=model_name, modality='uniformity')
