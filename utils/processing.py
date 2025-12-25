@@ -315,12 +315,12 @@ def get_data(experiment: str = 'accuracy', sweep: bool = False, logic: str = Non
       df_all['neg_label'].combine_first(df_all['new_label'])
       )
 
-      folds_logic = split_curated_df_logic(df_all)
       folds_domains = split_curated_df_domains(df_all)
+      folds_logic = split_curated_df_logic(df_all)
 
       # Stratified uniform split
       
-      return folds_logic, folds_domains
+      return folds_domains, folds_logic
     else:
       raise ValueError(f"Unsupported experiment type: {experiment}")
 

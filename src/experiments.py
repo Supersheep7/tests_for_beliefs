@@ -287,6 +287,7 @@ def run_uniformity(model_name=None):
         for i, train_set in enumerate(train_datasets):
 
             print("Openend training set n ", i)
+            print("Domains of training set: ", train_set['filename'].unique())
 
             # train_0, ..., train_n-1
             data = (list(train_set['statement']), list(train_set['label']))
@@ -320,6 +321,7 @@ def run_uniformity(model_name=None):
             for j, test_set in enumerate(test_datasets):
 
                 # test_0, ... , test_n-1
+                print("Domains of test set: ", test_set['filename'].unique())
 
                 data = (list(test_set['statement']), list(test_set['label']))
         
