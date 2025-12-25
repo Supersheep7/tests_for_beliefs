@@ -354,7 +354,7 @@ def run_uniformity(model_name=None):
     results = to_dict(results)
     print("Uniformity experiment completed.")
     print("Results: ", results)              
-    save_results(results, f"uniformity_{experiment_type}", model=model_name, modality='uniformity')
+    save_results(results, f"uniformity", model=model_name, modality='uniformity', notes={experiment_type})
     print("Results saved in folder 'ROOT/results'")
 
     return
