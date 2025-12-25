@@ -507,7 +507,7 @@ class Estimator:
                     logits = model(tokens)
             log_probs = t.nn.functional.log_softmax(logits, dim=-1)
             seq_lens = (tokens != pad).sum(dim=1)
-            last_positions = seq_lens 
+            last_positions = seq_lens - 1 # Change to 0 for gpt-style models
 
             for j, statement in enumerate(batch):
                 j_pos = last_positions[j].item()

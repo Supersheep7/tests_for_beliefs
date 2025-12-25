@@ -341,6 +341,7 @@ def run_uniformity(model_name=None):
                 print("accuracy on test set ", j, " : ", acc)
 
                 results[fold_n][i][j].append(acc)
+                print("Running results: ", results)
 
     print("Uniformity experiment completed.")
     print("Results: ", results)              
