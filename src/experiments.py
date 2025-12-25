@@ -288,9 +288,10 @@ def run_uniformity(model_name=None):
 
             print("Openend training set n ", i)
             print("Domains of training set: ", train_set['filename'].unique())
-
+            print(train_set.head())
             # train_0, ..., train_n-1
             data = (list(train_set['statement']), list(train_set['label']))
+
             
             activations, labels = get_activations(model, data, 'residual', focus=best_layer, model_name=model_name)
             activations = next(iter(activations.values()))
