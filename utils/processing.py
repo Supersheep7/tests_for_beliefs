@@ -211,7 +211,7 @@ def split_curated_df_domains(df):
   train_df, test_df = stratify(df)
 
   train_datas = [
-              train_df,
+              to_split(train_df, ['sp_en_trans.csv', 'smaller_than.csv', 'larger_than.csv', 'common_claim_true_false.csv', 'cities.csv', 'companies_true_false.csv', 'counterfact_true_false.csv']),
               to_split(train_df, ['common_claim_true_false.csv']),
               to_split(train_df, ['common_claim_true_false.csv', 'cities.csv']),
               to_split(train_df, ['cities.csv']),
