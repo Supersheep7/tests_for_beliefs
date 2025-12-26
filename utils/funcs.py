@@ -116,7 +116,7 @@ def save_results(item, datatype, model, modality='residual', k=0, alpha=0, direc
     elif datatype == "coherence_scores":
         path = base_dir / model / (filename_map[datatype]+notes)
     else:
-        path = base_dir / model / cfg["probe"]["probe_type"] / filename_map[datatype]
+        path = base_dir / model / cfg["probe"]["probe_type"] / (filename_map[datatype]+notes)
 
     # If file already exists, append a timestamp to avoid clobbering
     if path.exists():
