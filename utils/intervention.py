@@ -393,12 +393,12 @@ def mass_truth_assignment_eval(
             lp = log_probs[j, j_pos]          # shape: [vocab_size]
 
             # top-10
-            topk_logp, topk_ids = t.topk(lp, k=10)
+            topk_logp, topk_ids = t.topk(lp, k=5)
 
             topk_probs = topk_logp.exp()
             topk_tokens = model.tokenizer.convert_ids_to_tokens(topk_ids.tolist())
 
-            print("Top-10 tokens:")
+            print("Top-5 tokens:")
             for tok, p in zip(topk_tokens, topk_probs.tolist()):
                 print(f"  {tok!r}: {p:.6f}")
             log_p_true = t.logsumexp(log_probs[j, last_positions[j], true_token_ids], dim=0).item()
@@ -411,7 +411,7 @@ def mass_truth_assignment_eval(
             print(f"P(True): {np.exp(log_p_true):.6f}, P(False): {np.exp(log_p_false):.6f}")
 
             if np.exp(log_p_true) + np.exp(log_p_false) < 0.3:
-                print(f"Broken! Answer: {most_probable_token}")
+                print(f"Unsure! Answer: {most_probable_token}")
                 successful = 0
             else:
                 successful = int(int(log_p_true >= log_p_false) != label)
