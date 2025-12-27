@@ -440,10 +440,11 @@ def probe_sweep(list_of_datasets: List,
     return (accuracies, directions, best_probes)
 
 class Estimator:
-    def __init__(self, estimator_name: str, model, best_layer=None):
+    def __init__(self, estimator_name: str, model, best_layer=None, modality='residual'):
         self.estimator_name = estimator_name
         self.model = model
         self.best_layer = best_layer
+        self.modality = modality
         self.train_data = None 
         self.probe = None
         self.logic = None
@@ -583,8 +584,11 @@ class Estimator:
             # train probe 
             print("Training estimator...")
             data = self.train_data
-            activations, labels = get_activations(self.model, data, 'residual', focus=self.best_layer)
-            activations = activations[f'blocks.{self.best_layer}.hook_resid_post']
+            activations, labels = get_activations(self.model, data, self.modality, focus=self.best_layer)
+            activations = activations[f'blocks.{self.best_layer}.hook_resid_post'] if self.modality == 'residual' else activations[f'blocks.{self.best_layer}.hook_z']
+            if self.modality == 'heads':
+                heads = decompose_mha(activations)
+                activations = heads[self.best_layer[1]]
             X_train, X_test, y_train, y_test = train_test_split(activations, labels, test_size=0.1, random_state=42)
             X_train = einops.rearrange(X_train, 'n b d -> (n b) d').detach().cpu().numpy()
             y_train = einops.rearrange(y_train, 'n b -> (n b)').detach().cpu().numpy()
@@ -655,8 +659,11 @@ class Estimator:
             probe = self.probe 
             ir = self.ir
             data = (data, None) # Useful for get_activations loop
-            activations, labels = get_activations(self.model, data, 'residual', focus=self.best_layer)
-            activations = activations[f'blocks.{self.best_layer}.hook_resid_post']
+            activations, labels = get_activations(self.model, data, self.modality, focus=self.best_layer)
+            activations = activations[f'blocks.{self.best_layer}.hook_resid_post'] if self.modality == 'residual' else activations[f'blocks.{self.best_layer}.hook_z']
+            if self.modality == 'heads':
+                heads = decompose_mha(activations)
+                activations = heads[self.best_layer[1]]
             X = einops.rearrange(activations, 'n b d -> (n b) d')
             if self.estimator_name == 'mmp':
                 X = self.mmp_scaler.transform(X.detach().cpu().numpy())  

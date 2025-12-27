@@ -249,9 +249,16 @@ def run_intervention(model_name=cfg["common"]["model"]):
     return
 
 def run_coherence(model_name=cfg["common"]["model"]):
-    best_layer = t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_residual"), weights_only=False).index(max(t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_residual"), weights_only=False)))
     logics = [l.strip() for l in input("Choose the logic(s) (comma-separated) [Possible values: 'neg', 'or', 'and']: ").split(',')]
     estimators = [e.strip() for e in input("Choose the estimator(s) (comma-separated) [Possible values: 'logistic_regression', 'mmp', 'logits', 'self_report']: ").split(',')]
+    modality = input("Choose the target ['residual', 'heads']: ").strip().lower()
+    if modality == 'residual':
+        best_layer = t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_residual"), weights_only=False).index(max(t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_residual"), weights_only=False)))
+        print("Loaded best layer:", best_layer)
+    elif modality == 'heads':
+        accuracies_heads = t.tensor(t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_heads"), weights_only=False))
+        best_layer = divmod(accuracies_heads.argmax().item(), accuracies_heads.shape[1])
+        print("Loaded best layer and head:", (best_layer[0], best_layer[1]))
     results_tot = {}
     model = get_model(model_name=model_name)
     shots_self = [
@@ -263,7 +270,7 @@ def run_coherence(model_name=cfg["common"]["model"]):
     shots_block = "".join("\n\n" + shot for shot in shots_self)
     for e in estimators:
         results_estimator = {}
-        estimator = Estimator(estimator_name=e, model=model, best_layer=best_layer)
+        estimator = Estimator(estimator_name=e, model=model, best_layer=best_layer, modality=modality)
         print("Loaded best layer:", best_layer)
         estimator.set_context(
                 context = f"The sky is blue. This statement is: True \n\nThe earth is flat. This statement is: False \n\n",
@@ -310,9 +317,15 @@ def run_uniformity(model_name=None):
 
     # Fetch best layer (we will go with the residual)
 
-    best_layer = t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_residual"), weights_only=False).index(max(t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_residual"), weights_only=False)))
-    print("Loaded best layer:", best_layer)
     experiment_type = input("Enter experiment type ['logic', 'domain']:")
+    modality = input("Choose the target ['residual', 'heads']: ").strip().lower()
+    if modality == 'residual':
+        best_layer = t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_residual"), weights_only=False).index(max(t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_residual"), weights_only=False)))
+        print("Loaded best layer:", best_layer)
+    elif modality == 'heads':
+        accuracies_heads = t.tensor(t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_heads"), weights_only=False))
+        best_layer = divmod(accuracies_heads.argmax().item(), accuracies_heads.shape[1])
+        print("Loaded best layer and head:", (best_layer[0], best_layer[1]))
     folds = get_data('uniformity') # folds_logic, folds_domain
     model = get_model(model_name=model_name)
     if experiment_type == 'domain': 
@@ -332,8 +345,11 @@ def run_uniformity(model_name=None):
         print("Domains of training set: ", train_set['filename'].unique())
         # train_0, ..., train_n-1
         data = (list(train_set['statement']), list(train_set['label']))
-        activations, labels = get_activations(model, data, 'residual', focus=best_layer, model_name=model_name)
+        activations, labels = get_activations(model, data, modality=modality, focus=best_layer, model_name=model_name)
         activations = next(iter(activations.values()))
+        if modality == 'heads':
+            heads = decompose_mha(activations)
+            activations = heads[best_layer[1]]
         X = einops.rearrange(activations, 'n b d -> (n b) d') # Do we need this? 
         y = einops.rearrange(labels, 'n b -> (n b)')
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
