@@ -585,7 +585,7 @@ class Estimator:
             print("Training estimator...")
             data = self.train_data
             activations, labels = get_activations(self.model, data, self.modality, focus=self.best_layer)
-            activations = activations[f'blocks.{self.best_layer}.hook_resid_post'] if self.modality == 'residual' else activations[f'blocks.{self.best_layer[0]}.hook_z']
+            activations = activations[f'blocks.{self.best_layer}.hook_resid_post'] if self.modality == 'residual' else activations[f'blocks.{self.best_layer[0]}.attn.hook_z']
             if self.modality == 'heads':
                 heads = decompose_mha(activations)
                 activations = heads[self.best_layer[1]]
@@ -660,7 +660,7 @@ class Estimator:
             ir = self.ir
             data = (data, None) # Useful for get_activations loop
             activations, labels = get_activations(self.model, data, self.modality, focus=self.best_layer)
-            activations = activations[f'blocks.{self.best_layer}.hook_resid_post'] if self.modality == 'residual' else activations[f'blocks.{self.best_layer[0]}.hook_z']
+            activations = activations[f'blocks.{self.best_layer}.hook_resid_post'] if self.modality == 'residual' else activations[f'blocks.{self.best_layer[0]}.attn.hook_z']
             if self.modality == 'heads':
                 heads = decompose_mha(activations)
                 activations = heads[self.best_layer[1]]
