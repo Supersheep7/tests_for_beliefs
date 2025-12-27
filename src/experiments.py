@@ -149,6 +149,7 @@ def run_intervention(model_name=cfg["common"]["model"]):
             directions = t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "directions_residual"), weights_only=False)
             if control:
                 directions = t.stack([t.randn_like(dir) for dir in directions])
+                print(f"Using control random directions for {modality}.")
             accuracies = t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_residual"), weights_only=False)
             break
         elif modality == 'heads':
@@ -158,6 +159,7 @@ def run_intervention(model_name=cfg["common"]["model"]):
             directions = compute_attention_sign_mask(model, directions, resid_mid_directions)       # Sign the directions based on residual mid directions
             if control:
                 directions = t.stack([t.randn_like(dir) for dir in directions])
+                print(f"Using control random directions for {modality}.")
             accuracies = t.tensor(t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_heads"), weights_only=False))
             break
         else:
