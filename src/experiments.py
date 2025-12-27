@@ -309,7 +309,7 @@ def run_coherence(model_name=cfg["common"]["model"]):
     # print()
     # print("= = = END WARNING = = =")
     # print()
-    save_results(results_tot, "coherence_scores", model=model_name, notes=f"{''.join(logics)}_{'_'.join(estimators)}")
+    save_results(results_tot, "coherence_scores", model=model_name, notes=f"{''.join(logics)}_{'_'.join(estimators)}_{modality}")
     
     return
 
@@ -404,7 +404,7 @@ def run_uniformity(model_name=None):
     results = to_dict(results)
     print("Uniformity experiment completed.")
     print("Results: ", results)              
-    save_results(results, f"uniformity", model=model_name, modality='uniformity', notes=experiment_type)
+    save_results(results, f"uniformity", model=model_name, modality='uniformity', notes=f"{experiment_type}"f"{modality}")
     print("Results saved in folder 'ROOT/results'")
 
     return
