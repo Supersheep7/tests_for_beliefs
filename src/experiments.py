@@ -346,6 +346,7 @@ def run_uniformity(model_name=None):
         # train_0, ..., train_n-1
         data = (list(train_set['statement']), list(train_set['label']))
         activations, labels = get_activations(model, data, modality=modality, focus=best_layer, model_name=model_name)
+        print(activations.keys())
         activations = next(iter(activations.values()))
         if modality == 'heads':
             heads = decompose_mha(activations)
