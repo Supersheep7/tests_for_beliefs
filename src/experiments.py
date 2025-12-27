@@ -142,7 +142,7 @@ def run_accuracy(model_name=cfg["common"]["model"]):
 def run_intervention(model_name=cfg["common"]["model"]):
 
     model = get_model(model_name=model_name)
-    control = cfg["probe"]["control"]
+    control = bool(cfg["probe"]["control"])
     while True:
         modality = input("Choose the target ['residual', 'heads']: ").strip().lower() 
         if modality == 'residual':
