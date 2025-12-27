@@ -148,8 +148,21 @@ def run_intervention(model_name=cfg["common"]["model"]):
         if modality == 'residual':
             directions = t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "directions_residual"), weights_only=False)
             if control:
-                directions = t.stack([t.randn_like(dir) for dir in directions])
-                print(f"Using control random directions for {modality}.")
+                orth_dirs = []
+                for v in directions:
+                    r = t.randn_like(v)
+
+                    # orthogonalize r w.r.t. v
+                    v_norm_sq = (v * v).sum()
+                    r_orth = r - (r * v).sum() / v_norm_sq * v
+
+                    # norm-match
+                    r_orth = r_orth / r_orth.norm() * v.norm()
+
+                    orth_dirs.append(r_orth)
+
+                directions = t.stack(orth_dirs)
+                print(f"Using orthogonal random control directions for {modality}.")
             accuracies = t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_residual"), weights_only=False)
             break
         elif modality == 'heads':
@@ -158,8 +171,21 @@ def run_intervention(model_name=cfg["common"]["model"]):
             resid_mid_directions = t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "directions_mid"), weights_only=False)
             directions = compute_attention_sign_mask(model, directions, resid_mid_directions)       # Sign the directions based on residual mid directions
             if control:
-                directions = t.stack([t.randn_like(dir) for dir in directions])
-                print(f"Using control random directions for {modality}.")
+                orth_dirs = []
+                for v in directions:
+                    r = t.randn_like(v)
+
+                    # orthogonalize
+                    v_norm_sq = (v * v).sum()
+                    r_orth = r - (r * v).sum() / v_norm_sq * v
+
+                    # norm match
+                    r_orth = r_orth / r_orth.norm() * v.norm()
+
+                    orth_dirs.append(r_orth)
+
+                directions = t.stack(orth_dirs)
+                print(f"Using orthogonal random control directions for {modality}.")
             accuracies = t.tensor(t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_heads"), weights_only=False))
             break
         else:
