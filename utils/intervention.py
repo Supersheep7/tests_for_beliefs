@@ -366,7 +366,7 @@ def mass_truth_assignment_eval(
         batch_labels = labels[i:i+batch_size]
 
         batch_prompts = [
-            f"The sky is blue. This statement is: True \n\nThe earth is flat. This statement is: False \n\n{stmt}".rstrip()
+            f"Determine whether the following statement is factually correct. Respond with exactly one of: True, False, Unknown. \n\n{stmt} \n\nAnswer:".rstrip()
             for stmt in batch_statements
         ]
 
