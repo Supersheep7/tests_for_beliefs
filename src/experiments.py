@@ -325,6 +325,7 @@ def run_uniformity(model_name=None):
     elif modality == 'heads':
         accuracies_heads = t.tensor(t.load(Path(ROOT / "results" / model_name / cfg["probe"]["probe_type"] / "accuracies_heads"), weights_only=False))
         best_layer = divmod(accuracies_heads.argmax().item(), accuracies_heads.shape[1])
+        print(accuracies_heads[best_layer[0], best_layer[1]])
         print("Loaded best layer and head:", (best_layer[0], best_layer[1]))
     folds = get_data('uniformity') # folds_logic, folds_domain
     model = get_model(model_name=model_name)
