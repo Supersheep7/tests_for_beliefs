@@ -40,6 +40,8 @@ def run_coherence_neg(estimator):
 
 def run_coherence_or(estimator):
     train_data, data_atom, data_or = get_data(experiment='coherence', logic='or')
+    print("data atom:", data_atom[0])
+    print("data or:", data_or[0])
 
     if estimator.estimator_name in ['logistic_regression', 'mmp']:
         estimator.set_train_data(train_data)
@@ -48,6 +50,10 @@ def run_coherence_or(estimator):
     probas_atom = estimator.extract_proba(data_atom)
     probas_or = estimator.extract_proba(data_or)
 
+    print("Probas atom slice:", probas_atom[:20])
+    print("Probas or slice:", probas_or[:20])
+
+
     corrects = (probas_or >= probas_atom).int()
     score = corrects.float().mean()
     print("Score for OR", score)
@@ -55,6 +61,8 @@ def run_coherence_or(estimator):
 
 def run_coherence_and(estimator):
     train_data, data_atom, data_and = get_data(experiment='coherence', logic='and')
+    print("data atom:", data_atom[0])
+    print("data and:", data_and[0])
 
     if estimator.estimator_name in ['logistic_regression', 'mmp']:
         estimator.set_train_data(train_data)
@@ -62,6 +70,9 @@ def run_coherence_and(estimator):
 
     probas_atom = estimator.extract_proba(data_atom)
     probas_and = estimator.extract_proba(data_and)
+
+    print("Probas atom slice:", probas_atom[:20])
+    print("Probas and slice:", probas_and[:20])
 
     corrects = (probas_and <= probas_atom).int()
     score = corrects.float().mean()
