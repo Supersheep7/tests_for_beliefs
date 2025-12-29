@@ -423,7 +423,7 @@ def mass_truth_assignment_eval(
             total_prob_diff += prob_diff
 
     n = len(statements)
-    return total_metric / n, t.sigmoid(total_prob_diff / n)
+    return total_metric / n, t.sigmoid(t.tensor(total_prob_diff / n))
 
 ''' *** Distances *** '''
 
