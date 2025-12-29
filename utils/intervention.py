@@ -398,9 +398,9 @@ def mass_truth_assignment_eval(
             topk_probs = topk_logp.exp()
             topk_tokens = model.tokenizer.convert_ids_to_tokens(topk_ids.tolist())
 
-            # print("Top-5 tokens:")
-            # for tok, p in zip(topk_tokens, topk_probs.tolist()):
-            #     print(f"  {tok!r}: {p:.6f}")
+            print("Top-5 tokens:")
+            for tok, p in zip(topk_tokens, topk_probs.tolist()):
+                print(f"  {tok!r}: {p:.6f}")
             log_p_true = t.logsumexp(log_probs[j, last_positions[j], true_token_ids], dim=0).item()
             log_p_false = t.logsumexp(log_probs[j, last_positions[j], false_token_ids], dim=0).item()
             j_pos = last_positions[j].item()
@@ -409,11 +409,11 @@ def mass_truth_assignment_eval(
             most_probable_prob = log_probs[j, j_pos, most_probable_token_id].exp().item()
             THRESHOLD = 0.2
 
-            # print(f"Prompt: {batch_prompts[j]}")
-            # print(f"P(True): {np.exp(log_p_true):.6f}, P(False): {np.exp(log_p_false):.6f}")
+            print(f"Prompt: {batch_prompts[j]}")
+            print(f"P(True): {np.exp(log_p_true):.6f}, P(False): {np.exp(log_p_false):.6f}")
 
             if most_probable_token_id not in true_token_ids + false_token_ids or most_probable_prob < THRESHOLD:
-                # print(f"Unsure! Answer: {most_probable_token}")
+                print(f"Unsure! Answer: {most_probable_token}")
                 successful = 0
             else:
                 successful = int(int(log_p_true >= log_p_false) != label)
