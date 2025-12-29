@@ -270,6 +270,7 @@ def get_data(experiment: str = 'accuracy', sweep: bool = False, logic: str = Non
     elif experiment == 'intervention':
       df_trimmed = df_test.iloc[:-(len(df_test) % cfg["tlens"]["batch_extractor"]), :]
       df_for_int = df_trimmed.copy()
+      print(df_for_int['filename'].unique())
       df_for_int['statement'] = df_trimmed['statement']
       df_true = df_for_int[df_for_int['label'] == 1]
       df_false = df_for_int[df_for_int['label'] == 0]
