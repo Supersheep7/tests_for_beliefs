@@ -344,7 +344,6 @@ def mass_truth_assignment_eval(
               activation_accuracies, activation_directions, k, alpha, verbose,
               true_tokens: List[str] = ['true','Ġtrue','True','ĠTrue','▁true','▁True'],
               false_tokens: List[str] = ['false','Ġfalse','False','ĠFalse','▁false','▁False'],
-              unknown_tokens: List[str] = ['unknown','Ġunknown','Unknown','ĠUnknown','▁unknown','▁Unknown'],
               attn = True,
               shots: List[str] = None,
               batch_size: int = 100
@@ -358,33 +357,21 @@ def mass_truth_assignment_eval(
 
     true_token_ids = [model_baseline.tokenizer.convert_tokens_to_ids(token) for token in true_tokens if token in model_baseline.tokenizer.get_vocab()]
     false_token_ids = [model_baseline.tokenizer.convert_tokens_to_ids(token) for token in false_tokens if token in model_baseline.tokenizer.get_vocab()]
-    unknown_token_ids = [model_baseline.tokenizer.convert_tokens_to_ids(token) for token in unknown_tokens if token in model_baseline.tokenizer.get_vocab()]
-
     pad = model_baseline.tokenizer.pad_token_id
 
     total_metric = 0.0
-    total_logit_diff = 0.0
+    total_prob_diff = 0.0
     for i in range(0, len(statements), batch_size):
         batch_statements = statements[i:i+batch_size]
         batch_labels = labels[i:i+batch_size]
 
         batch_prompts = [
-            f"Determine whether the following statement is factually correct. Respond with exactly one of: True, False, Unknown. If unsure, answer Unknown.\n\n{stmt} This statement is: ".rstrip()
+            f"Determine whether the following statement is factually correct. Respond with exactly one of: True, False, Unknown. \n\n{stmt} \n\nAnswer:".rstrip()
             for stmt in batch_statements
         ]
 
         tokens = model_baseline.to_tokens(batch_prompts)
-        print(tokens)
-
-        # Last non-padding token index for each sequence
-        last_positions = (tokens != pad).sum(dim=1) - 1
-
-        # Last token IDs
-        last_token_ids = tokens[t.arange(tokens.size(0)), last_positions]
-
-        # Convert token IDs to words
-        last_words = [model_baseline.to_string(t.unsqueeze(0)) for t in last_token_ids]
-        print(last_words)
+        last_positions = (tokens != pad).sum(dim=1) - 1     # Change to - 0 for GPT-style models
 
         if attn:
             model = full_intervention(model_baseline, activation_accuracies=activation_accuracies, activation_directions=activation_directions, K=k, alpha=alpha, verbose=verbose, last_positions=last_positions)
@@ -395,6 +382,8 @@ def mass_truth_assignment_eval(
                 logits = model(tokens)
 
         log_probs = t.nn.functional.log_softmax(logits, dim=-1)
+        seq_lens = (tokens != pad).sum(dim=1)
+        last_positions = seq_lens - 1               # Change to - 0 for GPT-style models
         last_token_log_probs = log_probs[:, -1, :]
 
         for j, label in enumerate(batch_labels):
@@ -408,39 +397,31 @@ def mass_truth_assignment_eval(
 
             topk_probs = topk_logp.exp()
             topk_tokens = model.tokenizer.convert_ids_to_tokens(topk_ids.tolist())
-            topk_log_probs, topk_ids = t.topk(log_probs[j, j_pos], k=5)
-            log_p_topk = t.logsumexp(topk_log_probs, dim=0)
-
 
             print("Top-5 tokens:")
-            for tok_id in topk_ids.tolist():
-                decoded_tok = model.tokenizer.decode([tok_id], clean_up_tokenization_spaces=False)
-                print(f"  {decoded_tok!r}: {np.exp(lp[tok_id].item()):.6f}")
-
+            for tok, p in zip(topk_tokens, topk_probs.tolist()):
+                print(f"  {tok!r}: {p:.6f}")
+            log_p_true = t.logsumexp(log_probs[j, last_positions[j], true_token_ids], dim=0).item()
+            log_p_false = t.logsumexp(log_probs[j, last_positions[j], false_token_ids], dim=0).item()
             j_pos = last_positions[j].item()
-            log_p_true = t.logsumexp(log_probs[j, j_pos, true_token_ids], dim=0).item()
-            log_p_false = t.logsumexp(log_probs[j, j_pos, false_token_ids], dim=0).item()
-            log_p_unknown = t.logsumexp(log_probs[j, j_pos, unknown_token_ids], dim=0).item()
             most_probable_token_id = t.argmax(log_probs[j, j_pos]).item()
-            logit_diff = (log_p_true - log_p_false if label == 1 else log_p_false - log_p_true)
+            most_probable_token = model.tokenizer.convert_ids_to_tokens([most_probable_token_id])[0]
 
             print(f"Prompt: {batch_prompts[j]}")
             print(f"P(True): {np.exp(log_p_true):.6f}, P(False): {np.exp(log_p_false):.6f}")
-            print(f"logit diff: {logit_diff:.6f}")
 
-            CONF_MARGIN = 0.3
-
-            if log_p_unknown > max(log_p_true, log_p_false) or np.exp(log_p_true) + np.exp(log_p_false) < CONF_MARGIN:
-                print(f"Unsure! log_p_true: {log_p_true}, log_p_false: {log_p_false}, log_p_unknown: {log_p_unknown}")
+            if most_probable_token_id not in true_token_ids + false_token_ids:
+                print(f"Unsure! Answer: {most_probable_token}")
                 successful = 0
             else:
                 successful = int(int(log_p_true >= log_p_false) != label)
 
+            prob_diff = np.exp(log_p_true) - np.exp(log_p_false) if label == 1 else np.exp(log_p_false) - np.exp(log_p_true)
             total_metric += successful
-            total_logit_diff += logit_diff
+            total_prob_diff += prob_diff
 
     n = len(statements)
-    return total_metric / n, total_logit_diff / n
+    return total_metric / n, total_prob_diff / n
 
 ''' *** Distances *** '''
 
