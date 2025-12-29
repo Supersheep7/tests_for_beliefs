@@ -421,9 +421,9 @@ def mass_truth_assignment_eval(
                 max(log_p_true, log_p_false) > log_p_topk - CONF_MARGIN
             )
 
-            if not confident:
+            if log_p_unknown > max(log_p_true, log_p_false) or np.exp(log_p_true) + np.exp(log_p_false) < 0.3:
                 print(f"Unsure! log_p_true: {log_p_true}, log_p_false: {log_p_false}, log_p_unknown: {log_p_unknown}")
-                successful = int(int(log_p_true >= log_p_false) != label)
+                successful = 0
             else:
                 successful = int(int(log_p_true >= log_p_false) != label)
 
