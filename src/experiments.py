@@ -152,12 +152,12 @@ def run_intervention(model_name=cfg["common"]["model"]):
                 for v in directions:
                     r = t.randn_like(v)
 
-                    # # orthogonalize r w.r.t. v
-                    # v_norm_sq = (v * v).sum()
-                    # r_orth = r - (r * v).sum() / v_norm_sq * v
+                    # orthogonalize r w.r.t. v
+                    v_norm_sq = (v * v).sum()
+                    r_orth = r - (r * v).sum() / v_norm_sq * v
 
-                    # # norm-match
-                    # r_orth = r_orth / r_orth.norm() * v.norm()
+                    # norm-match
+                    r_orth = r_orth / r_orth.norm() * v.norm()
 
                     orth_dirs.append(r)
 
@@ -175,12 +175,12 @@ def run_intervention(model_name=cfg["common"]["model"]):
                 for v in directions:
                     r = t.randn_like(v)
 
-                    # # orthogonalize
-                    # v_norm_sq = (v * v).sum()
-                    # r_orth = r - (r * v).sum() / v_norm_sq * v
+                    # orthogonalize
+                    v_norm_sq = (v * v).sum()
+                    r_orth = r - (r * v).sum() / v_norm_sq * v
 
-                    # # norm match
-                    # r_orth = r_orth / r_orth.norm() * v.norm()
+                    # norm match
+                    r_orth = r_orth / r_orth.norm() * v.norm()
 
                     orth_dirs.append(r)
 
