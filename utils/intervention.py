@@ -376,7 +376,13 @@ def mass_truth_assignment_eval(
         tokens = model_baseline.to_tokens(batch_prompts)
         print(tokens)
         last_positions = (tokens != pad).sum(dim=1)      # Change to - 0 for GPT-style models
-        print(tokens[last_positions, :])
+        print(last_positions)
+        # Get last token IDs
+        last_token_ids = tokens[t.arange(tokens.size(0)), last_positions]
+
+        # Convert token IDs back to words
+        last_words = [model_baseline.to_str(t.unsqueeze(0)) for t in last_token_ids]  # or use tokenizer.decode
+        print(last_words)
 
         if attn:
             model = full_intervention(model_baseline, activation_accuracies=activation_accuracies, activation_directions=activation_directions, K=k, alpha=alpha, verbose=verbose, last_positions=last_positions)
