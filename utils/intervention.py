@@ -375,13 +375,15 @@ def mass_truth_assignment_eval(
 
         tokens = model_baseline.to_tokens(batch_prompts)
         print(tokens)
-        last_positions = (tokens != pad).sum(dim=1)      # Change to - 0 for GPT-style models
-        print(last_positions)
-        # Get last token IDs
+
+        # Last non-padding token index for each sequence
+        last_positions = (tokens != pad).sum(dim=1) - 1
+
+        # Last token IDs
         last_token_ids = tokens[t.arange(tokens.size(0)), last_positions]
 
-        # Convert token IDs back to words
-        last_words = [model_baseline.to_str(t.unsqueeze(0)) for t in last_token_ids]  # or use tokenizer.decode
+        # Convert token IDs to words
+        last_words = [model_baseline.to_string(t.unsqueeze(0)) for t in last_token_ids]
         print(last_words)
 
         if attn:
