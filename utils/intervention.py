@@ -366,7 +366,7 @@ def mass_truth_assignment_eval(
         batch_labels = labels[i:i+batch_size]
 
         batch_prompts = [
-            f"Determine whether the following statement is factually correct. Respond with exactly one of: True, False, Unknown. \n\n{stmt} \n\nAnswer:".rstrip()
+            f"Determine whether the following statement is factually correct. Respond with exactly one of: True, False, Unknown. Answer Unknown unless you are certain. \n\n{stmt} \n\nAnswer:".rstrip()
             for stmt in batch_statements
         ]
 
@@ -392,7 +392,7 @@ def mass_truth_assignment_eval(
             # log-probs at final position
             lp = log_probs[j, j_pos]          # shape: [vocab_size]
 
-            # top-10
+            # top-5
             topk_logp, topk_ids = t.topk(lp, k=5)
 
             topk_probs = topk_logp.exp()
@@ -406,11 +406,13 @@ def mass_truth_assignment_eval(
             j_pos = last_positions[j].item()
             most_probable_token_id = t.argmax(log_probs[j, j_pos]).item()
             most_probable_token = model.tokenizer.convert_ids_to_tokens([most_probable_token_id])[0]
+            most_probable_prob = log_probs[j, j_pos, most_probable_token_id].exp().item()
+            THRESHOLD = 0.2
 
             print(f"Prompt: {batch_prompts[j]}")
             print(f"P(True): {np.exp(log_p_true):.6f}, P(False): {np.exp(log_p_false):.6f}")
 
-            if most_probable_token_id not in true_token_ids + false_token_ids:
+            if most_probable_token_id not in true_token_ids + false_token_ids or most_probable_prob < THRESHOLD:
                 print(f"Unsure! Answer: {most_probable_token}")
                 successful = 0
             else:
