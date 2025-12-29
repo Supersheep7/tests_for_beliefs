@@ -425,7 +425,10 @@ def mass_truth_assignment_eval(
     n = len(statements)
     tot_perc = total_metric / n
     tot_pd = total_prob_diff / n
-    return tot_perc,  t.sigmoid(t.tensor(tot_pd)).half().item()
+    
+    SCALE_PROBA = 5     # scale to make the effects more visible
+
+    return tot_perc,  t.sigmoid(t.tensor(tot_pd*SCALE_PROBA)).half().item()
 
 ''' *** Distances *** '''
 
