@@ -403,9 +403,9 @@ def mass_truth_assignment_eval(
             for tok, p in zip(topk_tokens, topk_probs.tolist()):
                 print(f"  {tok!r}: {p:.6f}")
             j_pos = last_positions[j].item()
-            log_p_true = t.logsumexp(log_probs[j, last_positions[j], true_token_ids], dim=0).item()
-            log_p_false = t.logsumexp(log_probs[j, last_positions[j], false_token_ids], dim=0).item()
-            log_p_unknown = t.logsumexp(log_probs[j, j_pos, unknown_token_ids])
+            log_p_true = t.logsumexp(log_probs[j, j_pos, true_token_ids], dim=0).item()
+            log_p_false = t.logsumexp(log_probs[j, j_pos, false_token_ids], dim=0).item()
+            log_p_unknown = t.logsumexp(log_probs[j, j_pos, unknown_token_ids], dim=0).item()
             most_probable_token_id = t.argmax(log_probs[j, j_pos]).item()
 
             print(f"Prompt: {batch_prompts[j]}")
