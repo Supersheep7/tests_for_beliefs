@@ -142,7 +142,7 @@ def run_accuracy(model_name=cfg["common"]["model"]):
 def run_intervention(model_name=cfg["common"]["model"]):
 
     model = get_model(model_name=model_name)
-    control = input("Do you want to use control directions? [y/n]: ").strip().lower() == 'y'
+    control = input("Do you want to use control directions, too? [y/n]: ").strip().lower() == 'y'
     while True:
         modality = input("Choose the target ['residual', 'heads']: ").strip().lower() 
         if modality == 'residual':
