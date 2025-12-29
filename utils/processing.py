@@ -258,7 +258,7 @@ def get_data(experiment: str = 'accuracy', sweep: bool = False, logic: str = Non
       )
     if experiment == 'accuracy':
       df_trimmed = df_train.iloc[:-(len(df_train) % cfg["tlens"]["batch_extractor"]), :]
-      x = df_trimmed['statement'].astype(str) + " This statement is:"  # We want this like this because we are collecting the directions for the intervention experiment later on
+      x = df_trimmed['statement'].astype(str) + " This statement is: "  # We want this like this because we are collecting the directions for the intervention experiment later on
       x = x.tolist()
       y = list(df_trimmed['label'])
       return x, y
