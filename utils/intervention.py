@@ -418,7 +418,7 @@ def mass_truth_assignment_eval(
             else:
                 successful = int(int(log_p_true >= log_p_false) != label)
 
-            prob_diff = np.exp(log_p_true) - np.exp(log_p_false) if label == 1 else np.exp(log_p_false) - np.exp(log_p_true)
+            prob_diff = log_p_true - log_p_false if label == 1 else log_p_false - log_p_true
             total_metric += successful
             total_prob_diff += prob_diff
 
