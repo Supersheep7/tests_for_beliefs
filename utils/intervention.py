@@ -369,7 +369,7 @@ def mass_truth_assignment_eval(
         batch_labels = labels[i:i+batch_size]
 
         batch_prompts = [
-            f"Determine whether the following statement is factually correct. Respond with exactly one of: True, False, Unknown. If unsure, answer Unknown \n\n{stmt} This statement is: ".rstrip()
+            f"Determine whether the following statement is factually correct. Respond with exactly one of: True, False, Unknown. If unsure, answer Unknown.\n\n{stmt} This statement is: ".rstrip()
             for stmt in batch_statements
         ]
 
@@ -413,8 +413,10 @@ def mass_truth_assignment_eval(
 
 
             print("Top-5 tokens:")
-            for tok, p in zip(topk_tokens, topk_probs.tolist()):
-                print(f"  {tok!r}: {p:.6f}")
+            for tok_id in topk_ids.tolist():
+                decoded_tok = model.tokenizer.decode([tok_id], clean_up_tokenization_spaces=False)
+                print(f"  {decoded_tok!r}: {np.exp(lp[tok_id].item()):.6f}")
+
             j_pos = last_positions[j].item()
             log_p_true = t.logsumexp(log_probs[j, j_pos, true_token_ids], dim=0).item()
             log_p_false = t.logsumexp(log_probs[j, j_pos, false_token_ids], dim=0).item()
