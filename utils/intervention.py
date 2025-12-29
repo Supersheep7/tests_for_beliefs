@@ -415,7 +415,7 @@ def mass_truth_assignment_eval(
             print(f"Prompt: {batch_prompts[j]}")
             print(f"P(True): {np.exp(log_p_true):.6f}, P(False): {np.exp(log_p_false):.6f}")
 
-            CONF_MARGIN = 0.3
+            CONF_MARGIN = 0.1
             confident = (
                 logit_diff > CONF_MARGIN and
                 max(log_p_true, log_p_false) > log_p_topk - CONF_MARGIN
@@ -423,7 +423,7 @@ def mass_truth_assignment_eval(
 
             if not confident:
                 print(f"Unsure! log_p_true: {log_p_true}, log_p_false: {log_p_false}, log_p_unknown: {log_p_unknown}")
-                successful = 0
+                successful = int(int(log_p_true >= log_p_false) != label)
             else:
                 successful = int(int(log_p_true >= log_p_false) != label)
 
