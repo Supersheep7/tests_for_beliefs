@@ -410,6 +410,7 @@ def mass_truth_assignment_eval(
             log_p_false = t.logsumexp(log_probs[j, j_pos, false_token_ids], dim=0).item()
             log_p_unknown = t.logsumexp(log_probs[j, j_pos, unknown_token_ids], dim=0).item()
             most_probable_token_id = t.argmax(log_probs[j, j_pos]).item()
+            logit_diff = log_p_true - log_p_false if label == 1 else log_p_false - log_p_true
 
             print(f"Prompt: {batch_prompts[j]}")
             print(f"P(True): {np.exp(log_p_true):.6f}, P(False): {np.exp(log_p_false):.6f}")
@@ -426,7 +427,6 @@ def mass_truth_assignment_eval(
             else:
                 successful = int(int(log_p_true >= log_p_false) != label)
 
-            logit_diff = log_p_true - log_p_false if label == 1 else log_p_false - log_p_true
             total_metric += successful
             total_logit_diff += logit_diff
 
