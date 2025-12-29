@@ -398,6 +398,9 @@ def mass_truth_assignment_eval(
 
             topk_probs = topk_logp.exp()
             topk_tokens = model.tokenizer.convert_ids_to_tokens(topk_ids.tolist())
+            topk_log_probs, topk_ids = t.topk(log_probs[j, j_pos], k=5)
+            log_p_topk = t.logsumexp(topk_log_probs, dim=0)
+
 
             print("Top-5 tokens:")
             for tok, p in zip(topk_tokens, topk_probs.tolist()):
@@ -411,10 +414,10 @@ def mass_truth_assignment_eval(
             print(f"Prompt: {batch_prompts[j]}")
             print(f"P(True): {np.exp(log_p_true):.6f}, P(False): {np.exp(log_p_false):.6f}")
 
-            CONF_MARGIN = 0.5
+            CONF_MARGIN = 0.3
             confident = (
-                max(log_p_true, log_p_false) > log_p_unknown + CONF_MARGIN and
-                abs(log_p_true - log_p_false) > CONF_MARGIN
+                logit_diff > CONF_MARGIN and
+                max(log_p_true, log_p_false) > log_p_topk - CONF_MARGIN
             )
 
             if not confident:
