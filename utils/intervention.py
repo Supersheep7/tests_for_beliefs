@@ -366,7 +366,7 @@ def mass_truth_assignment_eval(
         batch_labels = labels[i:i+batch_size]
 
         batch_prompts = [
-            f"Determine whether the following statement is factually correct. Respond with exactly one of: True, False, Unknown. Answer Unknown unless you are certain. \n\n{stmt} \n\nAnswer:".rstrip()
+            f"S: Paris is the capital of France. A: True.\n\n S: The moon orbits the sun. A: False.\n\nS: {stmt} A:".rstrip()
             for stmt in batch_statements
         ]
 
