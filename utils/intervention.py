@@ -369,20 +369,12 @@ def mass_truth_assignment_eval(
         batch_labels = labels[i:i+batch_size]
 
         batch_prompts = [
-            f"Determine whether the following statement is factually correct. Respond with exactly one of: True, False, Unknown. If unsure, answer Unknown \n\n{stmt} \n\nAnswer:".rstrip()
+            f"Determine whether the following statement is factually correct. Respond with exactly one of: True, False, Unknown. If unsure, answer Unknown \n\n{stmt} This statement is: "
             for stmt in batch_statements
         ]
 
         tokens = model_baseline.to_tokens(batch_prompts)
         last_positions = (tokens != pad).sum(dim=1) - 1     # Change to - 0 for GPT-style models
-
-        with t.no_grad():
-            with t.amp.autocast(device_type='cuda', dtype=t.float16):
-                logits_baseline = model_baseline(tokens)
-        log_probs_baseline = t.nn.functional.log_softmax(logits_baseline, dim=-1)
-        log_p_true_baseline = t.logsumexp(log_probs_baseline[:, j_pos, true_token_ids], dim=-1)
-        log_p_false_baseline = t.logsumexp(log_probs_baseline[:, j_pos, false_token_ids], dim=-1)
-        baseline_diff = log_p_true_baseline - log_p_false_baseline
 
         if attn:
             model = full_intervention(model_baseline, activation_accuracies=activation_accuracies, activation_directions=activation_directions, K=k, alpha=alpha, verbose=verbose, last_positions=last_positions)
@@ -418,7 +410,7 @@ def mass_truth_assignment_eval(
             log_p_false = t.logsumexp(log_probs[j, j_pos, false_token_ids], dim=0).item()
             log_p_unknown = t.logsumexp(log_probs[j, j_pos, unknown_token_ids], dim=0).item()
             most_probable_token_id = t.argmax(log_probs[j, j_pos]).item()
-            logit_diff = (log_p_true - log_p_false if label == 1 else log_p_false - log_p_true) - baseline_diff[j]
+            logit_diff = (log_p_true - log_p_false if label == 1 else log_p_false - log_p_true)
 
             print(f"Prompt: {batch_prompts[j]}")
             print(f"P(True): {np.exp(log_p_true):.6f}, P(False): {np.exp(log_p_false):.6f}")
