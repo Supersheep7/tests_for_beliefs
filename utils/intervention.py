@@ -425,7 +425,7 @@ def mass_truth_assignment_eval(
     n = len(statements)
     tot_perc = total_metric / n
     tot_pd = total_prob_diff / n
-    return tot_perc,  t.sigmoid(t.tensor(tot_pd))
+    return tot_perc,  t.sigmoid(t.tensor(tot_pd)).half().item()
 
 ''' *** Distances *** '''
 
