@@ -240,19 +240,24 @@ def run_intervention(model_name=cfg["common"]["model"]):
                 full_results['sweep']['tf']['control'] = (boolp_t_control, probdiff_t_control)
             retry = input("Do you want to run another sweep? [y/n]: ").strip().lower()
             if retry != 'y':
-                saveplot = input("Do you want to save the plots? [y/n]: ").strip().lower()
-                if saveplot == 'y':
-                    for name, metric in zip(["BoolpTF", "ProbdiffTF", "BoolpFT", "ProbdiffFT"],[boolp_t, probdiff_t, boolp_f, probdiff_f]):
-                        plot_sweep(metric, k_list, alpha_list, title=name) 
                 break
     x_true, y_true, x_false, y_false = get_data('intervention')
     alpha_list = [0, float(input("Enter alpha value for False --> True: "))]
     print(alpha_list)
     k_list = [int(input("Enter k value for False --> True: "))]
+    print(k_list)
     alpha_list_flipped = [0, -float(input("Enter alpha value (absolute) for True --> False: "))]
+    print(alpha_list_flipped)
     k_list_flipped = [int(input("Enter k value for True --> False: "))]
-    print("True --> False k:", k_list_flipped, " alpha:", alpha_list_flipped)
-    print("False --> True k:", k_list, " alpha:", alpha_list)
+    print(k_list_flipped)
+    alpha_list_control = [0, float(input("Enter alpha value for False --> True: "))]
+    print(alpha_list_control)
+    k_list_control = [int(input("Enter k value for False --> True: "))]
+    print(k_list_control)
+    alpha_list_control_flipped = [0, -float(input("Enter alpha value (absolute) for True --> False: "))]
+    print(alpha_list_control_flipped)
+    k_list_control_flipped = [int(input("Enter k value for True --> False: "))]
+    print(k_list_control_flipped)
 
     full_results['fixed']['ft']['alpha'] = alpha_list
     full_results['fixed']['ft']['k'] = k_list
@@ -267,7 +272,7 @@ def run_intervention(model_name=cfg["common"]["model"]):
     if control:
         input("Press Enter to continue on the CONTROL directions...")
         print("Control False --> True...")
-        boolp_f_control, probdiff_f_control = parameter_sweep(model_baseline=model, prompts=x_false, activation_accuracies=accuracies, activation_directions=directions_control, ks=k_list, alphas=alpha_list, labels=y_false, attn=modality=='heads')
+        boolp_f_control, probdiff_f_control = parameter_sweep(model_baseline=model, prompts=x_false, activation_accuracies=accuracies, activation_directions=directions_control, ks=k_list_control, alphas=alpha_list_control, labels=y_false, attn=modality=='heads')
         print(boolp_f_control)
         print(probdiff_f_control)
         full_results['fixed']['ft']['control'] = (boolp_f_control, probdiff_f_control)
@@ -275,7 +280,7 @@ def run_intervention(model_name=cfg["common"]["model"]):
     input("Press Enter to continue on the next direction...")
 
     print("True --> False...")
-    boolp_t, probdiff_t = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list_flipped, labels=y_true, attn=modality=='heads')
+    boolp_t, probdiff_t = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions, ks=k_list_flipped, alphas=alpha_list_flipped, labels=y_true, attn=modality=='heads')
     print(boolp_t)
     print(probdiff_t)
 
@@ -284,7 +289,7 @@ def run_intervention(model_name=cfg["common"]["model"]):
     if control: 
         input("Press Enter to continue on the CONTROL directions...")
         print("Control True --> False...")
-        boolp_t_control, probdiff_t_control = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions_control, ks=k_list, alphas=alpha_list_flipped, labels=y_true, attn=modality=='heads')
+        boolp_t_control, probdiff_t_control = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions_control, ks=k_list_control_flipped, alphas=alpha_list_control_flipped, labels=y_true, attn=modality=='heads')
         print(boolp_t_control)
         print(probdiff_t_control)
         full_results['fixed']['tf']['control'] = (boolp_t_control, probdiff_t_control)
