@@ -375,7 +375,7 @@ def mass_truth_assignment_eval(
             ]
         elif model_family == 'gemma':
             batch_prompts = [
-                f"Determine whether the following statement is factually correct. Respond with exactly one of: True, False, Unknown. Answer Unknown unless you are certain. {stmt} Answer:"
+                f"Determine whether the following statement is factually correct. Respond with exactly one of: True, False, Unknown. Answer Unknown unless you are certain. {stmt} Answer:\n\n"
                 for stmt in batch_statements
             ]
         elif model_family == 'gpt':
@@ -399,6 +399,7 @@ def mass_truth_assignment_eval(
         log_probs = t.nn.functional.log_softmax(logits, dim=-1)
         seq_lens = (tokens != pad).sum(dim=1)
         last_positions = seq_lens - 1               # Change to - 0 for GPT-style models
+        
         last_token_log_probs = log_probs[:, -1, :]
 
         for j, label in enumerate(batch_labels):
