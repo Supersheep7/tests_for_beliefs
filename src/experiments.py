@@ -143,6 +143,7 @@ def run_accuracy(model_name=cfg["common"]["model"]):
 
 def run_intervention(model_name=cfg["common"]["model"]):
     model_family = model_name.split('_')[0].split('-')[0]
+    print("model family:", model_family)
     model = get_model(model_name=model_name)
     control = input("Do you want to use control directions, too? [y/n]: ").strip().lower() == 'y'
     while True:

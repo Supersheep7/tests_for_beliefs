@@ -366,6 +366,7 @@ def mass_truth_assignment_eval(
     for i in range(0, len(statements), batch_size):
         batch_statements = statements[i:i+batch_size]
         batch_labels = labels[i:i+batch_size]
+        print("Prompting in the style of", model_family)
         if model_family == 'llama':
             batch_prompts = [
                 f"Determine whether the following statement is factually correct. Respond with exactly one of: True, False, Unknown. Answer Unknown unless you are certain.\n{stmt}\nAnswer:".rstrip()
@@ -373,7 +374,7 @@ def mass_truth_assignment_eval(
             ]
         elif model_family == 'gemma':
             batch_prompts = [
-                f"Determine whether the following statement is factually correct. Respond with exactly one of: True, False, Unknown. Answer Unknown unless you are certain.\n{stmt} Answer:"
+                f"Determine whether the following statement is factually correct. Respond with exactly one of: True, False, Unknown. Answer Unknown unless you are certain. {stmt} Answer:"
                 for stmt in batch_statements
             ]
         elif model_family == 'gpt':
