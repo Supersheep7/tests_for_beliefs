@@ -196,9 +196,10 @@ def run_intervention(model_name=cfg["common"]["model"]):
     sweep = input("Do you want to run an intervention sweep? [y/n]: ").strip().lower() == 'y'
     if not sweep:
         full_results = nested_dict()
-        save_results(full_results, "intervention_scores", model=model_name, modality=modality, notes="debug")
     if sweep:
         while True:
+            save_results(full_results, "intervention_scores", model=model_name, modality=modality, notes="debug")
+            print("Saved results for debugging")
             full_results = nested_dict()
             x_true, y_true, x_false, y_false = get_data('intervention', sweep=True)
             print("Running intervention sweep...")
