@@ -14,6 +14,7 @@ from cfg import load_cfg
 from utils.intervention import *
 from coherence_experiments import run_coherence_neg, run_coherence_or, run_coherence_and, run_coherence_ifthen
 from collections import defaultdict
+import json
 cfg = load_cfg()
 
 def to_dict(d):
@@ -190,9 +191,16 @@ def run_intervention(model_name=cfg["common"]["model"]):
             break
         else:
             print("Invalid modality. Please choose 'residual' or 'heads'.")
+
+    def nested_dict():
+        return defaultdict(nested_dict)
+    
     sweep = input("Do you want to run an intervention sweep? [y/n]: ").strip().lower() == 'y'
+    if not sweep:
+        full_results = nested_dict()
     if sweep:
         while True:
+            full_results = nested_dict()
             x_true, y_true, x_false, y_false = get_data('intervention', sweep=True)
             print("Running intervention sweep...")
             alphas = input("Enter alpha values separated by commas (e.g., 1,3,5): ")
@@ -201,39 +209,41 @@ def run_intervention(model_name=cfg["common"]["model"]):
             print(alpha_list)
             alpha_list_flipped = [-a for a in alpha_list]
             k_list = [int(k.strip()) for k in ks.split(',')]
+            full_results['sweep']['alphas'] = alpha_list
+            full_results['sweep']['ks'] = k_list
             # Falses
             print("False --> True...")
             boolp_f, probdiff_f = parameter_sweep(model_baseline=model, prompts=x_false, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list, labels=y_false, attn=modality=='heads')
             print(boolp_f)
             print(probdiff_f)
+            full_results['sweep']['ft']['clean'] = (boolp_f, probdiff_f)
             if control: 
                 input("Press Enter to continue on the control directions...")
                 print("Control False --> True...")
                 boolp_f_control, probdiff_f_control = parameter_sweep(model_baseline=model, prompts=x_false, activation_accuracies=accuracies, activation_directions=directions_control, ks=k_list, alphas=alpha_list, labels=y_false, attn=modality=='heads')
                 print(boolp_f_control)
                 print(probdiff_f_control)
+                full_results['sweep']['ft']['control'] = (boolp_f_control, probdiff_f_control)
             input("Press Enter to continue on the next direction...")
             # Trues
             print("True --> False...")
             boolp_t, probdiff_t = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list_flipped, labels=y_true, attn=modality=='heads')
             print(boolp_t)
             print(probdiff_t)
+            full_results['sweep']['tf']['clean'] = (boolp_t, probdiff_t)
             if control: 
                 input("Press Enter to continue on the control directions...")
                 print("Control True --> False...")
                 boolp_t_control, probdiff_t_control = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions_control, ks=k_list, alphas=alpha_list_flipped, labels=y_true, attn=modality=='heads')
                 print(boolp_t_control)
                 print(probdiff_t_control)
+                full_results['sweep']['tf']['control'] = (boolp_t_control, probdiff_t_control)
             retry = input("Do you want to run another sweep? [y/n]: ").strip().lower()
             if retry != 'y':
                 saveplot = input("Do you want to save the plots? [y/n]: ").strip().lower()
                 if saveplot == 'y':
                     for name, metric in zip(["BoolpTF", "ProbdiffTF", "BoolpFT", "ProbdiffFT"],[boolp_t, probdiff_t, boolp_f, probdiff_f]):
                         plot_sweep(metric, k_list, alpha_list, title=name) 
-                save_results(boolp_t, "intervention_sweep", model=model_name, direction='tf', notes=f"boolp_ks_{ks}_alphas_{alphas}", modality=modality)
-                save_results(boolp_f, "intervention_sweep", model=model_name, direction='ft', notes=f"boolp_ks_{ks}_alphas_{alphas}", modality=modality)
-                save_results(probdiff_t, "intervention_sweep", model=model_name, direction='tf', notes=f"pdiff_ks_{ks}_alphas_{alphas}", modality=modality)
-                save_results(probdiff_f, "intervention_sweep", model=model_name, direction='ft', notes=f"pdiff_ks_{ks}_alphas_{alphas}", modality=modality)   
                 break
     x_true, y_true, x_false, y_false = get_data('intervention')
     alpha_list = [0, float(input("Enter alpha value for False --> True: "))]
@@ -243,17 +253,28 @@ def run_intervention(model_name=cfg["common"]["model"]):
     k_list_flipped = [int(input("Enter k value for True --> False: "))]
     print("True --> False k:", k_list_flipped, " alpha:", alpha_list_flipped)
     print("False --> True k:", k_list, " alpha:", alpha_list)
+
+    full_results['fixed']['ft']['alpha'] = alpha_list
+    full_results['fixed']['ft']['k'] = k_list
+    full_results['fixed']['tf']['alpha'] = alpha_list_flipped
+    full_results['fixed']['tf']['k'] = k_list_flipped
+
     # Trues
     print("True --> False...")
     boolp_t, probdiff_t = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list_flipped, labels=y_true, attn=modality=='heads')
     print(boolp_t)
     print(probdiff_t)
+
+    full_results['fixed']['tf']['clean'] = (boolp_t, probdiff_t)
+
     if control: 
         input("Press Enter to continue on the control directions...")
         print("Control True --> False...")
         boolp_t_control, probdiff_t_control = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions_control, ks=k_list, alphas=alpha_list_flipped, labels=y_true, attn=modality=='heads')
         print(boolp_t_control)
         print(probdiff_t_control)
+        full_results['fixed']['tf']['control'] = (boolp_t_control, probdiff_t_control)
+
     save_results(boolp_t, "intervention_scores", model=model_name, direction='tf', k=k_list_flipped[-1], alpha=alpha_list_flipped[-1], notes=f"boolp", modality=modality)
     save_results(probdiff_t, "intervention_scores", model=model_name, direction='tf', k=k_list_flipped[-1], alpha=alpha_list_flipped[-1], notes=f"probdiff", modality=modality)
     input("Press Enter to continue on the next direction...")
@@ -262,14 +283,16 @@ def run_intervention(model_name=cfg["common"]["model"]):
     boolp_f, probdiff_f = parameter_sweep(model_baseline=model, prompts=x_false, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list, labels=y_false, attn=modality=='heads')
     print(boolp_f)
     print(probdiff_f)
+    full_results['fixed']['ft']['clean'] = (boolp_f, probdiff_f)
     if control:
         input("Press Enter to continue on the control directions...")
         print("Control False --> True...")
         boolp_f_control, probdiff_f_control = parameter_sweep(model_baseline=model, prompts=x_false, activation_accuracies=accuracies, activation_directions=directions_control, ks=k_list, alphas=alpha_list, labels=y_false, attn=modality=='heads')
         print(boolp_f_control)
         print(probdiff_f_control)
-    save_results(boolp_f, "intervention_scores", model=model_name, direction='ft', k=k_list[-1], alpha=alpha_list[-1], notes=f"boolp", modality=modality)
-    save_results(probdiff_f, "intervention_scores", model=model_name, direction='ft', k=k_list[-1], alpha=alpha_list[-1], notes=f"probdiff", modality=modality)
+        full_results['fixed']['ft']['control'] = (boolp_f_control, probdiff_f_control)
+    full_results = json.loads(json.dumps(full_results))
+    save_results(full_results, "intervention_scores", model=model_name, modality=modality)
     return
 
 def run_coherence(model_name=cfg["common"]["model"]):
