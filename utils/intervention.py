@@ -375,7 +375,7 @@ def mass_truth_assignment_eval(
             ]
         elif model_family == 'gemma':
             batch_prompts = [
-                f"Determine whether the following statement is factually correct. Respond with exactly one of: True, False, Unknown. Answer Unknown unless you are certain. {stmt} Answer:\n\n"
+                f"Determine whether the following statement is factually correct. Respond with exactly one of: True, False, Unknown. Answer Unknown unless you are certain. Statement: {stmt} This statement is".rstrip()
                 for stmt in batch_statements
             ]
         elif model_family == 'gpt':
