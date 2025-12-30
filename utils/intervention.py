@@ -329,7 +329,8 @@ def parameter_sweep(model_baseline: HookedTransformer,
                                                                                                         activation_directions=activation_directions,
                                                                                                         k=k,
                                                                                                         alpha=alpha,
-                                                                                                        verbose=verbose
+                                                                                                        verbose=verbose,
+                                                                                                        model_family=model_family
                                                                                                         )
         if metric == 'boolprobs':
             return metrics, prob_diff
