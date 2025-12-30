@@ -8,6 +8,7 @@ if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))
 from src.cfg import load_cfg
 from datetime import datetime
+from collections import defaultdict
 cfg = load_cfg()
 
 def force_format(*items, format='tensor', device=None):
@@ -89,6 +90,9 @@ def get_top_entries(accuracies, n=5):
 
     else:
         raise ValueError("Input must be 1D or 2D.")
+
+def nested_dict():
+        return defaultdict(nested_dict)
 
 def save_results(item, datatype, model, modality='residual', k=0, alpha=0, direction='', notes=""):
 

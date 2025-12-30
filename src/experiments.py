@@ -14,6 +14,7 @@ from cfg import load_cfg
 from utils.intervention import *
 from coherence_experiments import run_coherence_neg, run_coherence_or, run_coherence_and, run_coherence_ifthen
 from collections import defaultdict
+from utils.funcs import nested_dict
 import json
 cfg = load_cfg()
 
@@ -191,13 +192,11 @@ def run_intervention(model_name=cfg["common"]["model"]):
             break
         else:
             print("Invalid modality. Please choose 'residual' or 'heads'.")
-
-    def nested_dict():
-        return defaultdict(nested_dict)
     
     sweep = input("Do you want to run an intervention sweep? [y/n]: ").strip().lower() == 'y'
     if not sweep:
         full_results = nested_dict()
+        save_results(full_results, "intervention_scores", model=model_name, modality=modality, notes="debug")
     if sweep:
         while True:
             full_results = nested_dict()
