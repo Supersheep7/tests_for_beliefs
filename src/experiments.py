@@ -250,13 +250,13 @@ def run_intervention(model_name=cfg["common"]["model"]):
     print(alpha_list_flipped)
     k_list_flipped = [int(input("Enter k value for True --> False: "))]
     print(k_list_flipped)
-    alpha_list_control = [0, float(input("Enter alpha value for False --> True: "))]
+    alpha_list_control = [0, float(input("Enter CONTROL alpha value for False --> True: "))]
     print(alpha_list_control)
-    k_list_control = [int(input("Enter k value for False --> True: "))]
+    k_list_control = [int(input("Enter CONTROL k value for False --> True: "))]
     print(k_list_control)
-    alpha_list_control_flipped = [0, -float(input("Enter alpha value (absolute) for True --> False: "))]
+    alpha_list_control_flipped = [0, -float(input("Enter CONTROL alpha value (absolute) for True --> False: "))]
     print(alpha_list_control_flipped)
-    k_list_control_flipped = [int(input("Enter k value for True --> False: "))]
+    k_list_control_flipped = [int(input("Enter CONTROL k value for True --> False: "))]
     print(k_list_control_flipped)
 
     full_results['fixed']['ft']['alpha'] = alpha_list
