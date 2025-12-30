@@ -198,9 +198,9 @@ def run_intervention(model_name=cfg["common"]["model"]):
         full_results = nested_dict()
     if sweep:
         while True:
+            full_results = nested_dict()
             save_results(full_results, "intervention_scores", model=model_name, modality=modality, notes="debug")
             print("Saved results for debugging")
-            full_results = nested_dict()
             x_true, y_true, x_false, y_false = get_data('intervention', sweep=True)
             print("Running intervention sweep...")
             alphas = input("Enter alpha values separated by commas (e.g., 1,3,5): ")
