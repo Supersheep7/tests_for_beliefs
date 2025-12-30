@@ -263,6 +263,10 @@ def run_intervention(model_name=cfg["common"]["model"]):
     full_results['fixed']['ft']['k'] = k_list
     full_results['fixed']['tf']['alpha'] = alpha_list_flipped
     full_results['fixed']['tf']['k'] = k_list_flipped
+    full_results['fixed']['ft']['alpha_control'] = alpha_list_control
+    full_results['fixed']['ft']['k_control'] = k_list_control
+    full_results['fixed']['tf']['alpha_control'] = alpha_list_control_flipped
+    full_results['fixed']['tf']['k_control'] = k_list_control_flipped
 
     print("False --> True...")
     boolp_f, probdiff_f = parameter_sweep(model_baseline=model, prompts=x_false, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list, labels=y_false, attn=modality=='heads')
