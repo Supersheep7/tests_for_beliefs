@@ -408,19 +408,28 @@ def mass_truth_assignment_eval(
             # log-probs at final position
             lp = log_probs[j, j_pos]          # shape: [vocab_size]
 
-            # top-5
-            topk_logp, topk_ids = t.topk(lp, k=5)
+            if model_family == 'gemma':
+                # filter out whitespace/newline tokens for Gemma
+                all_tokens = model.tokenizer.convert_ids_to_tokens(list(range(lp.shape[0])))
+                valid_ids = [i for i, tok in enumerate(all_tokens) if tok.strip() != '']
 
-            topk_probs = topk_logp.exp()
-            topk_tokens = model.tokenizer.convert_ids_to_tokens(topk_ids.tolist())
+                lp_filtered = lp[valid_ids]  # filtered log-probs
 
-            print("Top-5 tokens:")
-            for tok, p in zip(topk_tokens, topk_probs.tolist()):
-                print(f"  {tok!r}: {p:.6f}")
-            log_p_true = t.logsumexp(log_probs[j, last_positions[j], true_token_ids], dim=0).item()
-            log_p_false = t.logsumexp(log_probs[j, last_positions[j], false_token_ids], dim=0).item()
-            j_pos = last_positions[j].item()
-            most_probable_token_id = t.argmax(log_probs[j, j_pos]).item()
+                # True/False sums using filtered token IDs
+                true_ids_filtered = [i for i in true_token_ids if i in valid_ids]
+                false_ids_filtered = [i for i in false_token_ids if i in valid_ids]
+
+                log_p_true = t.logsumexp(lp_filtered[t.tensor(true_ids_filtered)], dim=0).item()
+                log_p_false = t.logsumexp(lp_filtered[t.tensor(false_ids_filtered)], dim=0).item()
+
+                most_probable_idx = t.argmax(lp_filtered).item()
+                most_probable_token_id = valid_ids[most_probable_idx]
+            else:
+                # old behavior: use original log-probs
+                log_p_true = t.logsumexp(lp[true_token_ids], dim=0).item()
+                log_p_false = t.logsumexp(lp[false_token_ids], dim=0).item()
+                most_probable_token_id = t.argmax(lp).item()
+
             most_probable_token = model.tokenizer.convert_ids_to_tokens([most_probable_token_id])[0]
             most_probable_prob = log_probs[j, j_pos, most_probable_token_id].exp().item()
             THRESHOLD = 0.2
