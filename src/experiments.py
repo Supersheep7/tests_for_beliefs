@@ -142,7 +142,7 @@ def run_accuracy(model_name=cfg["common"]["model"]):
     return
 
 def run_intervention(model_name=cfg["common"]["model"]):
-
+    model_family = model_name.split('_')[0].split('-')[0]
     model = get_model(model_name=model_name)
     control = input("Do you want to use control directions, too? [y/n]: ").strip().lower() == 'y'
     while True:
@@ -213,28 +213,28 @@ def run_intervention(model_name=cfg["common"]["model"]):
             full_results['sweep']['ks'] = k_list
             # Falses
             print("False --> True...")
-            boolp_f, probdiff_f = parameter_sweep(model_baseline=model, prompts=x_false, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list, labels=y_false, attn=modality=='heads')
+            boolp_f, probdiff_f = parameter_sweep(model_baseline=model, prompts=x_false, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list, labels=y_false, attn=modality=='heads', model_family=model_family)
             print(boolp_f)
             print(probdiff_f)
             full_results['sweep']['ft']['clean'] = (boolp_f, probdiff_f)
             if control: 
                 input("Press Enter to continue on the control directions...")
                 print("Control False --> True...")
-                boolp_f_control, probdiff_f_control = parameter_sweep(model_baseline=model, prompts=x_false, activation_accuracies=accuracies, activation_directions=directions_control, ks=k_list, alphas=alpha_list, labels=y_false, attn=modality=='heads')
+                boolp_f_control, probdiff_f_control = parameter_sweep(model_baseline=model, prompts=x_false, activation_accuracies=accuracies, activation_directions=directions_control, ks=k_list, alphas=alpha_list, labels=y_false, attn=modality=='heads', model_family=model_family)
                 print(boolp_f_control)
                 print(probdiff_f_control)
                 full_results['sweep']['ft']['control'] = (boolp_f_control, probdiff_f_control)
             input("Press Enter to continue on the next direction...")
             # Trues
             print("True --> False...")
-            boolp_t, probdiff_t = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list_flipped, labels=y_true, attn=modality=='heads')
+            boolp_t, probdiff_t = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list_flipped, labels=y_true, attn=modality=='heads', model_family=model_family)
             print(boolp_t)
             print(probdiff_t)
             full_results['sweep']['tf']['clean'] = (boolp_t, probdiff_t)
             if control: 
                 input("Press Enter to continue on the control directions...")
                 print("Control True --> False...")
-                boolp_t_control, probdiff_t_control = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions_control, ks=k_list, alphas=alpha_list_flipped, labels=y_true, attn=modality=='heads')
+                boolp_t_control, probdiff_t_control = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions_control, ks=k_list, alphas=alpha_list_flipped, labels=y_true, attn=modality=='heads', model_family=model_family)
                 print(boolp_t_control)
                 print(probdiff_t_control)
                 full_results['sweep']['tf']['control'] = (boolp_t_control, probdiff_t_control)
@@ -269,14 +269,14 @@ def run_intervention(model_name=cfg["common"]["model"]):
     full_results['fixed']['tf']['k_control'] = k_list_control_flipped
 
     print("False --> True...")
-    boolp_f, probdiff_f = parameter_sweep(model_baseline=model, prompts=x_false, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list, labels=y_false, attn=modality=='heads')
+    boolp_f, probdiff_f = parameter_sweep(model_baseline=model, prompts=x_false, activation_accuracies=accuracies, activation_directions=directions, ks=k_list, alphas=alpha_list, labels=y_false, attn=modality=='heads', model_family=model_family)
     print(boolp_f)
     print(probdiff_f)
     full_results['fixed']['ft']['clean'] = (boolp_f, probdiff_f)
     if control:
         input("Press Enter to continue on the CONTROL directions...")
         print("Control False --> True...")
-        boolp_f_control, probdiff_f_control = parameter_sweep(model_baseline=model, prompts=x_false, activation_accuracies=accuracies, activation_directions=directions_control, ks=k_list_control, alphas=alpha_list_control, labels=y_false, attn=modality=='heads')
+        boolp_f_control, probdiff_f_control = parameter_sweep(model_baseline=model, prompts=x_false, activation_accuracies=accuracies, activation_directions=directions_control, ks=k_list_control, alphas=alpha_list_control, labels=y_false, attn=modality=='heads', model_family=model_family)
         print(boolp_f_control)
         print(probdiff_f_control)
         full_results['fixed']['ft']['control'] = (boolp_f_control, probdiff_f_control)
@@ -284,7 +284,7 @@ def run_intervention(model_name=cfg["common"]["model"]):
     input("Press Enter to continue on the next direction...")
 
     print("True --> False...")
-    boolp_t, probdiff_t = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions, ks=k_list_flipped, alphas=alpha_list_flipped, labels=y_true, attn=modality=='heads')
+    boolp_t, probdiff_t = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions, ks=k_list_flipped, alphas=alpha_list_flipped, labels=y_true, attn=modality=='heads', model_family=model_family)
     print(boolp_t)
     print(probdiff_t)
 
@@ -293,7 +293,7 @@ def run_intervention(model_name=cfg["common"]["model"]):
     if control: 
         input("Press Enter to continue on the CONTROL directions...")
         print("Control True --> False...")
-        boolp_t_control, probdiff_t_control = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions_control, ks=k_list_control_flipped, alphas=alpha_list_control_flipped, labels=y_true, attn=modality=='heads')
+        boolp_t_control, probdiff_t_control = parameter_sweep(model_baseline=model, prompts=x_true, activation_accuracies=accuracies, activation_directions=directions_control, ks=k_list_control_flipped, alphas=alpha_list_control_flipped, labels=y_true, attn=modality=='heads', model_family=model_family)
         print(boolp_t_control)
         print(probdiff_t_control)
         full_results['fixed']['tf']['control'] = (boolp_t_control, probdiff_t_control)

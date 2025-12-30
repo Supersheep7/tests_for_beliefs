@@ -299,7 +299,8 @@ def parameter_sweep(model_baseline: HookedTransformer,
                     verbose: bool = True,
                     shots: List = None,
                     labels: List[int] = None,
-                    attn: bool = True
+                    attn: bool = True,
+                    model_family: str = 'llama'
                     ) -> np.array:
 
     with t.no_grad():
@@ -346,7 +347,8 @@ def mass_truth_assignment_eval(
               false_tokens: List[str] = ['false','Ġfalse','False','ĠFalse','▁false','▁False'],
               attn = True,
               shots: List[str] = None,
-              batch_size: int = 100
+              batch_size: int = 100,
+              model_family: str = 'llama'
               ) -> float:
 
     """
@@ -364,11 +366,22 @@ def mass_truth_assignment_eval(
     for i in range(0, len(statements), batch_size):
         batch_statements = statements[i:i+batch_size]
         batch_labels = labels[i:i+batch_size]
+        if model_family == 'llama':
+            batch_prompts = [
+                f"Determine whether the following statement is factually correct. Respond with exactly one of: True, False, Unknown. Answer Unknown unless you are certain.\n{stmt}\nAnswer:".rstrip()
+                for stmt in batch_statements
+            ]
+        elif model_family == 'gemma':
+            batch_prompts = [
+                f"Determine whether the following statement is factually correct. Respond with exactly one of: True, False, Unknown. Answer Unknown unless you are certain.\n{stmt} Answer:"
+                for stmt in batch_statements
+            ]
+        elif model_family == 'gpt':
+            batch_prompts = [
+                f"Determine whether the following statement is factually correct. Respond with exactly one of: True, False, Unknown. Answer Unknown unless you are certain.\n{stmt}\nAnswer:".rstrip()
+                for stmt in batch_statements
+            ]
 
-        batch_prompts = [
-            f"Determine whether the following statement is factually correct. Respond with exactly one of: True, False, Unknown. Answer Unknown unless you are certain.\n{stmt}\nAnswer: "
-            for stmt in batch_statements
-        ]
 
         tokens = model_baseline.to_tokens(batch_prompts)
         last_positions = (tokens != pad).sum(dim=1) - 1     # Change to - 0 for GPT-style models
