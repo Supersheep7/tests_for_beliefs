@@ -380,7 +380,7 @@ def mass_truth_assignment_eval(
             ]
         elif model_family == 'gpt':
             batch_prompts = [
-                f"Determine whether the following statement is factually correct. Respond with exactly one of: True, False, Unknown. Answer Unknown unless you are certain.\n{stmt}\nAnswer: ".rstrip()
+                f"Determine whether the following statement is factually correct. Respond with exactly one of: True, False, Unknown. Answer Unknown unless you are certain.\n{stmt}\nAnswer: "
                 for stmt in batch_statements
             ]
 
