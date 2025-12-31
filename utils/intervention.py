@@ -380,7 +380,7 @@ def mass_truth_assignment_eval(
             ]
         elif model_family == 'gpt':
             batch_prompts = [
-                f"Determine whether the following statement is factually correct. Respond with exactly one of: True, False, Unknown. Answer Unknown unless you are certain.\n{stmt}\nAnswer:".rstrip()
+                f"Determine whether the following statement is factually correct. Respond with exactly one of: True, False, Unknown. Answer Unknown unless you are certain.\n{stmt}\nAnswer: ".rstrip()
                 for stmt in batch_statements
             ]
 
@@ -423,7 +423,7 @@ def mass_truth_assignment_eval(
             most_probable_token_id = t.argmax(log_probs[j, j_pos]).item()
             most_probable_token = model.tokenizer.convert_ids_to_tokens([most_probable_token_id])[0]
             most_probable_prob = log_probs[j, j_pos, most_probable_token_id].exp().item()
-            THRESHOLD = 0.2
+            THRESHOLD = 0.2 if model_family in ['llama','gpt'] else 0.15
 
             print(f"Prompt: {batch_prompts[j]}")
             print(f"P(True): {np.exp(log_p_true):.6f}, P(False): {np.exp(log_p_false):.6f}")
@@ -445,6 +445,9 @@ def mass_truth_assignment_eval(
     SCALE_PROBA = 5     # scale to make the effects more visible
 
     return tot_perc,  t.sigmoid(t.tensor(tot_pd*SCALE_PROBA)).half().item()
+
+
+
 
 ''' *** Distances *** '''
 
