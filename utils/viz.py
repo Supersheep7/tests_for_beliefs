@@ -36,12 +36,11 @@ def get_direction(data, labels, pipeline):
     pipeline.fit(data, labels)
 
     logreg = pipeline.named_steps["logreg"]
-    theta = np.hstack([logreg.intercept_[0], logreg.coef_[0]])
-    return theta / np.linalg.norm(theta)
+    return logreg.coef_[0] / np.linalg.norm(logreg.coef_[0])  # NO intercept
 
 
 def get_direction_with_constraint(data, labels, pipeline, first_direction):
-    # Orthogonalize in scaled space (use raw data if pipeline includes scaling)
+    # Orthogonalize in feature space
     proj = data @ first_direction
     data_orth = data - np.outer(proj, first_direction) / np.dot(first_direction, first_direction)
 
@@ -49,8 +48,7 @@ def get_direction_with_constraint(data, labels, pipeline, first_direction):
     pipeline.fit(data_orth, labels)
 
     logreg = pipeline.named_steps["logreg"]
-    theta = np.hstack([logreg.intercept_[0], logreg.coef_[0]])
-    return theta / np.linalg.norm(theta)
+    return logreg.coef_[0] / np.linalg.norm(logreg.coef_[0])  # NO intercept
 
 
 # ---------------------- PLOTTING FUNCTIONS ----------------------
@@ -217,11 +215,9 @@ def plot_kde_scatter(data, labels, n_dir=2, zoom_strength=0,
                 ])
 
     first_dir = get_direction(data, labels, model)
-    first_proj = data @ first_dir[1:] + first_dir[0]
-
-    second_dir = get_direction_with_constraint(
-        data, labels, model, first_dir)
-    second_proj = data @ second_dir[1:] + second_dir[0]
+    first_proj = data @ first_dir  # no intercept
+    second_dir = get_direction_with_constraint(data, labels, model, first_dir)
+    second_proj = data @ second_dir  # no intercept
 
     probe_df = pd.DataFrame({
         'First direction': first_proj,
