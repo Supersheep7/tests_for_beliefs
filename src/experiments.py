@@ -44,7 +44,7 @@ def run_visualizations(model_name=cfg["common"]["model"]):
     for layer, layer_heads in tqdm(enumerate(heads), "Layer accessed..."):
         row = []
         for head, head_data in tqdm(enumerate(layer_heads), "Head compression..."):
-            print(head_data)
+            # print(head_data)
             pca_df, probe_df = plot_kde_scatter(data=head_data, labels=labels)
             row.append((pca_df, probe_df))
         full_heads.append(row)
