@@ -209,7 +209,7 @@ def plot_kde_scatter(data, labels, n_dir=2, zoom_strength=0,
     model = Pipeline([
                     ("scaler", StandardScaler()),
                     ("logreg", LogisticRegression(
-                        max_iter=1000,
+                        max_iter=300,
                         n_jobs=-1,
                         solver="lbfgs",
                         multi_class="auto"
@@ -217,12 +217,11 @@ def plot_kde_scatter(data, labels, n_dir=2, zoom_strength=0,
                 ])
 
     first_dir = get_direction(data, labels, model)
-    data_with_bias = np.hstack([np.ones((data.shape[0], 1)), data])
-    first_proj = np.dot(data_with_bias, first_dir)
+    first_proj = data @ first_dir[1:] + first_dir[0]
 
     second_dir = get_direction_with_constraint(
-        data_with_bias, labels, model, first_dir)
-    second_proj = np.dot(data_with_bias, second_dir)
+        data, labels, model, first_dir)
+    second_proj = data @ second_dir[1:] + second_dir[0]
 
     probe_df = pd.DataFrame({
         'First direction': first_proj,
