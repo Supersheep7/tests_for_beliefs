@@ -107,7 +107,8 @@ def save_results(item, datatype, model, modality='residual', k=0, alpha=0, direc
         "intervention_scores": f"intervention_scores_{modality}",
         "intervention_sweep": f"intervention_sweep_{modality}",
         "uniformity": f"uniformity_{modality}",
-        "coherence_scores": f"coherence_scores"
+        "coherence_scores": f"coherence_scores",
+        "viz": f"acts_for_viz"
     }
 
     if datatype not in filename_map:
@@ -119,6 +120,8 @@ def save_results(item, datatype, model, modality='residual', k=0, alpha=0, direc
         path = base_dir / model / cfg["probe"]["probe_type"] / (f"k{k}"f"alpha{alpha}"f"{filename_map[datatype]}"f"{direction}"f"{notes}")
     elif datatype == "coherence_scores":
         path = base_dir / model / (filename_map[datatype]+notes)
+    elif datatype == "viz":
+        path = base_dir / model / (f"{filename_map[datatype]}_{modality}")
     else:
         path = base_dir / model / cfg["probe"]["probe_type"] / (filename_map[datatype]+notes)
 

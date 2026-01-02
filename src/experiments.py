@@ -32,44 +32,12 @@ def asker_kde(model_name=cfg["common"]["model"]):
     return zoom_strength, offset, kernel, scatter, pca_mod    
 
 def run_visualizations(model_name=cfg["common"]["model"]):
-    print(f"Running visualizations")
-    while True:
-        modality = input("Choose the target ['residual', 'heads']: ").strip().lower()
-        print("Running experiment on ", modality)
-        if modality not in ['residual', 'heads']:
-            print("Invalid modality. Please choose 'residual' or 'heads'.")
-        else: 
-            break
     model = get_model(model_name=model_name)
     data = get_data()
-    if modality == 'residual':
-        activations, labels = get_activations(model, data, 'residual', model_name=model_name)
-        while True:
-            layer = int(input("Enter the layer number for visualization: "))
-            if 0 <= layer < len(activations):
-                break
-            print(f"Invalid layer number. Please enter a number between 0 and {len(activations)-1}.")
-        while True:
-            zoom_strength, offset, kernel, scatter, pca_mod = asker_kde()
-            plot_kde_scatter(data=activations[layer], labels=labels, model=model, zoom_strength=zoom_strength, offset=offset, kernel=kernel, scatter=scatter, pca=pca_mod)
-            retry = input("Do you want to adjust parameters and re-plot? [y/n]: ").strip().lower()
-            if retry != 'y':
-                break
-    elif modality == 'heads':
-        activations, labels = get_activations(model, data, 'heads', model_name=model_name)
-        heads = [decompose_mha(x) for x in activations.values()]
-        while True:
-            layer = int(input("Enter the layer number for visualization: "))
-            head = int(input("Enter the head number for visualization: "))
-            if 0 <= layer < len(activations) and 0 <= head < len(activations[layer]):
-                break
-            print(f"Invalid layer or head number. Please enter valid numbers.")
-        while True:
-            zoom_strength, offset, kernel, scatter, pca_mod = asker_kde()
-            plot_kde_scatter(data=activations[layer][head], labels=labels, model=model, zoom_strength=zoom_strength, offset=offset, kernel=kernel, scatter=scatter, pca=pca_mod)
-            retry = input("Do you want to adjust parameters and re-plot? [y/n]: ").strip().lower()
-            if retry != 'y':
-                break         
+    activations_res, labels_res = get_activations(model, data, 'residual', model_name=model_name)
+    activations_heads, labels_heads = get_activations(model, data, 'heads', model_name=model_name)
+    save_results((activations_res, labels_res), "acts_for_viz", model=model_name, modality="residual")         
+    save_results((activations_heads, labels_heads), "acts_for_viz", model=model_name, modality="heads")         
 
 def run_accuracy(model_name=cfg["common"]["model"]):
     print(f"Running experiment: accuracy")
