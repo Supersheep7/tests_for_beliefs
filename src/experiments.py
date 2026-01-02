@@ -38,18 +38,18 @@ def run_visualizations(model_name=cfg["common"]["model"]):
     print("Residual....")
     activations, labels = get_activations(model, data, 'residual', model_name=model_name)
     full_residual = []
-    for layer, acts in activations.items():
-        pca_df, probe_df = plot_kde_scatter(data=acts, labels=labels, model=model)
+    for layer, acts in tqdm(activations.items(), desc="Residual compression..."):
+        pca_df, probe_df = plot_kde_scatter(data=acts, labels=labels)
         full_residual.append((pca_df, probe_df))
     print("Heads...")
     activations, labels = get_activations(model, data, 'heads', model_name=model_name)
     heads = [decompose_mha(x) for x in activations.values()]
     print("Debug", heads)
     full_heads = []
-    for layer, layer_heads in enumerate(heads):
+    for layer, layer_heads in tqdm(enumerate(heads), "Layer accessed..."):
         row = []
-        for head, head_data in enumerate(layer_heads):
-            pca_df, probe_df = plot_kde_scatter(data=head_data, labels=labels, model=model)
+        for head, head_data in tqdm(enumerate(layer_heads), "Head compression..."):
+            pca_df, probe_df = plot_kde_scatter(data=head_data, labels=labels)
             row.append((pca_df, probe_df))
         full_heads.append(row)
         
