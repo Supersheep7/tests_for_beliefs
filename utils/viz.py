@@ -11,6 +11,8 @@ from sklearn.preprocessing import StandardScaler
 from scipy.stats import gaussian_kde
 from sklearn.base import clone
 import os
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import LogisticRegression
 from datetime import datetime
 
 
@@ -29,26 +31,25 @@ def save_fig(name):
 
 # ---------------------- DIRECTION FUNCTIONS ----------------------
 
-def get_direction(data, labels, model):
-    model = clone(model)
-    model.fit(data, labels)
-    coefficients = model.coef_[0]
-    intercept = model.intercept_[0]
-    theta = np.hstack([intercept, coefficients])
+def get_direction(data, labels, pipeline):
+    pipeline = clone(pipeline)
+    pipeline.fit(data, labels)
+
+    logreg = pipeline.named_steps["logreg"]
+    theta = np.hstack([logreg.intercept_[0], logreg.coef_[0]])
     return theta / np.linalg.norm(theta)
 
 
-def get_direction_with_constraint(data, labels, model, first_direction):
+def get_direction_with_constraint(data, labels, pipeline, first_direction):
+    # Orthogonalize in scaled space (use raw data if pipeline includes scaling)
+    proj = data @ first_direction
+    data_orth = data - np.outer(proj, first_direction) / np.dot(first_direction, first_direction)
 
-    projection_on_theta1 = np.dot(data, first_direction)
-    data_orthogonalized = data - np.outer(
-        projection_on_theta1, first_direction
-    ) / np.dot(first_direction, first_direction)
+    pipeline = clone(pipeline)
+    pipeline.fit(data_orth, labels)
 
-    model = clone(model)
-    model.fit(data_orthogonalized[:, 1:], labels)
-
-    theta = np.hstack([model.intercept_[0], model.coef_[0]])
+    logreg = pipeline.named_steps["logreg"]
+    theta = np.hstack([logreg.intercept_[0], logreg.coef_[0]])
     return theta / np.linalg.norm(theta)
 
 
@@ -173,7 +174,7 @@ def kde(data, x, y, labels, x_label, y_label, title,
     plt.close("all")
 
 
-def plot_kde_scatter(data, labels, model, n_dir=2, zoom_strength=0,
+def plot_kde_scatter(data, labels, n_dir=2, zoom_strength=0,
                      offset=1, kernel=True, scatter=True, pca=False):
 
     assert data.shape[0] == labels.shape[0]
@@ -205,10 +206,19 @@ def plot_kde_scatter(data, labels, model, n_dir=2, zoom_strength=0,
         'Label': ['False' if l == 0 else 'True' for l in labels]
     })
 
+    model = Pipeline([
+                    ("scaler", StandardScaler()),
+                    ("logreg", LogisticRegression(
+                        max_iter=1000,
+                        n_jobs=-1,
+                        solver="lbfgs",
+                        multi_class="auto"
+                    ))
+                ])
+
     first_dir = get_direction(data, labels, model)
     data_with_bias = np.hstack([np.ones((data.shape[0], 1)), data])
     first_proj = np.dot(data_with_bias, first_dir)
-
 
     second_dir = get_direction_with_constraint(
         data_with_bias, labels, model, first_dir)
