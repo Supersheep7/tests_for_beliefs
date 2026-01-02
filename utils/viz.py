@@ -191,93 +191,36 @@ def plot_kde_scatter(data, labels, model, n_dir=2, zoom_strength=0,
     scaler = StandardScaler()
     data = scaler.fit_transform(data)
 
-    if pca:
-        pca_model = PCA(n_components=2)
-        pca_projections = pca_model.fit_transform(data)
+    pca_model = PCA(n_components=2)
+    pca_projections = pca_model.fit_transform(data)
 
-        x_min, x_max = np.percentile(
-            pca_projections[:, 0], [0+zoom_strength, 100-zoom_strength])
-        y_min, y_max = np.percentile(
-            pca_projections[:, 1], [0+zoom_strength, 100-zoom_strength])
+    x_min, x_max = np.percentile(
+        pca_projections[:, 0], [0+zoom_strength, 100-zoom_strength])
+    y_min, y_max = np.percentile(
+        pca_projections[:, 1], [0+zoom_strength, 100-zoom_strength])
 
-        df = pd.DataFrame({
-            'PCA1': pca_projections[:, 0],
-            'PCA2': pca_projections[:, 1],
-            'Label': ['False' if l == 0 else 'True' for l in labels]
-        })
-
-        kde(
-            data=df,
-            x='PCA1',
-            y='PCA2',
-            labels='Label',
-            x_label='PCA1',
-            y_label='PCA2',
-            title="PCA_with_KDE",
-            x_range=(x_min, x_max),
-            y_range=(y_min, y_max),
-            kernel=kernel,
-            scatter=scatter,
-            offset=offset
-        )
-        return
+    pca_df = pd.DataFrame({
+        'PCA1': pca_projections[:, 0],
+        'PCA2': pca_projections[:, 1],
+        'Label': ['False' if l == 0 else 'True' for l in labels]
+    })
 
     first_dir = get_direction(data, labels, model)
     data_with_bias = np.hstack([np.ones((data.shape[0], 1)), data])
     first_proj = np.dot(data_with_bias, first_dir)
 
-    if n_dir == 1:
-        x_min, x_max = np.percentile(
-            first_proj, [0+zoom_strength, 100-zoom_strength])
-
-        plt.figure(figsize=(8, 6))
-        for c in np.unique(labels):
-            class_proj = first_proj[labels == c]
-            density = gaussian_kde(class_proj, bw_method='scott')
-            xs = np.linspace(x_min, x_max, 500)
-            ys = density(xs)
-            plt.plot(xs, ys, label=f'Class {c}')
-            plt.fill_between(xs, ys, alpha=0.3)
-
-        plt.axvline(x=0, color='black', linestyle='--')
-        plt.xlabel('Projection onto LogReg Direction')
-        plt.ylabel('Density')
-        plt.title('Class Separation Along LogReg Direction')
-        plt.xlim(x_min, x_max)
-        plt.legend()
-
-        save_fig("kde_1d")
-        return
 
     second_dir = get_direction_with_constraint(
         data_with_bias, labels, model, first_dir)
     second_proj = np.dot(data_with_bias, second_dir)
 
-    x_min, x_max = np.percentile(
-        first_proj, [0+zoom_strength, 100-zoom_strength])
-    y_min, y_max = np.percentile(
-        second_proj, [0+zoom_strength, 100-zoom_strength])
-
-    df = pd.DataFrame({
+    probe_df = pd.DataFrame({
         'First direction': first_proj,
         'Second direction': second_proj,
         'Label': ['False' if l == 0 else 'True' for l in labels]
     })
 
-    kde(
-        data=df,
-        x='First direction',
-        y='Second direction',
-        labels='Label',
-        x_label='First direction',
-        y_label='Second direction',
-        title="KDE_2D",
-        x_range=(x_min, x_max),
-        y_range=(y_min, y_max),
-        kernel=kernel,
-        scatter=scatter,
-        offset=offset
-    )
+    return pca_df, probe_df
 
 
 def plot_sweep(data, ks, alphas, metric="DummyMetric", title=None):

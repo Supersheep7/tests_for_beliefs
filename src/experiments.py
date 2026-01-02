@@ -32,12 +32,29 @@ def asker_kde(model_name=cfg["common"]["model"]):
     return zoom_strength, offset, kernel, scatter, pca_mod    
 
 def run_visualizations(model_name=cfg["common"]["model"]):
+    print(f"Running visualizations. Extracting projections.")
     model = get_model(model_name=model_name)
     data = get_data()
-    activations_res, labels_res = get_activations(model, data, 'residual', model_name=model_name)
-    activations_heads, labels_heads = get_activations(model, data, 'heads', model_name=model_name)
-    save_results((activations_res, labels_res), "acts_for_viz", model=model_name, modality="residual")         
-    save_results((activations_heads, labels_heads), "acts_for_viz", model=model_name, modality="heads")         
+    print("Residual....")
+    activations, labels = get_activations(model, data, 'residual', model_name=model_name)
+    full_residual = []
+    for layer, acts in activations.items():
+        pca_df, probe_df = plot_kde_scatter(data=acts, labels=labels, model=model)
+        full_residual.append((pca_df, probe_df))
+    print("Heads...")
+    activations, labels = get_activations(model, data, 'heads', model_name=model_name)
+    heads = [decompose_mha(x) for x in activations.values()]
+    print("Debug", heads)
+    full_heads = []
+    for layer, layer_heads in enumerate(heads):
+        row = []
+        for head, head_data in enumerate(layer_heads):
+            pca_df, probe_df = plot_kde_scatter(data=head_data, labels=labels, model=model)
+            row.append((pca_df, probe_df))
+        full_heads.append(row)
+        
+    save_results(full_residual, 'viz', model=model_name) 
+    save_results(full_heads, 'viz', model=model_name, modality='heads') 
 
 def run_accuracy(model_name=cfg["common"]["model"]):
     print(f"Running experiment: accuracy")
