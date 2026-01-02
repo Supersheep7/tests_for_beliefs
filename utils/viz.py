@@ -207,7 +207,7 @@ def plot_kde_scatter(data, labels, n_dir=2, zoom_strength=0,
     model = Pipeline([
                     ("scaler", StandardScaler()),
                     ("logreg", LogisticRegression(
-                        max_iter=300,
+                        max_iter=500,
                         n_jobs=-1,
                         solver="lbfgs",
                         multi_class="auto"
